@@ -36,7 +36,6 @@ unsigned char transNamedPipeRequest[] =
 "\x00\x07\x00\x5c\x50\x49\x50\x45\x5c\x00";
 
 unsigned char recvbuff[2048];
-unsigned char uninstall_response[2048];
 
 int main(int argc, char** argv)
 {
