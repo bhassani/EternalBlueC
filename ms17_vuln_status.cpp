@@ -61,11 +61,12 @@ int main(int argc, char** argv)
         printf("Connection Error, Port 445 Firewalled?\n");
         return 0;
     }
-    char response[1024];
-    memset(response, 0, sizeof(response));
+    
+    //send SMB negociate packet
     send(sock, (char*)SmbNegociate, sizeof(SmbNegociate) - 1, 0);
     recv(sock, (char*)recvbuff, sizeof(recvbuff), 0);
 
+    //send Session Setup AndX request
     printf("sending Session_Setup_AndX_Request!\n");
     ret = send(sock, (char*)Session_Setup_AndX_Request, sizeof(Session_Setup_AndX_Request) - 1, 0);
     if (ret <= 0)
@@ -80,10 +81,12 @@ int main(int argc, char** argv)
     //copy userID from recvbuff @ 32,33
     userid[0] = recvbuff[32];
     userid[1] = recvbuff[33];
+    
     //update userID in the tree connect request
     treeConnectRequest[32] = userid[0];
     treeConnectRequest[33] = userid[1];
 
+    //send TreeConnect request
     printf("sending TreeConnect Request!\n");
     ret = send(sock, (char*)treeConnectRequest, sizeof(treeConnectRequest) - 1, 0);
     if (ret <= 0)
@@ -102,6 +105,7 @@ int main(int argc, char** argv)
     transNamedPipeRequest[32] = userid[0];
     transNamedPipeRequest[33] = userid[1];
 
+    //send transNamedPipe request
     printf("sending transNamedPipeRequest!\n");
     ret = send(sock, (char*)transNamedPipeRequest, sizeof(transNamedPipeRequest) - 1, 0);
     if (ret <= 0)
@@ -119,6 +123,8 @@ int main(int argc, char** argv)
     else {
         printf("not vulnerable to MS17-010\n");
     }
+    
+    //cleanup
     closesocket(sock);
     WSACleanup();
     return 0;
