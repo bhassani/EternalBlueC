@@ -66,11 +66,12 @@ int main(int argc, char** argv)
         printf("Connection Error, Port 445 Firewalled?\n");
         return 0;
     }
-    char response[1024];
-    memset(response, 0, sizeof(response));
+    
+    //send SMB negociate packet
     send(sock, (char*)SmbNegociate, sizeof(SmbNegociate) - 1, 0);
     recv(sock, (char*)recvbuff, sizeof(recvbuff), 0);
 
+    //send Session Setup AndX request
     printf("sending Session_Setup_AndX_Request!\n");
     ret = send(sock, (char*)Session_Setup_AndX_Request, sizeof(Session_Setup_AndX_Request) - 1, 0);
     if (ret <= 0)
@@ -79,9 +80,12 @@ int main(int argc, char** argv)
         return 0;
     }
     recv(sock, (char*)recvbuff, sizeof(recvbuff), 0);
+    
+    //copy our returned userID value from the previous packet to the TreeConnect request packet
     userid = *(WORD*)(recvbuff + 0x20);       //get userid
     memcpy(TreeConnect_AndX_Request + 0x20, (char*)&userid, 2); //update userid
 
+    //send TreeConnect request packet
     printf("sending TreeConnect Request!\n");
     ret = send(sock, (char*)TreeConnect_AndX_Request, sizeof(TreeConnect_AndX_Request) - 1, 0);
     if (ret <= 0)
@@ -91,12 +95,14 @@ int main(int argc, char** argv)
     }
     recv(sock, (char*)recvbuff, sizeof(recvbuff), 0);
 
+    //copy the treeID from the TreeConnect response
     treeid = *(WORD*)(recvbuff + 0x1c);       //get treeid
 
     //Replace tree ID and user ID in trans2 session setup packet
     memcpy(trans2_session_setup + 0x20, (char*)&userid, 2);  //update userid
     memcpy(trans2_session_setup + 0x1c, (char*)&treeid, 2);  //update treeid
 
+    //send modified trans2 session request
     printf("sending modified trans2 sessionsetup!\n");
     ret = send(sock, (char*)trans2_session_setup, sizeof(trans2_session_setup) - 1, 0);
     if (ret <= 0)
@@ -106,13 +112,14 @@ int main(int argc, char** argv)
     }
     recv(sock, (char*)recvbuff, sizeof(recvbuff), 0);
 
+    //if multiplex id = x51 or 81 then DoublePulsar is present
     if (recvbuff[34] == 0x51)
     {
         printf("Received data that DoublePulsar is installed!\n");
         char option;
         printf("Would you like to uninstall DoublePulsar: Y/N\n");
         scanf("%c",&option);
-        if (strcmp(option, "Y") || strcmp(option, "y") == 0)
+        if (strcmp(option, "Y") == 0 || strcmp(option, "y") == 0)
         {
             printf("Burning DoublePulsar...\n");
             WORD burn1, burn2, burn3, burn4, burn5;
