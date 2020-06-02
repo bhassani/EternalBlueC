@@ -1,0 +1,171 @@
+UserID position in SMB response is [32] and [33]
+
+TreeID position in SMB response is [28] and [29]
+
+NT_STATUS position in SMB response is (backwards) [9] [10] [11] [12]
+If you're looking for 0xc0000205
+Then it will be written this way:
+recvbuff[9] == 0x05 && recvbuff[10] == 0x02 && recvbuff[11] == 0x00 && recvbuff[12] == 0xc0)
+
+SMB packet headers in hex depending on which type it is:
+Negociate Protocol Request:               0x72
+Session Setup AndX Request:            0xff, 0x73
+Tree Connect AndX Request:             0xff, 0x75
+Trans2 Request SESSION_SETUP   0x32
+NT Trans Request                              0xa0
+Trans2 Secondary Request:               0x33
+Echo Request:                                     0x2b
+
+#define SMB_COM_TRANSACTION         0x25
+#define SMB_COM_TRANSACTION_SECONDARY 0x26
+#define SMB_COM_ECHO                0x2B
+
+#define SMB_COM_TRANSACTION2        0x32
+#define SMB_COM_TRANSACTION2_SECONDARY 0x33
+
+#define SMB_COM_TREE_CONNECT        0x70
+#define SMB_COM_TREE_DISCONNECT     0x71
+
+#define SMB_COM_NEGOTIATE           0x72
+#define SMB_COM_SESSION_SETUP_ANDX  0x73
+#define SMB_COM_LOGOFF_ANDX         0x74
+#define SMB_COM_TREE_CONNECT_ANDX   0x75
+
+#define SMB_COM_NT_TRANSACT         0xA0
+#define SMB_COM_NT_TRANSACT_SECONDARY 0xA1
+#define SMB_COM_NT_CREATE_ANDX      0xA2
+#define SMB_COM_NT_CANCEL           0xA4
+
+#define SMBCLOSE			0x04
+
+#define NEGOTIATEPROTOCOLREQUEST 0x72
+#define SESSIONSETUPANDX	0x73
+#define SESSIONLOGOFF       0x74
+#define TREECONNETANDX		0x75
+#define NTCREATEANDX		0xa2
+
+typedef struct {
+	uint16 SmbMessageType; //0x00
+	uint16 SmbMessageLength; 
+	uint8 ProtocolHeader[4]; //"\xffSMB"
+	uint8 SmbCommand; 
+	uint32 NtStatus; //0x00000000
+	uint8 flags; //0x18 - pathnames not case sensitive & pathnames canonicalized
+	uint16 flags2;  //0xC001 (Unicode & Nt error types & longfilename support
+	uint16 ProcessIDHigh; //0x00
+	uint8 signature[8]; //0x00000000000
+	uint16 reserved; //0x0000
+	uint16 TreeId; 
+	uint16 ProccessID; //0xfeff
+	uint16 UserID; 
+	uint16 multipleID;  //Incremental 64bytes en cada request.
+	char buffer[16384]; // Custom SmbCommand data
+} smheader;
+
+typedef struct {
+	uint8 WordCount;
+	uint16 TotalParameterCount;
+	uint16 TotalDataCount;
+	uint16 MaxParameterCount;
+	uint16 MaxDataCount;
+	uint8 MaxSetupCount;
+	uint8 reserved;
+	uint16 flags;
+	uint32 timeout; //0x00000000
+	uint16 reserved2;
+	uint16 ParameterCount;
+	uint16 ParameterOffset;
+	uint16 DataCount;
+	uint16 DataOffset;
+	uint8 SetupCount; 
+	uint8 reserved3;
+	uint16 Function; //0x0026 for openscManager - Find_First2
+	uint16 FID;
+	uint16 ByteCount; 
+	uint8 padding;
+	uint8 TransactionName[14];
+	uint16 padding2;
+	//DCERPC struct
+	//Microosft ServiceControl
+} SMB_COM_TRANSACTION_STRUCT;
+
+typedef struct {
+	uint8 WordCount; //Number of parameters in this struct
+	uint8 AndXCommand; //0xff no further command
+	uint8 reserved2; //0x00
+	uint16 AndXOffset; 
+
+	uint16 MaxBuffer; 
+	uint16 MaxMpxCount; 
+	uint16 VcNumber; //0x0000
+	uint32 SessionKey; //0x00000000
+	uint16 SecurityBloblength; 
+	uint32 reserved3; //0x00000000
+	uint32 capabilities; //0x200000D4
+	uint16 ByteCount; 
+} SessionSetupAndX;
+
+
+typedef struct {
+	uint8 WordCount; //Number of parameters in this struct
+	uint8 AndXCommand; //0xff no further command
+	uint8 reserved2; //0x00
+	uint16 AndXOffset; 
+	uint16 Action;
+	uint16 SecurityBloblength; 
+	uint16 ByteCount;
+//	uint8 padding;
+} SessionSetupAndXResponse; 
+
+
+typedef struct {
+	uint8 WordCount;
+	uint16 ByteCount;
+//	DIALECT *Dialects;
+    char *Dialects;
+} NegotiateProtocolRequest;
+
+
+typedef struct {
+	uint8 WordCount; //Number of parameters in this struct
+    uint16 DialecIndex;
+    uint8 SecurityMode;
+    uint16 MaxMxpCount;
+    uint16 MaxVcs;
+    uint32 MaxBufferSize;
+    uint32 MaxRawBuffer;
+    uint32 SessionKey;
+    uint32 Capabilities;
+    //uint64 ServerTime;
+    uint8  ServerTime[8];
+    uint16 ServerTimeZone;
+    uint8 KeyLength;
+    uint16 ByteCount;
+    uint8 ServerGuid[16];
+} NegotiateProtocolResponse; 
+
+
+typedef struct {
+	uint8 WordCount; 
+	uint8 AndXCommand; //0xff no further command
+	uint8 reserved2; //0x00
+	uint16 AndXOffset; 
+	uint16 flags;
+	uint16 PasswordLen;	//Set to 0x01
+	uint16 ByteCount; 
+	uint8 Password; //Set to 0x00
+    //resource
+    //service ????\0
+} TreeConnectAndX; 
+
+typedef struct {
+	uint8 WordCount; 
+	uint16 ByteCount; 
+} TreeConnectAndXResponse;
+
+typedef struct {
+	uint8 WordCount; //0x24
+	uint16 FID; //0xff no further command
+	uint32 LastWrite;
+	uint16 ByteCount;
+} CLOSE;
