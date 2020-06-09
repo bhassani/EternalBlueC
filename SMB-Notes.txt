@@ -1,5 +1,32 @@
-UserID position in SMB response is [32] and [33]
+June 9 2020 update:
 
+SMB packet response layout
+NetBIOS Data     //smb_response[0][1][2][3]
+server_component //smb_response[4][5][6][7]
+smb_command 	 // smb_response[8]
+error_class 	 // smb_response[9]
+reserved1 	 // smb_response[10]
+error_code 	 // smb_response[11][12]
+flags 		 // smb_response[13]
+flags2 		 // smb_response[14][15]
+process_id_high  // smb_response[16][17]
+signature 	 // smb_response[18][19][20][21][22][23][24][25]
+reserved2 	 // smb_response[26][27]
+tree_id 	 // smb_response[28][29]
+process_id 	 // smb_response[30][31]
+user_id 	 // smb_response[32][33]
+multiplex_id 	 // smb_response[34][35]
+
+SMB signature needed for XOR key calculation resides at:
+SMB Packet response [18] [19] [20] [21] [22] [23] [24] [25]
+
+tree_id      [28] [29]
+process_id   [30] [31]
+user_id      [32] [33]
+multiplex_id [34] [35]
+
+////////////////////////////////////////////////
+UserID position in SMB response is [32] and [33]
 TreeID position in SMB response is [28] and [29]
 
 NT_STATUS position in SMB response is (backwards) [9] [10] [11] [12]
