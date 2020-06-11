@@ -285,7 +285,8 @@ int main(int argc, char* argv[])
 		
 		//fix me
 		//copy 4064 bytes at a time from the XOR encrypted buffer
-		memcpy(big_packet + sizeof(SMB_Trans2_Packet_Header) + sizeof(trans2_request), (char*)encrypted, sizeof(encrypted));
+		//not the whole thing!
+		memcpy(big_packet + sizeof(SMB_Trans2_Packet_Header) + sizeof(trans2_request), (char*)encrypted, ctx);
 
 		//FIX ME
 		//fix data len values
