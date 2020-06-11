@@ -191,8 +191,11 @@ int main(int argc, char* argv[])
 	//copy the treeID from the TreeConnect response
 	treeid = *(WORD*)(recvbuff + 0x1c);       //get treeid
 
-	//obtain ProcessID
-	//obtain Multiplex ID
+	WORD processid, multiplexid;
+	//obtain ProcessID = smb_response[30][31]
+	//obtain Multiplex ID = smb_response[34][35]
+	processid = *(WORD*)(recvbuff + 30);
+	multiplexid = *(WORD*)(recvbuff + 34);
 
 	//Update treeID, Process ID, UserID, Multiplex ID
 	//update Multiplex ID to 65
