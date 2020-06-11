@@ -304,9 +304,10 @@ int main(int argc, char* argv[])
 			printf("Not good!  Doesn't seem to be working!  DoublePulsar error! Exiting!\n");
 			goto cleanup;
 		}
+		
 		//fix me by incrementing the correct value
 		//4096-32 bytes in headers
-		ctx += 4064;
+		//ctx += 4064;
 	}
 
 	//command received successfully!
