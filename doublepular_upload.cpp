@@ -41,22 +41,6 @@ unsigned char trans2_request[] =
 HANDLE hProcHeap;
 unsigned char recvbuff[2048];
 
-Void xor_data(char *input, unsigned char key)
-{
-	Int i = 0;
-	Int len = 0;
-	Len = strlen(input);
-	Unsigned char encrypted;
-	Encrypted = (unsigned char*)malloc(len+1);
-	for(i=0;i<len;i++)
-	{
-		input[i] = input[i]^key;
-         }
-
-	//free the memory
-	free(encrypted);
-}
-
 unsigned int ComputerDOUBLEPULSARXorKey(unsigned int sig)
 {
 	return 2 * sig ^ ((((sig >> 16) | sig & 0xFF0000) >> 8) |
