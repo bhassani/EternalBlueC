@@ -262,6 +262,7 @@ int main(int argc, char* argv[])
 	int ctx;
 	int encrypted_buffer_len;
 	encrypted_buffer_len = sizeof(encrypted);
+	int BytesToRead = sizeof(encrypted);
 	for (ctx = 0; ctx < encrypted_buffer_len; ctx += 4064)
 	{
 		memcpy(big_packet, trans2_request, sizeof(trans2_request));
@@ -304,6 +305,9 @@ int main(int argc, char* argv[])
 			printf("Not good!  Doesn't seem to be working!  DoublePulsar error! Exiting!\n");
 			goto cleanup;
 		}
+		
+		//subtract BytesToRead by how much we sent
+		numBytesToRead -= 4064;
 		
 		//fix me by incrementing the correct value
 		//4096-32 bytes in headers
