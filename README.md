@@ -1,5 +1,5 @@
 # EternalBlueC
-Scanner for a machine's MS17-010 vulnerability status &amp; DoublePulsar backdoor detector
+EternalBlue suite remade in C which includes: MS17-010 Exploit, EternalBlue vulnerability detector, DoublePulsar detector and DoublePulsar UploadDLL controller
 
 [*] ms17_vuln_status.cpp - This program sends 4 SMB packets.  1 negociation packet and 3 requests.  This program reads the NT_STATUS response from a TransNamedPipeRequest ( PeekNamedPipe request ) and determines if NT_STATUS = 0xC0000205 ( STATUS_INSUFF_SERVER_RESOURCES ).  If this is the correct response, then the target is vulnerable to MS17-010.  Tested on unpatched Windows 7 x64 bit.
 
