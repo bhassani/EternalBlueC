@@ -53,15 +53,10 @@ unsigned char trans2_session_setup[] =
 "\x00\x0E\x00\x0D\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"
 "\x00\x00";
 
-unsigned char Echopacket[] = {
-   00 1c c4 33 c6 dd 00 25 b3 f5 fa 74 08 00 45 00
-   00 5d 05 74 40 00 80 06 8a 94 c0 a8 74 95 c0 a8
-   74 ac c1 c8 01 bd 88 69 c7 5c d8 c0 11 4a 50 18
-   00 fe 64 1e 00 00 00 00 00 31 ff 53 4d 42 2b 00
-   00 00 00 18 07 c0 00 00 00 00 00 00 00 00 00 00
-   00 00 00 08 ff fe 00 08 40 00 01 01 00 0c 00 4a
-   6c 4a 6d 49 68 43 6c 42 73 72 00
-};
+unsigned char Echopacket[] =  "\x00\x00\x00\x31\xff\x53\x4d\x42\x2b\x00"
+                              "\x00\x00\x00\x18\x07\xc0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"
+                              "\x00\x00\x00\x08\xff\xfe\x00\x08\x40\x00\x01\x01\x00\x0c\x00\x4a"
+                              "\x6c\x4a\x6d\x49\x68\x43\x6c\x42\x73\x72\x00";
 
 unsigned char tree_disconnect_request[] = {
     0x00, 0x00, 0x00, 0x23, 0xff, 0x53, 0x4d, 0x42, 
