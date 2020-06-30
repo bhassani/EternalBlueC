@@ -97,6 +97,11 @@ int main(int argc, char** argv)
     printf("OS reply:  ");
     for(counter=40; counter<=83; counter++)
     {
+        printf("%02X ", recvbuff[counter]);
+    }
+    printf("\n");
+    for(counter=40; counter<=83; counter++)
+    {
         printf("%c ", recvbuff[counter]);
     }
     
