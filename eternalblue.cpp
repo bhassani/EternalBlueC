@@ -8678,7 +8678,7 @@ int main(int argc, char** argv)
     send(sock, (char*)peer0_88, sizeof(peer0_88) - 1, 0);
     send(sock, (char*)peer0_89, sizeof(peer0_89) - 1, 0);
     send(sock, (char*)peer0_90, sizeof(peer0_90) - 1, 0);
-    send(sock, (char*)peer0_91, sizeof(peer0_81) - 1, 0);
+    send(sock, (char*)peer0_91, sizeof(peer0_91) - 1, 0);
     send(sock, (char*)peer0_92, sizeof(peer0_92) - 1, 0);
     send(sock, (char*)peer0_93, sizeof(peer0_93) - 1, 0);
     send(sock, (char*)peer0_94, sizeof(peer0_94) - 1, 0);
