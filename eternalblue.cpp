@@ -2,6 +2,7 @@
 
 Sources:
 https://www.virusbulletin.com/virusbulletin/2018/06/eternalblue-prominent-threat-actor-20172018/
+https://www.oreilly.com/library/view/using-samba-second/0596002564/ch01s04.html
 
 */
 
@@ -91,6 +92,13 @@ int main(int argc, char** argv)
         return 0;
     }
     recv(sock, (char*)recvbuff, sizeof(recvbuff), 0);
+    
+    int counter;
+    printf("OS reply:  ");
+    for(counter=40; counter<=83; counter++)
+    {
+        printf("%c ", recvbuff[counter]);
+    }
     
     char userid[2];
     char treeid[2];
