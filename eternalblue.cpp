@@ -233,6 +233,15 @@ int main(int argc, char** argv)
         printf("=-=-=-=-=-=-=-=-=-=-=-=-=-=FAIL-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=")
         printf("=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=")
     }
+
+    //send tree_disconnect_request
+    send(sock, (char*)tree_disconnect_request, sizeof(tree_disconnect_request) - 1, 0);
+    recv(sock, (char*)recvbuff, sizeof(recvbuff), 0);
+  
+    //send logoff_andx_request
+    send(sock, (char*)logoff_andx_request, sizeof(logoff_andx_request) - 1, 0);
+    recv(sock, (char*)recvbuff, sizeof(recvbuff), 0);
+
     //cleanup
     closesocket(sock);
     WSACleanup();
