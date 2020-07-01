@@ -211,14 +211,11 @@ int main(int argc, char* argv[])
 	//extract SMB Signature Key
 	unsigned int signature[8];
 
-	memcpy(signature[0], (unsigned int*)&recvbuff + 18, 1);
-	memcpy(signature[1], (unsigned int*)&recvbuff + 19, 1);
-	memcpy(signature[2], (unsigned int*)&recvbuff + 20, 1);
-	memcpy(signature[3], (unsigned int*)&recvbuff + 21, 1);
-	memcpy(signature[5], (unsigned int*)&recvbuff + 22, 1);
-	memcpy(signature[6], (unsigned int*)&recvbuff + 23, 1);
-	memcpy(signature[7], (unsigned int*)&recvbuff + 24, 1);
-	memcpy(signature[8], (unsigned int*)&recvbuff + 25, 1);
+	memcpy(signature[0], (unsigned int*)&recvbuff + 18, 2);
+	memcpy(signature[2], (unsigned int*)&recvbuff + 20, 2);
+	memcpy(signature[4], (unsigned int*)&recvbuff + 22, 2);
+	memcpy(signature[6], (unsigned int*)&recvbuff + 24, 2);
+	
 	//OR
 	//memcpy(signature, (unsigned int*)&recvbuff + 18, 8);
 
