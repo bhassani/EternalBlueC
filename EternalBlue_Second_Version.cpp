@@ -12,6 +12,28 @@ int main(int argc, char** argv)
 	struct sockaddr_in server;
 	SOCKET s1, s2, s3, s4, s5, s6, s7, s8, s9, s10, s11, s12, s13, s14, s15, s16, s17, s18, s19, s20, s21;
 
+	char userid[2];
+	char treeid[2];
+	 /*
+	 	//copy userID from recvbuff @ 32,33
+	userid[0] = recvbuff[32];
+	userid[1] = recvbuff[33];
+
+	//update userID in the tree connect request
+	request[32] = userid[0];
+	request[33] = userid[1];
+
+	//copy treeID from recvbuff @ 28, 29
+	treeid[0] = recvbuff[28];
+	treeid[1] = recvbuff[29];
+
+	request[28] = treeid[0];
+	request[29] = treeid[1];
+	request[32] = userid[0];
+	request[33] = userid[1];
+
+	*/
+
 	WSAStartup(MAKEWORD(2, 2), &ws);
 	s1 = socket(AF_INET, SOCK_STREAM, 0);
 	s2 = socket(AF_INET, SOCK_STREAM, 0);
@@ -50,74 +72,62 @@ int main(int argc, char** argv)
 
 	send(s1, (char*)session_setup, sizeof(session_setup) - 1, 0);
 	recv(s1, (char*)recvbuff, sizeof(recvbuff), 0);
+	userid[0] = recvbuff[32];
+	userid[1] = recvbuff[33];
+
+	//update userID in the tree connect request
+	treeconnect[32] = userid[0];
+	treeconnect[33] = userid[1];
 
 	send(s1, (char*)treeconnect, sizeof(treeconnect) - 1, 0);
 	recv(s1, (char*)recvbuff, sizeof(recvbuff), 0);
+	//copy treeID from recvbuff @ 28, 29
+	treeid[0] = recvbuff[28];
+	treeid[1] = recvbuff[29];
 
 	send(s1, (char*)NTTrans, sizeof(NTTrans) - 1, 0);
 
-
 	send(s1, (char*)NTTrans2, sizeof(NTTrans2) - 1, 0);
-
 
 	send(s1, (char*)NTTrans3, sizeof(NTTrans3) - 1, 0);
 
-
 	send(s1, (char*)NTTrans4, sizeof(NTTrans4) - 1, 0);
-
 
 	send(s1, (char*)NTTrans5, sizeof(NTTrans5) - 1, 0);
 
-
 	send(s1, (char*)NTTrans6, sizeof(NTTrans6) - 1, 0);
-
 
 	send(s1, (char*)NTTrans7, sizeof(NTTrans7) - 1, 0);
 
-
 	send(s1, (char*)NTTrans8, sizeof(NTTrans8) - 1, 0);
-
 
 	send(s1, (char*)NTTrans9, sizeof(NTTrans9) - 1, 0);
 
-
 	send(s1, (char*)NTTrans10, sizeof(NTTrans10) - 1, 0);
-
 
 	send(s1, (char*)NTTrans11, sizeof(NTTrans11) - 1, 0);
 
-
 	send(s1, (char*)NTTrans12, sizeof(NTTrans12) - 1, 0);
-
 
 	send(s1, (char*)NTTrans13, sizeof(NTTrans13) - 1, 0);
 
-
 	send(s1, (char*)NTTrans14, sizeof(NTTrans14) - 1, 0);
 
-
 	send(s1, (char*)NTTrans15, sizeof(NTTrans15) - 1, 0);
-
 
 	send(s1, (char*)NTTrans16, sizeof(NTTrans16) - 1, 0);
 
 	send(s1, (char*)NTTrans17, sizeof(NTTrans17) - 1, 0);
 
-
 	send(s1, (char*)NTTrans18, sizeof(NTTrans18) - 1, 0);
-
 
 	send(s1, (char*)NTTrans19, sizeof(NTTrans19) - 1, 0);
 
-
 	send(s1, (char*)NTTrans20, sizeof(NTTrans20) - 1, 0);
-
 
 	send(s1, (char*)NTTrans21, sizeof(NTTrans21) - 1, 0);
 
-
 	send(s1, (char*)NTTrans22, sizeof(NTTrans22) - 1, 0);
-
 
 	send(s1, (char*)NTTrans23, sizeof(NTTrans23) - 1, 0);
 
@@ -223,9 +233,11 @@ int main(int argc, char** argv)
 	send(s15, (char*)unknown_packet_socket15, sizeof(unknown_packet_socket15) - 1, 0);
 
 	send(s16, (char*)negociate_socket16, sizeof(negociate_socket16) - 1, 0);
+	recv(s16, (char*)recvbuff, sizeof(recvbuff), 0);
+
 	send(s16, (char*)unknown_packet_socket16, sizeof(unknown_packet_socket16) - 1, 0);
 	//get information
-	recv(s6, (char*)recvbuff, sizeof(recvbuff), 0);
+	recv(s16, (char*)recvbuff, sizeof(recvbuff), 0);
 
 	closesocket(s2);
 
