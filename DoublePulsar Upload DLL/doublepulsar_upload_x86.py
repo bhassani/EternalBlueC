@@ -27,11 +27,11 @@ def get_smb_signature(smb_data):
 
 def get_key(smb_data):
     smb_sign = struct.unpack("<I",get_smb_signature(smb_data))[0]
-    print("smb_sign:","0x%X"%(smb_sign))
+    print("smb_sign: 0x%X" % (smb_sign))
     int_key = calculate_doublepulsar_xor_key(smb_sign)
-    print("int_key:","0x%X"%(int_key))
+    print("int_key: 0x%X" % (int_key))
     key=struct.pack("<I",int_key)
-    print("key:",binascii.b2a_hex(key))
+    print("key: %s" % binascii.b2a_hex(key))
     return key
 
 def xor_data(org_data , key):
