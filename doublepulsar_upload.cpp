@@ -263,6 +263,11 @@ int main(int argc, char* argv[])
 	int encrypted_buffer_len = sizeof(encrypted);
 	int bytesLeft = encrypted_buffer_len;
 	printf("Uploading file...%d bytes to send\n", encrypted_buffer_len);
+	int numberofpackets = encrypted_buffer_len / 4096;
+	int iterations = encrypted_buffer_len % 4096;
+	printf("will send %d packets of data\n ", numberofpackets);
+	printf("%d as a remainder\n", iterations);
+	
 	for (ctx = 0; ctx < encrypted_buffer_len;)
 	{
 		if (bytesLeft < 4096)
