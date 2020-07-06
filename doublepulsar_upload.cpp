@@ -108,6 +108,61 @@ typedef struct {
 
 */
 
+/*
+//0x32
+typedef struct
+{
+    unsigned char wordcount;
+    struct
+    {
+        unsigned short TotalParameterCount;
+        unsigned short TotalDataCount;
+        unsigned short MaxParameterCount;
+        unsigned short MaxDataCount;
+        unsigned char  MaxSetupCount;
+        unsigned char  Reserved1;
+        unsigned short Flags;
+        unsigned int  Timeout;
+        unsigned short Reserved2;
+        unsigned short ParameterCount;
+        unsigned short ParameterOffset;
+        unsigned short DataCount;
+        unsigned short DataOffset;
+        unsigned char  SetupCount;
+        unsigned char  Reserved3;
+        unsigned short Setup[1];
+    }words;
+}rqpara32;
+
+typedef struct
+{
+    unsigned char wordcount;
+    struct
+    {
+        unsigned short TotalParameterCount;
+        unsigned short TotalDataCount;
+        unsigned short Reserved1;
+        unsigned short ParameterCount;
+        unsigned short ParameterOffset;
+        unsigned short ParameterDisplacement;
+        unsigned short DataCount;
+        unsigned short DataOffset;
+        unsigned short DataDisplacement;
+        unsigned char SetupCount;
+        unsigned char Reserved2;
+    }words;
+}rppara32;
+
+typedef struct
+{
+    unsigned short bytecount;
+    struct
+    {
+        char s[4000];
+    }bytes;
+}rpdata32;
+*/
+
 //globals
 HANDLE hProcHeap;
 unsigned char recvbuff[2048];
