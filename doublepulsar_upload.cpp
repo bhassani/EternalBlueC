@@ -191,7 +191,7 @@ int main(int argc, char* argv[])
 	char hostipc2[40*2];
 	char smblen;
 	char unclen;
-	sprintf((char *)hostipc,"\\\\%s\\ipc$", target);
+	sprintf((char *)hostipc,"\\\\%s\\ipc$", argv[1]);
 	for (i=0; i<40; i++)
 	{
 		hostipc2[i*2] = hostipc[i];
