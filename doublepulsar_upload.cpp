@@ -246,9 +246,9 @@ int main(int argc, char* argv[])
 	/* untested 
 	unsigned int smb_signature[3];
 	memcpy(smb_signature, (unsigned int*)&recvbuff + 18, 1);
-	memcpy(smb_signature + 1, (unsigned int*)&recvbuff + 20, 1);
-	memcpy(smb_signature + 2, (unsigned int*)&recvbuff + 22, 1);
-	memcpy(smb_signature + 3, (unsigned int*)&recvbuff + 24, 1);
+	memcpy(smb_signature + 1, (unsigned int*)&recvbuff + 19, 1);
+	memcpy(smb_signature + 2, (unsigned int*)&recvbuff + 20, 1);
+	memcpy(smb_signature + 3, (unsigned int*)&recvbuff + 21, 1);
 	*/
 	
 	//test SMB signature
