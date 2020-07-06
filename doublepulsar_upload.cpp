@@ -39,6 +39,75 @@ unsigned char trans2_request[] =
 "\x34\xEE\x00\x00\x00\x0C\x00\x42\x00\x00\x00\x4E\x00\x01\x00\x0E"
 "\x00\x0D\x00\x00\x00\x00";
 
+typedef struct {
+	uint16 SmbMessageType; //0x00
+	uint16 SmbMessageLength; 
+	uint8 ProtocolHeader[4]; //"\xffSMB"
+	uint8 SmbCommand; 
+	uint32 NtStatus; //0x00000000
+	uint8 flags; //0x18 - pathnames not case sensitive & pathnames canonicalized
+	uint16 flags2;  //0xC007
+	uint16 ProcessIDHigh; //0x00
+	uint8 signature[8]; //0x00000000000
+	uint16 reserved; //0x0000
+	uint16 TreeId; 
+	uint16 ProccessID; //0xfeff
+	uint16 UserID; 
+	uint16 multipleID;
+
+	uint8 WordCount;
+	uint16 TotalParameterCount;
+	uint16 TotalDataCount;
+	uint16 MaxParameterCount;
+	uint16 MaxDataCount;
+	uint8 MaxSetupCount;
+	uint8 reserved;
+	uint16 flags;
+	uint32 timeout;   // 0x25 0x89 0x1a 0x00
+	uint16 reserved2;
+	uint16 ParameterCount;
+	uint16 ParameterOffset;
+	uint16 DataCount; //4096
+	uint16 DataOffset; //78
+	uint8 SetupCount; 
+	uint8 reserved3;
+	uint16 Function; //0x0e00 also known as Subcommand in Wireshark
+	uint16 ByteCount; //4109 or 0x0d 0x10
+	uint8 padding;
+	//uint8 TransactionName[14]; 
+	//uint16 padding2;
+	char SESSION_DATA_PARAMETERS[12]; //Wannacry uses 12 as the size
+	char payload[4096];
+} SMB_COM_TRANSACTION2_STRUCT;
+
+/*
+	Sample SESSION_SETUP parameter values:
+	42 30 80 57 42 d0 d0 57 42 d0 e6 57
+
+	SMB_COM_TRANSACTION2_STRUCT trans2;
+	trans2.SmbCommand = 0x32;
+	trans2.Flags1 = 0x18;
+	trans2.Flags2 = 0xc007;
+	trans2.WordCount = 14 + setup_count; 
+	trans2.TreeID = treeid; //extracted earlier
+	trans2.multipleid  = 41;
+	trans2.ParamCountTotal = param.length;
+	trans2.DataCountTotal = bodyCount; //Count of the whole data being sent
+	trans2.ParamCountMax = 1;
+	trans2.DataCountMax = 0;
+	trans2.ParamCount = param.length;
+	trans2.ParamOffset = param_offset;
+	trans2.DataCount = lpbdata.dwSize;
+	trans2.DataOffset = data_offset;
+	trans2.SetupCount = setup_count;
+	trans2.SetupData = setup_data;
+	trans2.timeout = 0x25891a00;
+	trans2.payload = lpbdata.dwData;
+
+	send(socket, (char*)trans2, sizeof(trans2), 0);
+
+*/
+
 //globals
 HANDLE hProcHeap;
 unsigned char recvbuff[2048];
