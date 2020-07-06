@@ -207,7 +207,7 @@ int main(int argc, char* argv[])
 	
 	//send TreeConnect request packet
 	printf("sending TreeConnect Request!\n");
-	send(sock, (char*)ModifiedTreeConnectRequest, sizeof(TreeConnect_AndX_Request) - 1, 0);
+	send(sock, (char*)ModifiedTreeConnectRequest, sizeof(ModifiedTreeConnectRequest) - 1, 0);
 	recv(sock, (char*)recvbuff, sizeof(recvbuff), 0);
 	
 	//copy the treeID from the TreeConnect response
