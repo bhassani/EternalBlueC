@@ -254,7 +254,6 @@ int main(int argc, char* argv[])
 	int XorKey = ComputeDOUBLEPULSARXorKey((unsigned int)signature);
 
 	//Xor the data buffer with the calculated key
-	int i = 0;
 	int len = 0;
 	len = sizeof(payload.lpbData);
 	unsigned char *encrypted;
