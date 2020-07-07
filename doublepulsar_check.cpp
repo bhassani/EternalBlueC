@@ -123,11 +123,15 @@ int main(int argc, char** argv)
         {
             printf("Burning DoublePulsar...\n");
             WORD burn1, burn2, burn3, burn4, burn5;
-            burn1 = 66;       //burn command
-            burn2 = 14;       //burn command
-            burn3 = 105;      //burn command
-            burn4 = 0;       //burn command
-            burn5 = 0;       //burn command
+            //burn1 = multiplex ID of 66 in decimal or x42 in hex
+            //if successful.  x52 is returned which means the payload ran succesfully!
+            burn1 = 66;       //update multiplex ID to x42
+            //modified_trans2_session_setup[34] = "\x42"
+            //burn command being sent in the timeout portion of the packet
+            burn2 = 14;       //burn command - trans2_session_setup[49] = "\x0e"
+            burn3 = 105;      //burn command - trans2_session_setup[50] = "\x69"
+            burn4 = 0;        //burn command - trans2_session_setup[51] = "\x00"
+            burn5 = 0;        //burn command - trans2_session_setup[52] = "\x00"
 
             //modify our trans2 session packet to include the burn command
             memcpy(trans2_session_setup + 0x22, (char*)&burn1, 1);
