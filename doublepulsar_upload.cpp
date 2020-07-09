@@ -39,6 +39,29 @@ unsigned char trans2_request[] =
 "\x34\xEE\x00\x00\x00\x0C\x00\x42\x00\x00\x00\x4E\x00\x01\x00\x0E"
 "\x00\x0D\x00\x00\x00\x00";
 
+//trans2_request seems like it doesn't work
+//Trans2_Request found in Wannacry
+unsigned char wannacry_Trans2_Request[] = 
+"\x00\x00\x10\x4e\xff\x53\x4d\x42\x32\x00\x00\x00\x00\x18\x07\xc0"
+"\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x08\xff\xfe"
+"\x00\x08\x42\x00\x0f\x0c\x00\x00\x10\x01\x00\x00\x00\x00\x00\x00"
+"\x00\x25\x89\x1a\x00\x00\x00\x0c\x00\x42\x00\x00\x10\x4e\x00\x01"
+"\x00\x0e\x00\x0d\x10\x00"; /* d1 c9 10 17 d9 aa 40 17 d9 da 69 17 ( SESSION_SETUP Parameters ) */
+
+/*
+Copied from Wannacry PCAP:
+
+Wannacry Trans2 Request, SESSION_SETUP 
+00 00 10 4e ff 53 4d 42 32 00 00 00 00 18 07 c0
+00 00 00 00 00 00 00 00 00 00 00 00 00 08 ff fe
+00 08 42 00 0f 0c 00 00 10 01 00 00 00 00 00 00
+00 25 89 1a 00 00 00 0c 00 42 00 00 10 4e 00 01
+00 0e 00 0d 10 00 
+
+SESSION_SETUP Parameters:
+d1 c9 10 17 d9 aa 40 17 d9 da 69 17
+*/
+
 typedef struct {
 	uint16 SmbMessageType; //0x00
 	uint16 SmbMessageLength; 
