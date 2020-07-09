@@ -125,7 +125,7 @@ int main(int argc, char* argv[])
 	unsigned int XorKey = ComputeDOUBLEPULSARXorKey(sig);
 	printf("Calculated XOR KEY:  0x%x\n", XorKey);
 
-	//will use for re-sending the computed XOR key in the Trans2 SESSION_DATA parameters
+	//will use for re-sending the computed XOR key in the Trans2 SESSION_SETUP data parameters
 	unsigned char c[5];
 
 	c[0] = XorKey & 0xFF;
