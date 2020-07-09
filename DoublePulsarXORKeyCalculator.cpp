@@ -126,13 +126,12 @@ int main(int argc, char* argv[])
 	printf("Calculated XOR KEY:  0x%x\n", XorKey);
 
 	//will use for re-sending the computed XOR key in the Trans2 SESSION_SETUP data parameters
-	unsigned char c[5];
+	unsigned char c[4];
 
 	c[0] = XorKey & 0xFF;
 	c[1] = (XorKey >> 8) & 0xFF;
 	c[2] = (XorKey >> 8 >> 8) & 0xFF;
 	c[3] = (XorKey >> 8 >> 8 >> 8) & 0xFF;
-	c[4] = (XorKey >> 8 >> 8 >> 8 >> 8) & 0xFF;
 
 	printf("XOR Key in characters ( needed for DoublePulsar SESSION Data )\n");
 	printf("c[0] = %x \n", c[0]);
