@@ -300,6 +300,17 @@ unsigned int ComputeDOUBLEPULSARXorKey(unsigned int sig)
 		(((sig << 16) | sig & 0xFF00) << 8));
 }
 
+void convert_name(char *out, char *name)
+{
+	unsigned long len;
+	len = strlen(name);
+	out += len * 2 - 1;
+	while (len--) {
+		*out-- = '\x00';
+		*out-- = name[len];
+	}
+}
+
 int main(int argc, char* argv[])
 {
 	WSADATA    ws;
