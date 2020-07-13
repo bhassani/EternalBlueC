@@ -382,13 +382,16 @@ int main(int argc, char* argv[])
 	WORD processid, multiplexid;
 	//obtain ProcessID = smb_response[30][31]
 	//obtain Multiplex ID = smb_response[34][35]
+	
+	//unable to determine if this is used at this time
+	//kept for historical references.  will probably not be used in final version
 	processid = *(WORD*)(recvbuff + 30);
 	multiplexid = *(WORD*)(recvbuff + 34);
 
 	//Update treeID, Process ID, UserID, Multiplex ID
 	//update Multiplex ID to 65
 	memcpy(trans2_request + 28, (char*)&treeid, 2);
-	memcpy(trans2_request + 30, (char*)&processid, 2);
+	//memcpy(trans2_request + 30, (char*)&processid, 2);
 	memcpy(trans2_request + 32, (char*)&userid, 2);
 	//memcpy(trans2_request + 34, (char*)&multiplexid, 2);
 	//trans2_request[34] = '\x41'; //update Multiplex ID to 41
