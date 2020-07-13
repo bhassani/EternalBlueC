@@ -16,6 +16,11 @@ EternalBlue suite remade in C which includes: MS17-010 Exploit, EternalBlue/MS17
 
 TODO: Might need to implement the Trans2 Upload function using a structure and not editing the Trans2 packet capture using hexadecimal.
 
+Project goals:
+[*] Allow editing of EternalBlue exploit payload to remove DoublePulsar and allow custom payloads & shellcode to be installed instead.
+
+[*] Convert to other languages such as Java and C# and implement a scanner & attack GUI
+
 Repository also contains
   * DoublePulsar Upload DLL python scripts & DoublePulsar x64 userland shellcode for DLL injection
   * EternalBlue All in one binary
