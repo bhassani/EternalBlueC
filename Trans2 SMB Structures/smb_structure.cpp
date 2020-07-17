@@ -1,3 +1,5 @@
+//This code is from Snort
+
 typedef struct smb_hdr
 {
     uint8_t protocol[4];      /* Should always be 0xff,SMB */
