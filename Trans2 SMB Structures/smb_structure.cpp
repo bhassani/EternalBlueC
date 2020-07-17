@@ -76,3 +76,28 @@ typedef struct transaction2_secondary_hdr
     uint16_t byteCount;
 
 } SMB_TRANSACTION2_SECONDARY_REQ;
+
+/*
+ * Grumble, grumble...
+ *
+ * Since IBM/Micrsoft decided to put SMBs out on the wire in
+ * little endian order, the htonX & ntohX ops convert on the
+ * wrong architectures -- ie, we need no conversion on little
+ * endian.  So, use these for SMB...
+ */
+
+#ifdef WORDS_BIGENDIAN
+#define smb_htons(A)  ((((u_int16_t)(A) & 0xff00) >> 8) | (((u_int16_t)(A) & 0x00ff) << 8))
+#define smb_htonl(A)  ((((u_int32_t)(A) & 0xff000000) >> 24) | (((u_int32_t)(A) & 0x00ff0000) >> 8)  | (((u_int32_t)(A) & 0x0000ff00) << 8)  | (((u_int32_t)(A) & 0x000000ff) << 24))
+#define smb_ntohs     smb_htons
+#define smb_ntohl     smb_htonl
+#define IS_LITTLE_ENDIAN 0
+#else
+#define smb_htons(A)  (A)
+#define smb_htonl(A)  (A)
+#define smb_ntohs(A)  (A)
+#define smb_ntohl(A)  (A)
+#define IS_LITTLE_ENDIAN 1
+#endif
+
+#define HAS_UNICODE_STRINGS(smbHdr) (smb_ntohs(smbHdr->flags2) & 0x8000)
