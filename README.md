@@ -22,6 +22,8 @@ Project goals:
 
 [*] Convert to other languages such as Java and C# and implement a scanner & attack GUI
 
+[*] Add EternalRomance support
+
 Repository also contains
   * DoublePulsar Upload DLL python scripts & DoublePulsar x64 userland shellcode for DLL injection
   * EternalBlue All in one binary
