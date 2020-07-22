@@ -112,7 +112,7 @@ int sendStuff()
       uploadpacket.function = 0x0e00;
       uploadpacket.byteCount = 4109;
       memcpy(uploadpacket.SESSION_DATA_PARAMETERS, "GIBBERISH" , 8);
-      memcpy(uploadpacket.SESSION_DATA_PARAMETERS, CHAR_XOR_KEY, 4);
+      memcpy(uploadpacket.SESSION_DATA_PARAMETERS + 8, CHAR_XOR_KEY, 4);
       memcpy(uploadpacket.payload, data, 4096);
 
       //send data
