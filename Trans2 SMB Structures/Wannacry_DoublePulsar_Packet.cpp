@@ -22,6 +22,27 @@ As a whole, these packet bytes include kernel shellcode, userland shellcode, and
 
 */
 
+/*
+
+https://shasaurabh.blogspot.com/2017/05/doublepulsar-backdoor.html
+
+Trans2.SESSION_SETUP.Parameters is of 0xC (12) bytes and contains below information encrypted by XOR key.
+1. Total Size of Payload
+2. Chunk Size
+3. Offset of Chunk in Payload
+
+Trans2.SESSION_SETUP.Parameters value = 6a620858 62015858 62115858
+Total Size of Payload = (0x5808626a) ^ (0x58581162) = 0x507308
+ Chunk Size = (0x58580162) ^ (0x58581162) = 0x1000(4096)
+Offset of Chunk in Payload = (0x58581162) ^ (0x58581162) = 0
+
+Another example of Trans2.SESSION_SETUP.Parameters value = 6a620858 62015858 62015858
+Total Size of Payload = (0x5808626a) ^ (0x58581162) = 0x507308
+Chunk Size = (0x58580162) ^ (0x58580162) = 0x1000(4096)
+Offset of Chunk in Payload = (0x58580162) ^ (0x58581162) = 0x1000(4096)
+
+*/
+
 //SMB Trans2 Request: 0x32
 typedef struct {
   WordCount                 //15
