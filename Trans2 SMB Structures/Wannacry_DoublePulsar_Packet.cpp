@@ -46,7 +46,7 @@ typedef struct {
   uint8_t Reserved3;                  //0
   uint16_t Subcommand;                //0x000e
   uint16_t ByteCount;                 //4109
-  Padding                   //00
+  uint8_t Padding                   //00
   Parameters[12]            //SESSION_SETUP Parameters
   Data[4096]                //SESSION_SETUP Data
 
