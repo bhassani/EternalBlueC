@@ -16,6 +16,10 @@ which is the actual length of the payload bytes being uploaded.
 The last field is 0x38b09bb6. When XORed with the master key, this last field becomes 0, 
 meaning this packet is the first packet of the payload upload.
 
+
+The transferred and decoded bytes are of size 0x50730c. 
+As a whole, these packet bytes include kernel shellcode, userland shellcode, and the main WannaCrypt PE packages.
+
 */
 
 //SMB Trans2 Request: 0x32
