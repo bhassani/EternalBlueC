@@ -1,5 +1,23 @@
 //Contains a SMB Trans2 Request, SESSION_SETUP from a Wannacry PCAP
 
+/*
+https://www.microsoft.com/security/blog/2017/06/30/exploring-the-crypt-analysis-of-the-wannacrypt-ransomware-smb-exploit-propagation/
+
+The picture above shows that the SESSION_SETUP parameter fields are used to indicate the offset and total lengths of payload bytes.
+
+The data is 12 bytes long—the first four bytes indicate total length
+the next four bytes is reserved, and the last 4 bytes are the current offsets of the payload bytes in little-endian. 
+These fields are encoded with master XOR key
+
+Because the reserved field is supposed to be 0, the reserved field is actually the same as the master XOR key. 
+Going back to the packet capture above, the reserved field value is 0x38a9dbb6, which is the master XOR key. 
+The total length is encoded as 0x38f9b8be. When this length is XORed with the master XOR key, it is 0x506308
+which is the actual length of the payload bytes being uploaded. 
+The last field is 0x38b09bb6. When XORed with the master key, this last field becomes 0, 
+meaning this packet is the first packet of the payload upload.
+
+*/
+
 //SMB Trans2 Request: 0x32
 typedef struct {
   WordCount                 //15
