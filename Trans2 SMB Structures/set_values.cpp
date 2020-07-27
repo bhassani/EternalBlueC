@@ -97,7 +97,7 @@ int sendStuff()
 	
 	//copy the Trans2 Response to structure we can extract information we need
 	//such as: TreeID, Multiplex, UserID, ProcessID
-	memcpy(&response, recvbuff, sizeof(recvbuff));
+	memcpy(&response, recvbuff, sizeof(TRANS2_RESPONSE_HEADER);
 	
 	unsigned int XorKey; //unsigned integer calculated XOR key from backdoor.  extracted & calculated from SMG signature.
       	XorKey = 0x58581162; //for testing's sake, we have used a static one for the purposes of this to compile correctly
