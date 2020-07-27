@@ -1,4 +1,32 @@
-June 9 2020 update:
+July 26 2020 update:
+DoublePulsar backdoor upload packet information
+
+The data is 12 bytes long—the first four bytes indicate total length
+the next four bytes is reserved, and the last 4 bytes are the current offsets of the payload bytes in little-endian. 
+These fields are encoded with master XOR key
+Because the reserved field is supposed to be 0, the reserved field is actually the same as the master XOR key. 
+Going back to the packet capture above, the reserved field value is 0x38a9dbb6, which is the master XOR key. 
+The total length is encoded as 0x38f9b8be. When this length is XORed with the master XOR key, it is 0x506308
+which is the actual length of the payload bytes being uploaded. 
+The last field is 0x38b09bb6. When XORed with the master key, this last field becomes 0, 
+meaning this packet is the first packet of the payload upload.
+
+Trans2.SESSION_SETUP.Parameters is of 0xC (12) bytes and contains below information encrypted by XOR key.
+1. Total Size of Payload
+2. Chunk Size
+3. Offset of Chunk in Payload
+
+Trans2.SESSION_SETUP.Parameters value = 6a620858 62015858 62115858
+Total Size of Payload = (0x5808626a) ^ (0x58581162) = 0x507308
+ Chunk Size = (0x58580162) ^ (0x58581162) = 0x1000(4096)
+Offset of Chunk in Payload = (0x58581162) ^ (0x58581162) = 0
+
+Another example of Trans2.SESSION_SETUP.Parameters value = 6a620858 62015858 62015858
+Total Size of Payload = (0x5808626a) ^ (0x58581162) = 0x507308
+Chunk Size = (0x58580162) ^ (0x58580162) = 0x1000(4096)
+Offset of Chunk in Payload = (0x58580162) ^ (0x58581162) = 0x1000(4096)
+
+SMB packet information:
 
 SMB packet response layout
 NetBIOS Data     //smb_response[0][1][2][3]
