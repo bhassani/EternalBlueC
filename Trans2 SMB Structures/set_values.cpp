@@ -57,8 +57,8 @@ typedef struct {
    uint16_t ByteCount; //4109 or 0x0d 0x10
    uint8_t padding;
    //added by me
-   char SESSION_DATA_PARAMETERS[12]; //Wannacry uses 12 as the size
-   char payload[4096];
+   unsigned char SESSION_DATA_PARAMETERS[12]; //Wannacry uses 12 as the size
+   unsigned char payload[4096];
 
 
 } SMB_TRANSACTION2_SECONDARY_REQUEST;
