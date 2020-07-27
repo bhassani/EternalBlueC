@@ -1,6 +1,12 @@
 July 26 2020 update:
 DoublePulsar backdoor upload packet information
 
+Sources:
+https://www.microsoft.com/security/blog/2017/06/30/exploring-the-crypt-analysis-of-the-wannacrypt-ransomware-smb-exploit-propagation/
+https://shasaurabh.blogspot.com/2017/05/doublepulsar-backdoor.html
+
+Trans2.SESSION_SETUP.Parameters information:
+
 The data is 12 bytes long—the first four bytes indicate total length
 the next four bytes is reserved, and the last 4 bytes are the current offsets of the payload bytes in little-endian. 
 These fields are encoded with master XOR key
@@ -26,6 +32,8 @@ Total Size of Payload = (0x5808626a) ^ (0x58581162) = 0x507308
 Chunk Size = (0x58580162) ^ (0x58580162) = 0x1000(4096)
 Offset of Chunk in Payload = (0x58580162) ^ (0x58581162) = 0x1000(4096)
 
+
+/////////////////////////////////////////////////////////////////////////////////////
 SMB packet information:
 
 SMB packet response layout
@@ -57,7 +65,7 @@ multiplex_id [34] [35]
 UserID position in SMB response is [32] and [33]
 TreeID position in SMB response is [28] and [29]
 
-NT_STATUS position in SMB response is (backwards) [9] [10] [11] [12]
+NT_STATUS position in SMB response is (backwards / little-endian format) [9] [10] [11] [12]
 If you're looking for 0xc0000205
 Then it will be written this way:
 recvbuff[9] == 0x05 && recvbuff[10] == 0x02 && recvbuff[11] == 0x00 && recvbuff[12] == 0xc0)
