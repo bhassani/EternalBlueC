@@ -80,7 +80,7 @@ typedef struct {
 	uint16_t UserID; 
 	uint16_t multipleID;                 //must have a multiplex ID
 	
-	uint8_t SmbCommand;
+	uint8_t SmbSubCommand;
 	uint8_t wordCount;
 	uint16_t ByteCount;
 } TRANS2_RESPONSE_HEADER;
