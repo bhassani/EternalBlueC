@@ -136,3 +136,41 @@ FF FE 			//Process ID
 Hex value | Decimal value
 104e = 4174
 0d10 = 3344
+
+
+
+//Wannacry PING packet extracted from Wannacry
+00 00 00 		//NetBIOS header
+00 4E 			//SMB Len
+FF 53 4D 42		//SMB1
+32			//SMB Command: Trans2
+00 00 00 00 		//NT Status
+18			//Flags1
+07 C0			//Flags2
+00 00 			//Pid Hi
+00 00 00 00 00 00 00 00 //Signature
+00 00 			//Reserved
+00 08 			//TreeID
+FF FE 			//Process ID
+00 08			//user ID
+41 00			//Multiple ID
+
+0F			//WordCount
+0C 00 			//TotalParamCount
+00 00			//TotalDataCount
+01 00			//Max Param Count
+00 00			//Max Data Count
+00			//Max Setup Count
+00			//Reserved
+00 00			//Flags
+01 34 EE 00		//Timeout -> Execute command
+00 00 			//Reserved
+0C 00 			//Parameter Count
+42 00			//Parameter Offset
+00 00			//Data Count ( same as: TotalDataCount )
+4E 00			//Data Offset
+01			//Setup Count
+00 			//Reserved
+0E 00			//Subcommand: SESSION_SETUP
+0D 00			//ByteCount
+00 00 00 00 00 00 00 00 00 00 00 00 //SESSION_SETUP Parameters
