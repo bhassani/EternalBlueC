@@ -163,7 +163,7 @@ FF FE 			//Process ID
 00			//Max Setup Count
 00			//Reserved
 00 00			//Flags
-01 34 EE 00		//Timeout -> Execute command
+01 34 EE 00		//Timeout -> Ping command
 00 00 			//Reserved
 0C 00 			//Parameter Count
 42 00			//Parameter Offset
