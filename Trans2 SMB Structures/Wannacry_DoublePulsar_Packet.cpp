@@ -130,3 +130,9 @@ FF FE 			//Process ID
 0E 00			//Subcommand: SESSION_SETUP
 0D 10			//ByteCount
 00 00 00		//No idea what this is
+
+
+
+Hex value | Decimal value
+104e = 4174
+0d10 = 3344
