@@ -131,15 +131,14 @@ FF FE 			//Process ID
 0D 10			//ByteCount
 00 00 00		//No idea what this is
 
-
-
 Hex value | Decimal value
-104e = 4174
-0d10 = 3344
-
+104e = 4174 -> SMBLen
+0d10 = 4109 -> ByteCount
 
 
 //Wannacry PING packet extracted from Wannacry
+//SMB Len = hex: 00 4e = 78
+//Bytecount = hex: 0D 00 -> 13
 00 00 00 		//NetBIOS header
 00 4E 			//SMB Len
 FF 53 4D 42		//SMB1
@@ -173,4 +172,7 @@ FF FE 			//Process ID
 00 			//Reserved
 0E 00			//Subcommand: SESSION_SETUP
 0D 00			//ByteCount
+        //Padding should be here ( double check to be sure )
 00 00 00 00 00 00 00 00 00 00 00 00 //SESSION_SETUP Parameters
+
+ 
