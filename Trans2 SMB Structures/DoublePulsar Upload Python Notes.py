@@ -34,3 +34,10 @@ for i in range(ncount):
 			byteCount = struct.pack("<H",data_len - 4096*i+ 13)
 			make_data = send_data[i*4096:]
 
+			
+				
+important information:
+
+*(WORD *)(packet+0x27)= VALUE1;  //update Total Data Count
+*(WORD *)(packet+0x3b)= VALUE2;  //update Data Count
+*(WORD *)(Packet+0x45)= VALUE3;  //update Byte Count
