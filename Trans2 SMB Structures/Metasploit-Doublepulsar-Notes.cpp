@@ -1,4 +1,4 @@
-/
+/*
 OPCODES = {
   ping: 0x23,
   exec: 0xc8,
@@ -84,5 +84,3 @@ PayloadData = parameters + XOR_DATA
     	DoublePulsarPacket.SetupData =  setup_data
     	DoublePulsarPacket.Timeout =  “\x25\x89\xEE\x00”;
     	DoublePulsarPacket.Payload =  data
-
-
