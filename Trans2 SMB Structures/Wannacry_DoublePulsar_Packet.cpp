@@ -177,8 +177,8 @@ FF FE 			//Process ID
 00 00 00 00 00 00 00 00 00 00 00 00 //SESSION_SETUP Parameters
 
  
-*(WORD *)(DoublePulsarExecPacket+0x27)= 4174; //update Total Data Count
-*(WORD *)(DoublePulsarExecPacket+0x3b)=4096; //update Data Count
-*(WORD *)(DoublePulsarExecPacket+0x45)=4109; //update Byte Count
+*(WORD *)(DoublePulsarExecPacket+0x27) = 4174; //update Total Data Count   Location of packet edit in decimal: DoublePulsarExecPacket[39]
+*(WORD *)(DoublePulsarExecPacket+0x3b) = 4096; //update Data Count         Location of packet edit in decimal: DoublePulsarExecPacket[59]
+*(WORD *)(DoublePulsarExecPacket+0x45) = 4109; //update Byte Count         Location of packet edit in decimal: DoublePulsarExecPacket[69]
 
 //13 difference in something?  Probably the SESSION_SETUP Parameters
