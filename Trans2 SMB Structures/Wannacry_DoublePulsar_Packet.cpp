@@ -177,3 +177,8 @@ FF FE 			//Process ID
 00 00 00 00 00 00 00 00 00 00 00 00 //SESSION_SETUP Parameters
 
  
+*(WORD *)(DoublePulsarExecPacket+0x27)= 4174; //update Total Data Count
+*(WORD *)(DoublePulsarExecPacket+0x3b)=4096; //update Data Count
+*(WORD *)(DoublePulsarExecPacket+0x45)=4109; //update Byte Count
+
+//13 difference in something?  Probably the SESSION_SETUP Parameters
