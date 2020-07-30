@@ -179,3 +179,29 @@ If the addresses do not match, then a "success" status is returned, but more dat
 If the addresses match, then the shellcode is executed, and the buffer is deallocated.  
 
 
+SESSION_SETUP_PARAMETER NOTES:
+
+
+
+Trans2.SESSION_SETUP.Parameters is of 0xC (12) bytes and contains below information encrypted by XOR key
+1. Total Size of Payload
+2. Chunk Size
+3. Offset of Chunk in Payload
+
+SESSION_SETUP.Parameters:
+TotalSizeOfPayload ^ XorKey
+ChunkSize ^ XOR KEY
+OFFSET of chunk in payload ^ XORKEY ?????
+OFFSET of chunk??????
+
+Trans2.SESSION_SETUP.Parameters value = 6a620858 62015858 62115858
+1 Total Size of Payload = (0x5808626a) ^ (0x58581162) = 0x507308
+2 Chunk Size = (0x58580162) ^ (0x58581162) = 0x1000(4096)
+3 Offset of Chunk in Payload = (0x58581162) ^ (0x58581162) = 0
+
+Another example of Trans2.SESSION_SETUP.Parameters value = 6a620858 62015858 62015858
+1 Total Size of Payload = (0x5808626a) ^ (0x58581162) = 0x507308
+2 Chunk Size = (0x58580162) ^ (0x58580162) = 0x1000(4096)
+3 Offset of Chunk in Payload = (0x58580162) ^ (0x58581162) = 0x1000(4096)
+
+Backdoor Allocates Memory of total size of payload (0x507308) using ExAllocatePool API. Copies the chunk to allocated memory.
