@@ -116,11 +116,6 @@ int main(int argc, char** argv)
     if (recvbuff[34] == 0x51)
     {
         printf("Received data that DoublePulsar is installed!\n");
-        char option;
-        printf("Would you like to uninstall DoublePulsar: Y/N\n");
-        scanf("%c",&option);
-        if (strcmp(option, "Y") == 0 || strcmp(option, "y") == 0)
-        {
             printf("Burning DoublePulsar...\n");
             WORD burn1, burn2, burn3, burn4, burn5;
             //burn1 = multiplex ID of 66 in decimal or x42 in hex
@@ -148,10 +143,6 @@ int main(int argc, char** argv)
             else {
                 printf("DOUBLEPULSAR uninstall UNSUCCESSFUL!\n");
             }
-        }
-        else {
-            printf("Exiting...\n");
-        }
     }
     else {
         printf("no backdoor installed!");
