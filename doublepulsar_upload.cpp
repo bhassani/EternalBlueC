@@ -1,3 +1,8 @@
+/*
+WARNING: This code is NOT finished and WILL NOT work as of August 4 2020
+
+*/
+
 #include <windows.h>
 #include <stdio.h>
 #include <stdlib.h>
