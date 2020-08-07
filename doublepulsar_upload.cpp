@@ -460,7 +460,7 @@ int main(int argc, char* argv[])
 	//82 bytes for the Trans2 Session Setup packet header
 	//then 4096 bytes for the SESSION_SETUP data ( encrypted payload )
 	//Then fill the packet with 0x00s and XOR it with the calculated key
-	char *big_packet = (unsigned char*)malloc(4178+1);
+	unsigned char *big_packet = (unsigned char*)malloc(4178+1);
 	memset(big_packet, 0x00, 4178);
 	int bp;
 	for(bp=0;bp<4178;bp++)
