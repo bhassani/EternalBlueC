@@ -13,10 +13,14 @@ Project goals:
 
 Repository also contains the following for educational purposes and are NOT supported by me:
 
-[*]DoublePulsar x86/x64 Upload DLL python script
+[*] DoublePulsar x86/x64 Upload DLL python script
+
 [*]EternalBlue All in one binary
+
 [*]Multi arch kernel queue apc assembly code & Windows x86/x64 Multi-Arch Kernel Ring 0 to Ring 3 via Queued APC kernel code
+
 [*]EternalBlue x64/x86 kernel payload shellcode from worawit
+
 [*]Eternalblue replay file
 
 [*] ms17_vuln_status.cpp - This program sends 4 SMB packets.  1 negociation packet and 3 requests.  This program reads the NT_STATUS response from a TransNamedPipeRequest ( PeekNamedPipe request ) and determines if NT_STATUS = 0xC0000205 ( STATUS_INSUFF_SERVER_RESOURCES ).  If this is the correct response, then the target is vulnerable to MS17-010.  Tested on unpatched Windows 7 x64 bit.
