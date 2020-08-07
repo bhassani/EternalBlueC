@@ -189,7 +189,7 @@ int main(int argc, char* argv[])
 	encrypted = (unsigned char*)malloc(4096+1);
 
 	//copy shellcode to encrypted buffer
-	mempcy(encrypted,shellcode, sizeof(shellcode));
+	memcpy(encrypted,shellcode, sizeof(shellcode));
 
 	//Xor the data buffer with the calculated key
 	for(i=0;i<4096;i++)
