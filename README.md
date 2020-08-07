@@ -7,7 +7,7 @@ Project goals:
 
 [*] Convert to other languages such as Java and C# and implement a scanner & attack GUI
 
-[*] Allow editing of EternalBlue exploit payload to remove DoublePulsar and allow custom payloads & shellcode to be installed instead.
+[*] Allow editing of EternalBlue exploit payload to remove DoublePulsar and allow custom payloads & shellcode to be sent instead.
 
 [*] Add EternalRomance (Requires Named Pipe) support
 
