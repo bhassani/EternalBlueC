@@ -1,9 +1,9 @@
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 
-# EternalBlueC
+## EternalBlueC
 EternalBlue suite remade in C/C++ which includes: MS17-010 Exploit, EternalBlue/MS17-010 vulnerability detector, DoublePulsar detector and DoublePulsar UploadDLL & Shellcode 
 
-Project goals:
+## Project goals:
 
 [*] Convert to other languages such as Java and C# and implement a scanner & attack GUI
 
@@ -22,6 +22,8 @@ Repository also contains the following for educational purposes and are NOT supp
 [*]EternalBlue x64/x86 kernel payload shellcode from worawit
 
 [*]Eternalblue replay file
+
+## EternalBlue Suite
 
 [*] ms17_vuln_status.cpp - This program sends 4 SMB packets.  1 negociation packet and 3 requests.  This program reads the NT_STATUS response from a TransNamedPipeRequest ( PeekNamedPipe request ) and determines if NT_STATUS = 0xC0000205 ( STATUS_INSUFF_SERVER_RESOURCES ).  If this is the correct response, then the target is vulnerable to MS17-010.  Tested on unpatched Windows 7 x64 bit.
 
