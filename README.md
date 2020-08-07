@@ -3,13 +3,15 @@
 ## EternalBlueC
 EternalBlue suite remade in C/C++ which includes: MS17-010 Exploit, EternalBlue/MS17-010 vulnerability detector, DoublePulsar detector and DoublePulsar UploadDLL & Shellcode 
 
-## Project goals:
+## Project goals
 
 [*] Convert to other languages such as Java and C# and implement a scanner & attack GUI
 
 [*] Allow editing of EternalBlue exploit payload to remove DoublePulsar and allow custom payloads & shellcode to be sent instead.
 
 [*] Add EternalRomance (Requires Named Pipe) support
+
+## Extra education code
 
 Repository also contains the following for educational purposes and are NOT supported by me:
 
