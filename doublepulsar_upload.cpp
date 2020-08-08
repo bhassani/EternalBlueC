@@ -465,7 +465,7 @@ int main(int argc, char* argv[])
 	int bp;
 	for(bp=0;bp<4178;bp++)
 	{
-		big_packet[i] = big_packet[i]^XorKey;
+		big_packet[bp] = big_packet[bp]^XorKey;
         }
 
 	//Copy Trans2 Information
