@@ -206,7 +206,7 @@ int main(int argc, char* argv[])
 	int bp;
 	for(bp=0;bp<4178;bp++)
 	{
-		big_packet[i] = big_packet[i]^XorKey;
+		big_packet[bp] = big_packet[bp]^XorKey;
         }
 
 	//will use for re-sending the computed XOR key in the Trans2 SESSION_SETUP data parameters
