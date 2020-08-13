@@ -192,7 +192,7 @@ int main(int argc, char* argv[])
 	uploadpacket.UserID = userid;
 	uploadpacket.reserved = 0x0000;
 	uploadpacket.ProcessID = 0xfeff; 
-	uploadpacket.TreeId = treeresponse.TreeId;			
+	uploadpacket.TreeId = treeid;			
 	uploadpacket.multipleID = 0x42;
 
 	//trans2 packet stuff
