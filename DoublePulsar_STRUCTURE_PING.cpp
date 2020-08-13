@@ -153,7 +153,7 @@ int main(int argc, char* argv[])
 		return 0;
 	}
 	server.sin_family = AF_INET;
-	server.sin_addr.s_addr = inet_addr("192.168.0.13");
+	server.sin_addr.s_addr = inet_addr(argv[1]);
 	server.sin_port = htons((USHORT)445);
 	ret = connect(sock, (struct sockaddr*) & server, sizeof(server));
 
@@ -178,7 +178,7 @@ int main(int argc, char* argv[])
 	ptr = packet;
 	memcpy(ptr, SMB_TreeConnectAndX, sizeof(SMB_TreeConnectAndX) - 1);
 	ptr += sizeof(SMB_TreeConnectAndX) - 1;
-	sprintf((char*)tmp, "\\\\192.168.0.13\\IPC$");
+	sprintf((char*)tmp, "\\\\%s\\IPC$",argv[1]);
 	convert_name((char*)ptr, (char*)tmp);
 	smblen = strlen((char*)tmp) * 2;
 	ptr += smblen;
