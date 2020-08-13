@@ -1,3 +1,4 @@
+#define _CRT_SECURE_NO_WARNINGS
 /*
 WARNING: This code is NOT finished and WILL NOT work as of August 4 2020
 */
