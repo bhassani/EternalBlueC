@@ -214,7 +214,10 @@ int main(int argc, char* argv[])
 	uploadpacket.NtStatus = 0x00000000;
 	uploadpacket.flags = 0x18;
 	uploadpacket.flags2 = 0xc007;
-	uploadpacket.UserID = treeresponse.TreeId;
+	uploadpacket.UserID = treeresponse.TreeId;                   /* BUG HERE: treeresponse.UserID comes back as corrupted for some reason
+	                                                              this needs to be treeresponse.UserID;
+	                                                               Will return later to this later. But currently works if both values are the same
+								       This is not always the case and this will need to be fixed later.  */
 	uploadpacket.reserved = 0x0000;
 	uploadpacket.ProcessID = 0xfeff; //treeresponse.ProcessID;        //treeresponse.ProcessID; //Default value:  0xfeff;
 	uploadpacket.TreeId = treeresponse.TreeId;				//grab from SMB response
