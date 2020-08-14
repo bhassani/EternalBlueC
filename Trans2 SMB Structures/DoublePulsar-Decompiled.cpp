@@ -1,6 +1,44 @@
+/* interesting stuff here
 
-
-
+signed int __cdecl sub_401720(_DWORD *a1)
+if ( a1[14] == 4 )
+  {
+    dword_407E1A = a1[23];
+    dword_407E1E = a1[24];
+    dword_407E22 = a1[25];
+    dword_407E26 = a1[26];
+    dword_407E16 = a1[27];
+    dword_407E2A = a1[29];
+    v9 = dword_407E4C;
+    byte_407E2E = v5;
+    dword_407E3E = dword_407E4C + a1[9];
+    dword_407E3A = v8;
+    v10 = dword_407034;
+    dword_407E42 = 0;
+    dword_407E32 = v6;
+    dword_407E36 = v7;
+    v11 = &x65shellcode;
+    v12 = &x64shellcodeagain;
+  }
+  else
+  {
+    dword_407048 = a1[23];
+    dword_407053 = a1[24];
+    dword_40708A = a1[25];
+    dword_4072A8 = a1[26];
+    dword_40705E = a1[27];
+    v9 = dword_407E48;
+    dword_4072D6 = a1[29];
+    byte_4072EE = v5;
+    dword_4075C9 = dword_407E48 + a1[9];
+    dword_40707F = v8;
+    v10 = dword_407030;
+    dword_407069 = v6;
+    dword_407074 = v7;
+    v11 = &x86shellcode;
+    v12 = &x86shellcodeagain;
+  }
+  */
 
 //usage: InjectPayload((int)a1, v4, (int)&v21, v5, a4, v16, &v17) )
 
