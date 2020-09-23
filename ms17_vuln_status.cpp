@@ -3,7 +3,7 @@
 #include <winsock.h>
 #include <tchar.h>
 #pragma comment(lib, "wsock32.lib")
-
+#define BUFFER 1024
 unsigned char SmbNegociate[] =
 "\x00\x00\x00\x85\xff\x53\x4d\x42\x72\x00\x00\x00\x00\x18\x53\xc0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\xff\xfe\x00\x00\x40\x00\x00"
 "\x62\x00\x02\x50\x43\x20\x4e\x45\x54\x57\x4f\x52\x4b\x20\x50\x52\x4f\x47\x52\x41\x4d\x20\x31\x2e\x30\x00\x02\x4c\x41\x4e\x4d\x41\x4e\x31\x2e\x30\x00"
@@ -37,94 +37,102 @@ unsigned char transNamedPipeRequest[] =
 
 unsigned char recvbuff[2048];
 
-int main(int argc, char** argv)
+void EternalBlueScan(char output[BUFFER], const char* host)
 {
-    WSADATA    ws;
-    struct sockaddr_in server;
-    SOCKET    sock;
-    DWORD    ret;
+    do {
+        int len = 0;
+        memset(output, '\0', BUFFER);
+        struct sockaddr_in server;
+        SOCKET    sock;
+        DWORD    ret;
+        sock = socket(AF_INET, SOCK_STREAM, 0);
+        if (sock <= 0)
+        {
+            break;
+        }
+        server.sin_family = AF_INET;
+        server.sin_addr.s_addr = inet_addr(host);
+        server.sin_port = htons((USHORT)445);
 
-    WSAStartup(MAKEWORD(2, 2), &ws);
-    sock = socket(AF_INET, SOCK_STREAM, 0);
-    if (sock <= 0)
-    {
-        return 0;
-    }
-    server.sin_family = AF_INET;
-    server.sin_addr.s_addr = inet_addr(argv[1]);
-    server.sin_port = htons((USHORT)445);
-    printf("Connecting...\n");
-    ret = connect(sock, (struct sockaddr*) & server, sizeof(server));
-    if (ret == -1)
-    {
-        printf("Connection Error, Port 445 Firewalled?\n");
-        return 0;
-    }
+        ret = connect(sock, (struct sockaddr*)&server, sizeof(server));
+        if (ret == -1)
+        {
+            len += snprintf(output + len, sizeof(output) - len, "[X] %s Connection Error, Port 445 Firewalled or unreachable.\n", host);
+            break;
+        }
+
+        //send SMB negociate packet
+        send(sock, (char*)SmbNegociate, sizeof(SmbNegociate) - 1, 0);
+        recv(sock, (char*)recvbuff, sizeof(recvbuff), 0);
+
+        //send Session Setup AndX request
+        len += snprintf(output + len, sizeof(output) - len, "[+] Sending Session_Setup_AndX_Request!\n");
+        ret = send(sock, (char*)Session_Setup_AndX_Request, sizeof(Session_Setup_AndX_Request) - 1, 0);
+        if (ret <= 0)
+        {
+            len += snprintf(output + len, sizeof(output) - len, "[X] Send Session_Setup_AndX_Request error!\n");
+            break;
+        }
+        recv(sock, (char*)recvbuff, sizeof(recvbuff), 0);
+
+        char userid[2];
+        char treeid[2];
+        //copy userID from recvbuff @ 32,33
+        userid[0] = recvbuff[32];
+        userid[1] = recvbuff[33];
+
+        //update userID in the tree connect request
+        treeConnectRequest[32] = userid[0];
+        treeConnectRequest[33] = userid[1];
+
+        //send TreeConnect request
+        len += snprintf(output + len, sizeof(output) - len, "[+] Sending TreeConnect Request!\n");
+        ret = send(sock, (char*)treeConnectRequest, sizeof(treeConnectRequest) - 1, 0);
+        if (ret <= 0)
+        {
+            len += snprintf(output + len, sizeof(output) - len, "[X] Send TreeConnect_AndX_Request error!\n");
+            break;
+        }
+        recv(sock, (char*)recvbuff, sizeof(recvbuff), 0);
+
+        //copy treeID from recvbuff @ 28, 29
+        treeid[0] = recvbuff[28];
+        treeid[1] = recvbuff[29];
+        //update treeid & userid in the transNamedPipe Request
+        transNamedPipeRequest[28] = treeid[0];
+        transNamedPipeRequest[29] = treeid[1];
+        transNamedPipeRequest[32] = userid[0];
+        transNamedPipeRequest[33] = userid[1];
+
+        //send transNamedPipe request
+        len += snprintf(output + len, sizeof(output) - len, "[+] Sending transNamedPipeRequest!\n");
+        ret = send(sock, (char*)transNamedPipeRequest, sizeof(transNamedPipeRequest) - 1, 0);
+        if (ret <= 0)
+        {
+            len += snprintf(output + len, sizeof(output) - len, "[X] Send modified transNamedPipeRequest error!\n");
+            break;
+        }
+        recv(sock, (char*)recvbuff, sizeof(recvbuff), 0);
+
+        //compare the NT_STATUS response to 0xC0000205 ( STATUS_INSUFF_SERVER_RESOURCES)
+        if (recvbuff[9] == 0x05 && recvbuff[10] == 0x02 && recvbuff[11] == 0x00 && recvbuff[12] == 0xc0)
+        {
+            len += snprintf(output + len, sizeof(output) - len, "[+] %s is vulnerable to MS17-010\n", host);
+        }
+        else {
+            len += snprintf(output + len, sizeof(output) - len, "[X] %s is not vulnerable to MS17-010\n", host);
+        }
+
+        //cleanup
+        closesocket(sock);
+    } while (0);
     
-    //send SMB negociate packet
-    send(sock, (char*)SmbNegociate, sizeof(SmbNegociate) - 1, 0);
-    recv(sock, (char*)recvbuff, sizeof(recvbuff), 0);
+}
 
-    //send Session Setup AndX request
-    printf("sending Session_Setup_AndX_Request!\n");
-    ret = send(sock, (char*)Session_Setup_AndX_Request, sizeof(Session_Setup_AndX_Request) - 1, 0);
-    if (ret <= 0)
-    {
-        printf("send Session_Setup_AndX_Request error!\n");
-        return 0;
-    }
-    recv(sock, (char*)recvbuff, sizeof(recvbuff), 0);
-    
-    char userid[2];
-    char treeid[2];
-    //copy userID from recvbuff @ 32,33
-    userid[0] = recvbuff[32];
-    userid[1] = recvbuff[33];
-    
-    //update userID in the tree connect request
-    treeConnectRequest[32] = userid[0];
-    treeConnectRequest[33] = userid[1];
-
-    //send TreeConnect request
-    printf("sending TreeConnect Request!\n");
-    ret = send(sock, (char*)treeConnectRequest, sizeof(treeConnectRequest) - 1, 0);
-    if (ret <= 0)
-    {
-        printf("send TreeConnect_AndX_Request error!\n");
-        return 0;
-    }
-    recv(sock, (char*)recvbuff, sizeof(recvbuff), 0);
-
-    //copy treeID from recvbuff @ 28, 29
-    treeid[0] = recvbuff[28];
-    treeid[1] = recvbuff[29];
-    //update treeid & userid in the transNamedPipe Request
-    transNamedPipeRequest[28] = treeid[0];
-    transNamedPipeRequest[29] = treeid[1];
-    transNamedPipeRequest[32] = userid[0];
-    transNamedPipeRequest[33] = userid[1];
-
-    //send transNamedPipe request
-    printf("sending transNamedPipeRequest!\n");
-    ret = send(sock, (char*)transNamedPipeRequest, sizeof(transNamedPipeRequest) - 1, 0);
-    if (ret <= 0)
-    {
-        printf("send modified transNamedPipeRequest error!\n");
-        return 0;
-    }
-    recv(sock, (char*)recvbuff, sizeof(recvbuff), 0);
-
-    //compare the NT_STATUS response to 0xC0000205 ( STATUS_INSUFF_SERVER_RESOURCES)
-    if (recvbuff[9] == 0x05 && recvbuff[10] == 0x02 && recvbuff[11] == 0x00 && recvbuff[12] == 0xc0)
-    {
-        printf("vulnerable to MS17-010\n");
-    }
-    else {
-        printf("not vulnerable to MS17-010\n");
-    }
-    
-    //cleanup
-    closesocket(sock);
-    WSACleanup();
-    return 0;
+int main()
+{
+    // woah
+    char output[BUFFER];
+    EternalBlueScan(output, "192.168.0.109");
+    printf("OUTPUT:\n---------------\n%s\n",output);
 }
