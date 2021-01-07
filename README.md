@@ -5,6 +5,10 @@ EternalBlue suite remade in C/C++ which includes: MS17-010 Exploit, EternalBlue/
 
 ## Project goals
 
+[*] **Make Doublepulsar_UploadShellcode.cpp operational**
+
+[*]**Make Doublepulsar_UploadDLL.cpp operational**
+
 [*] Convert to other languages such as Java and C# and implement a scanner & attack GUI
 
 [*] Allow editing of EternalBlue exploit payload to remove DoublePulsar and allow custom payloads & shellcode to be sent instead.
