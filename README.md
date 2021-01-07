@@ -4,9 +4,11 @@
 EternalBlue suite remade in C/C++ which includes: MS17-010 Exploit, EternalBlue/MS17-010 vulnerability detector, DoublePulsar detector and DoublePulsar UploadDLL & Shellcode 
 
 ## Clarifications
-[*] The EternalBlue / MS17-010 Exploit that will be included in this project installs DoublePulsar.  
-[*] As of now, it doesn't contain any other payloads besides installing the DoublePulsar implant.
-[*] This project is not completed and will be updated when I have spare time
+The EternalBlue / MS17-010 Exploit that will be included in this project installs DoublePulsar.  
+
+As of now, it doesn't contain any other payloads besides installing the DoublePulsar implant. 
+
+This project is not completed and will be updated when I have spare time
 
 ## Project goals
 
