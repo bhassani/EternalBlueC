@@ -657,7 +657,7 @@ int main(int argc, char* argv[])
 	recv(sock, (char*)recvbuff, sizeof(recvbuff), 0);
 
 	
-	unsigned char signature[5];
+	unsigned char signature[4]; //changed from 5 to 4 because I commented out the arch portion
 	unsigned int sig;
 	//copy SMB signature from recvbuff to local buffer
 	signature[0] = recvbuff[18];
