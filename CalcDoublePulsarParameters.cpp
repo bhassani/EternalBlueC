@@ -1,3 +1,28 @@
+appears to be working :)
+	
+////////////////////////////////////
+	unsigned int Key = 0x58581162;
+		unsigned int p_size = 0x507308 ^ Key;
+		unsigned int c_size = 4096 ^ Key;
+		unsigned int o_offset = 0 ^ Key;
+
+		char Parametersbuffer[12];
+
+		memcpy(Parametersbuffer, (char*)&p_size, 4);
+		memcpy(Parametersbuffer + 4, (char*)&c_size, 4);
+		memcpy(Parametersbuffer + 8, (char*)&o_offset, 4);
+
+                int i;
+		for (i = 0; i < 12; i++)
+		{
+			printf("0x%x ", Parametersbuffer[i]);
+		}
+
+
+
+/////////////////
+
+
 sample 0x58581162
 
 /* in buffer:
