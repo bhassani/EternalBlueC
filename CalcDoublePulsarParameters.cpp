@@ -13,9 +13,9 @@ Char ReversedXorKey = 62, 11, 58, 58
 void CalculateDoublePulsarParameters(unsigned int key, unsigned int payloadSize, unsigned int chunkSize, unsigned int Offset, char &Parameter_buffer)
 {
 
-unsigned int swapped_payloadSize[4] = byte_swap(payloadSize);
-unsigned int swapped_chunkSize[4] = byte_swap(chunkSize);
-unsigned int swapped_Offset[4] = byte_swap(Offset);
+unsigned int swapped_payloadSize = byte_swap(payloadSize);
+unsigned int swapped_chunkSize = byte_swap(chunkSize);
+unsigned int swapped_Offset = byte_swap(Offset);
 
 char char_payloadSize[4]; 
 char char_chunkSize[4];
