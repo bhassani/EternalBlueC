@@ -19,7 +19,7 @@ This project is not completed and will be updated when I have spare time
 [*] **Make DoublePulsar UploadDLL metasploit module operational**
 **( DoublePulsar Upload DLL/doublepulsar_dll_rce.rb )**
 
-[*] Convert to other languages such as Java and C# and implement a scanner & attack GUI
+[*] Implement a scanner & detect/attack GUI in C#, C++, Java, Python3 & Go ( time permitting ).
 
 [*] Allow editing of EternalBlue exploit payload to remove DoublePulsar and allow custom payloads & shellcode to be sent instead.
 
