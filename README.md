@@ -1,7 +1,7 @@
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 
 ## EternalBlueC
-EternalBlue suite remade in C/C++ which includes: MS17-010 Exploit, EternalBlue/MS17-010 vulnerability detector, DoublePulsar detector and DoublePulsar UploadDLL & Shellcode 
+EternalBlue suite remade in C/C++ which includes: MS17-010 Exploit, EternalBlue/MS17-010 vulnerability detector, DoublePulsar detector and DoublePulsar UploadDLL & Shellcode.  
 
 ## Clarifications
 The EternalBlue / MS17-010 Exploit that will be included in this project installs DoublePulsar.  
@@ -15,6 +15,9 @@ This project is not completed and will be updated when I have spare time
 [*] **Make Doublepulsar_UploadShellcode.cpp operational**
 
 [*] **Make Doublepulsar_UploadDLL.cpp operational**
+
+[*] **Make DoublePulsar UploadDLL metasploit module operational**
+**( DoublePulsar Upload DLL/doublepulsar_dll_rce.rb )**
 
 [*] Convert to other languages such as Java and C# and implement a scanner & attack GUI
 
