@@ -28,9 +28,9 @@ This project is not completed and will be updated when I have spare time
 [*] Add EternalRomance (Requires Named Pipe) support
 
 ## Metasploit module
-Metasploit module that made functional from the open source DoublePulsar RCE module in metasploit.
+Metasploit module that I made functional from the open source DoublePulsar RCE module in metasploit.
 
-I changed the uploading logic to allow a DLL sent over multiple packets with x64 kernel shellcode ( stolen from reverse engineering Wannacry )
+I changed the uploading logic to allow a DLL to be generated, XOR encrypted and then sent over multiple packets with x64 kernel shellcode preprended ( stolen from reverse engineering Wannacry ) to run the DLL in memory.
 
 ![msfconsole](/images/msfconsole.PNG)
 
