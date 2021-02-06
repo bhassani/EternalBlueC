@@ -3,6 +3,8 @@
 ## EternalBlueC
 EternalBlue suite remade in C/C++ which includes: MS17-010 Exploit, EternalBlue/MS17-010 vulnerability detector, DoublePulsar detector and DoublePulsar UploadDLL & Shellcode.  
 
+2021 Update: Now includes experimental Metasploit module!
+
 ## Clarifications
 The EternalBlue / MS17-010 Exploit that will be included in this project installs DoublePulsar.  
 
@@ -24,6 +26,13 @@ This project is not completed and will be updated when I have spare time
 [*] Allow editing of EternalBlue exploit payload to remove DoublePulsar and allow custom payloads & shellcode to be sent instead.
 
 [*] Add EternalRomance (Requires Named Pipe) support
+
+## Metasploit module
+Metasploit module that made functional from the open source DoublePulsar RCE module in metasploit.
+
+I changed the uploading logic to allow a DLL sent over multiple packets with x64 kernel shellcode ( stolen from reverse engineering Wannacry )
+
+![msfconsole](/images/msfconsole.PNG)
 
 ## Extra education code
 
