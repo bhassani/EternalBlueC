@@ -4,6 +4,7 @@
 EternalBlue suite remade in C/C++ which includes: MS17-010 Exploit, EternalBlue/MS17-010 vulnerability detector, DoublePulsar detector and DoublePulsar UploadDLL & Shellcode.  
 
 2021 Update: Now includes experimental Metasploit module!
+
 2021 Update: Now includes experimental Wannacry DLL wrapper for Metasploit payload! ( Still in development )
 
 ## Clarifications
