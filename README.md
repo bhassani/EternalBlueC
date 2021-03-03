@@ -4,6 +4,7 @@
 EternalBlue suite remade in C/C++ which includes: MS17-010 Exploit, EternalBlue/MS17-010 vulnerability detector, DoublePulsar detector and DoublePulsar UploadDLL & Shellcode.  
 
 2021 Update: Now includes experimental Metasploit module!
+2021 Update: Now includes experimental Wannacry DLL wrapper for Metasploit payload! ( Still in development )
 
 ## Clarifications
 The EternalBlue / MS17-010 Exploit that will be included in this project installs DoublePulsar.  
@@ -21,6 +22,9 @@ This project is not completed and will be updated when I have spare time
 [*] **Make DoublePulsar UploadDLL metasploit module operational**
 **( DoublePulsar Upload DLL/doublepulsar_dll_rce.rb )**
 
+[*] **Make Wannacry launcher metasploit module operational**
+**( DoublePulsar Upload DLL/WannacryDLLMetasploit.rb )**
+
 [*] Implement a scanner & detect/attack GUI in C#, C++, Java, Python3 & Go ( time permitting ).
 
 [*] Allow editing of EternalBlue exploit payload to remove DoublePulsar and allow custom payloads & shellcode to be sent instead.
@@ -33,6 +37,9 @@ Metasploit module that I made functional using the open source DoublePulsar RCE 
 I changed the logic to allow a DLL to be generated, merge it with the x64 kernel shellcode (prepended) that I stole from Wannacry, to allow DoublePulsar to run the DLL.
 
 ![msfconsole](/images/msfconsole.PNG)
+
+Part 2:
+I changed the logic to allow an executable metasploit payload to be generated, merge it with the x64 kernel shellcode (prepended) that I stole from Wannacry, and stole the Wannacry launcher DLL to allow DoublePulsar to run the launcher DLL.
 
 ## Extra education code
 
