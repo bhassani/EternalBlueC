@@ -16,12 +16,12 @@ class MetasploitModule < Msf::Exploit::Remote
 
   def initialize(info = {})
     super(update_info(info,
-      'Name'               => 'SMB DLL_DOUBLEPULSAR Remote Code Execution',
+      'Name'               => 'Wannacry SMB DLL DOUBLEPULSAR Remote Code Execution',
       'Description'        => %q{
-        This module executes a Metasploit payload against the Equation Group's
-        DOUBLEPULSAR implant for SMB as popularly deployed by ETERNALBLUE.
+        This module executes a Metasploit EXE payload wrapped in a Wannacry Launcher DLL against the Equation Group's
+        DOUBLEPULSAR implant for SMB
 
-        While this module primarily performs code execution against the implant,
+        While this module primarily performs metasploit payload code execution against the implant,
         the "Neutralize implant" target allows you to disable the implant.
       },
       'Author'             => [
