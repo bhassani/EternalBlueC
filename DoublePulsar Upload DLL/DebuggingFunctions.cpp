@@ -1,3 +1,8 @@
+//https://www.geeksforgeeks.org/little-and-big-endian-mystery/
+//https://stackoverflow.com/questions/15655467/converting-little-endian-hex-to-big-endian-decimal-in-c
+//https://stackoverflow.com/questions/26642393/write-hex-bytes-to-file-using-fwrite-little-endian-issue
+//hex_to_write = htonl(strtol(two_bytes, NULL, 2));
+
 //Very useful - kept here for easy access
 void hexDump(char *desc, void *addr, int len) 
 {
