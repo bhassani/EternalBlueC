@@ -18,7 +18,7 @@ This project is not completed and will be updated when I have spare time
 
 [*] **Make Doublepulsar_UploadShellcode.cpp operational**
 
-[*] **Make Doublepulsar_UploadDLL.cpp operational**
+[*] **Make Doublepulsar_WannacryDLL.cpp (supercedes) Doublepulsar_UploadDLL.cpp operational**
 
 [*] **Make DoublePulsar UploadDLL metasploit module operational**
 **( DoublePulsar Upload DLL/doublepulsar_dll_rce.rb )**
