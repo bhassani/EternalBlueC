@@ -2,8 +2,6 @@
 
 /*
 
-This file supercedes DoublePulsar_UploadDLL.cpp but it is kept for historical purposes.
-
 This program reads in a sample EXE such as Putty.exe and merges it with the Wannacry launcher.dll found in the worm
 
 This program then merges the Shellcode with the DLL and executable
