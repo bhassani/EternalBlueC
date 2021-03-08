@@ -2,7 +2,7 @@
 /*
 WARNING: This code works for me as of March 7th 2021 but it BSODS the target
 
-It could be because my shellcode doesn't contain the shellcode length & or no ret value at the end of it.
+It could be because my kernel shellcode doesn't contain the payload shellcode length after it & or no "return" assembly code at the end of it.
 */
 
 #include <windows.h>
