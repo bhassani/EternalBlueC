@@ -100,9 +100,9 @@ int main(int argc, char* argv[])
 		return 0;
 	}
 	server.sin_family = AF_INET;
-	server.sin_addr.s_addr = inet_addr("192.168.0.12");
+	server.sin_addr.s_addr = inet_addr(argv[1]);
 	server.sin_port = htons((USHORT)445);
-	printf("Connecting to 192.168.0.12\n");
+	printf("Connecting to %s\n",argv[1]);
 	ret = connect(sock, (struct sockaddr*)&server, sizeof(server));
 
 	//send SMB negociate packet
@@ -126,7 +126,7 @@ int main(int argc, char* argv[])
 	ptr = packet;
 	memcpy(ptr, SMB_TreeConnectAndX, sizeof(SMB_TreeConnectAndX) - 1);
 	ptr += sizeof(SMB_TreeConnectAndX) - 1;
-	sprintf((char*)tmp, "\\\\%s\\IPC$", "192.168.0.12");
+	sprintf((char*)tmp, "\\\\%s\\IPC$", argv[1]);
 	convert_name((char*)ptr, (char*)tmp);
 	smblen = strlen((char*)tmp) * 2;
 	ptr += smblen;
@@ -139,7 +139,7 @@ int main(int argc, char* argv[])
 	memcpy(packet + 3, &smblen, 1);
 
 	//update UserID in modified TreeConnect Request
-	memcpy(packet + 0x20, (char*)&userid, 2); //update userid
+	memcpy(packet + 0x20, (char*)&userid, 2); //update userid in packet
 
 	//send modified TreeConnect request
 	send(sock, (char*)packet, ptr - packet, 0);
@@ -148,10 +148,10 @@ int main(int argc, char* argv[])
 	//copy the treeID from the TreeConnect response
 	treeid = *(WORD*)(recvbuff + 0x1c);       //get treeid
 
-	//Update treeID, Process ID, UserID, Multiplex ID
-	//update Multiplex ID to 65
+	//Update treeID, UserID
 	memcpy(trans2_request + 28, (char*)&treeid, 2);
 	memcpy(trans2_request + 32, (char*)&userid, 2);
+	//might need to update processid
 
 	//if DoublePulsar is enabled, the multiplex ID is incremented by 10
 	//will return x51 or 81
