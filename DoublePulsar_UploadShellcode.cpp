@@ -275,7 +275,7 @@ int main(int argc, char* argv[])
 
 	//allocate memory for encrypted shellcode payload buffer
 	unsigned char *encrypted;
-	encrypted = (unsigned char*)malloc(4096);
+	encrypted = (unsigned char*)malloc(4096+1);
 
 	//initialize to 0
 	memset((unsigned char*)encrypted, 0x00, 4096);
