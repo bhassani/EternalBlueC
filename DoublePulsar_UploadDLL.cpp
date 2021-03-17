@@ -475,11 +475,7 @@ int main(int argc, char* argv[])
 	DWORD    ret;
 	WORD    userid, treeid, processid, multiplexid;
 
-	if (!WSAStartup(MAKEWORD(2, 2), &ws))
-	{
-		printf("couldn't initialize Windows Sockets!");
-		ExitProcess(0);
-	}
+	WSAStartup(MAKEWORD(2, 2), &ws));
 	sock = socket(AF_INET, SOCK_STREAM, 0);
 	if (sock <= 0)
 	{
