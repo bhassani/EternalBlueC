@@ -15,7 +15,7 @@ def xor(data, key):
         output_str += chr(o(current) ^ ord(current_key))
 
     ciphertext = '{ 0x' + ', 0x'.join(hex(ord(x))[2:] for x in output_str) + ' };'
-    return ciphertext, key
+    return ciphertext #, key
   
   '''
 Old python function
