@@ -28,7 +28,7 @@ if __name__ == "__main__":
 
     timeout = 5.0
     # sample IP
-    ip = "192.168.0.11"
+    ip = "192.168.0.8"
 
     # Connect to socket
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -52,17 +52,9 @@ if __name__ == "__main__":
     print("User ID = %s" % struct.unpack("<H", user_id)[0])
 
     # Replace user ID in tree connect request packet
-    modified_tree_connect_request = list(tree_connect_request)
-    modified_tree_connect_request[32] = user_id[0]
-    modified_tree_connect_request[33] = user_id[1]
-    '''
-    problem  here???
-    do this instead?
     modified_tree_connect_request = bytearray(tree_connect_request)
     modified_tree_connect_request[32] = user_id[0]
     modified_tree_connect_request[33] = user_id[1]
-    '''
-    modified_tree_connect_request = "".join(modified_tree_connect_request)
 
     # Send tree connect request
     print("Sending tree connect")
@@ -74,22 +66,11 @@ if __name__ == "__main__":
     print("Tree ID = %s" % struct.unpack("<H", tree_id)[0])
 
     # Replace tree ID and user ID in trans2 session setup packet
-    modified_trans2_session_setup = list(trans2_session_setup)
-    modified_trans2_session_setup[28] = tree_id[0]
-    modified_trans2_session_setup[29] = tree_id[1]
-    modified_trans2_session_setup[32] = user_id[0]
-    modified_trans2_session_setup[33] = user_id[1]
-    '''
-    problem  here???
-    do this instead?
     modified_trans2_session_setup = bytearray(trans2_session_setup)
     modified_trans2_session_setup[28] = tree_id[0]
     modified_trans2_session_setup[29] = tree_id[1]
     modified_trans2_session_setup[32] = user_id[0]
     modified_trans2_session_setup[33] = user_id[1]
-
-    '''
-    modified_trans2_session_setup = "".join(modified_trans2_session_setup)
 
     # Send trans2 sessions setup request
     print("Sending trans2 session setup - ping command")
