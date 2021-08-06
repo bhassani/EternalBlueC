@@ -1,5 +1,10 @@
 //code originally from:  https://github.com/CyberSecurityExploitDevelopment/WindowsEternalBlue/
 
+/*
+This source provided can be useful in dynamically generating a DoublePulsar upload packet.
+Essential functions have been copied, more information is missing and will be added later.
+*/
+
 typedef struct _SMB_HEADER {
 	BYTE Protocol[4];
 	BYTE Command;
