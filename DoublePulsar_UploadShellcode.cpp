@@ -290,6 +290,7 @@ int main(int argc, char* argv[])
 
 	//initialize to 0
 	memset((unsigned char*)encrypted, 0x00, 4096);
+	encrypted[4097] = '\0';
 
 	//copy kernel shellcode to encrypted buffer
 	memcpy((unsigned char*)encrypted, kernel_shellcode, kernel_shellcode_size);
