@@ -1,11 +1,5 @@
 #define _CRT_SECURE_NO_WARNINGS
 /*
-WARNING: This code works for me as of March 7th 2021 but it BSODS the target
-
-It could be because my kernel shellcode doesn't contain the payload shellcode length after it
-
-11/8/2021: Added code to attach the shellcode length after the kernel shellcode.
-11/8/2021: Fixed the encrypted buffer length to 4179 ( send 4178 bytes & null terminate at 4179)
 11/8/2021: Code is still untested
 */
 
