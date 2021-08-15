@@ -341,7 +341,7 @@ int main(int argc, char* argv[])
 
 	pingpacket.MaxParameterCount = SWAP_SHORT(0x0100); // should be 1
 	pingpacket.MaxDataCount = SWAP_SHORT(0x0000); // should be 0
-	pingpacket.MaxSetupCount = SWAP_SHORT(0);     //should be 0
+	pingpacket.MaxSetupCount = 0x00;  //OLD VALUE:  SWAP_SHORT(0);     //should be 0
 	pingpacket.reserved1 = 0x00; //OLD value: SWAP_SHORT(0);
 	pingpacket.flags1 = 0x0000;
 
@@ -355,7 +355,7 @@ int main(int argc, char* argv[])
 	pingpacket.ParamOffset = 0x0042;          //should be 66
 	pingpacket.DataCount = SWAP_SHORT(0x0000);          //should be 0 -> 0x0000
 	pingpacket.DataOffset = 0x004e;           //should be 78
-	pingpacket.SetupCount = 1;						//should be 1 / 0x01
+	pingpacket.SetupCount = 0x1;	//old value: 1					//should be 1 / 0x01
 	pingpacket.reserved3 = 0x00;						//should be 0x00
 	pingpacket.subcommand = SWAP_SHORT(0x0e00);         //original 0x0e00 ( little endian format )
 	pingpacket.ByteCount = SWAP_SHORT(0x0D00);          //value should be 13
@@ -618,7 +618,7 @@ int main(int argc, char* argv[])
 	execpacket.ParamOffset = 0x0042;          //should be 66
 	execpacket.DataCount = SWAP_SHORT(0x0000);          //should be 0 -> 0x0000
 	execpacket.DataOffset = 0x004e;           //should be 78
-	execpacket.SetupCount = 0x01;		//OLD VALUE: 1				//should be 1 / 0x01
+	execpacket.SetupCount = 0x1;		//OLD VALUE: 1				//should be 1 / 0x01
 	execpacket.reserved3 = 0x00;						//should be 0x00
 	execpacket.subcommand = 0x000e;         //original 0x0e00 ( little endian format )
 	execpacket.ByteCount = 0xD;          //value should be 13
