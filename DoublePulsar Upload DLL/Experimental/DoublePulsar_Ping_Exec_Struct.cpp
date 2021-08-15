@@ -353,7 +353,7 @@ int main(int argc, char* argv[])
 	pingpacket.reserved2 = SWAP_SHORT(0x0000);                 //should be 0x0000
 	pingpacket.ParameterCount = 0x0C;         //should be 12
 	pingpacket.ParamOffset = 0x0042;          //should be 66
-	pingpacket.DataCount = SWAP_SHORT(0x000);          //should be 0 -> 0x0000
+	pingpacket.DataCount = SWAP_SHORT(0x0000);          //should be 0 -> 0x0000
 	pingpacket.DataOffset = 0x004e;           //should be 78
 	pingpacket.SetupCount = 1;						//should be 1 / 0x01
 	pingpacket.reserved3 = 0x00;						//should be 0x00
@@ -616,7 +616,7 @@ int main(int argc, char* argv[])
 	execpacket.reserved2 = SWAP_SHORT(0x0000);                 //should be 0x0000
 	execpacket.ParameterCount = 0x0C;         //should be 12
 	execpacket.ParamOffset = 0x0042;          //should be 66
-	execpacket.DataCount = SWAP_SHORT(0x000);          //should be 0 -> 0x0000
+	execpacket.DataCount = SWAP_SHORT(0x0000);          //should be 0 -> 0x0000
 	execpacket.DataOffset = 0x004e;           //should be 78
 	execpacket.SetupCount = 1;						//should be 1 / 0x01
 	execpacket.reserved3 = 0x00;						//should be 0x00
