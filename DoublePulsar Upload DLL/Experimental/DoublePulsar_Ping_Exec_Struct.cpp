@@ -342,7 +342,7 @@ int main(int argc, char* argv[])
 	pingpacket.MaxParameterCount = SWAP_SHORT(0x0100); // should be 1
 	pingpacket.MaxDataCount = SWAP_SHORT(0x0000); // should be 0
 	pingpacket.MaxSetupCount = SWAP_SHORT(0);     //should be 0
-	pingpacket.reserved1 = SWAP_SHORT(0);
+	pingpacket.reserved1 = 0x00; //OLD value: SWAP_SHORT(0);
 	pingpacket.flags1 = 0x0000;
 
 	//trying little endian format for timeout
@@ -606,8 +606,8 @@ int main(int argc, char* argv[])
 
 	execpacket.MaxParameterCount = SWAP_SHORT(0x0100); // should be 1
 	execpacket.MaxDataCount = SWAP_SHORT(0x0000); // should be 0
-	execpacket.MaxSetupCount = SWAP_SHORT(0);     //should be 0
-	execpacket.reserved1 = SWAP_SHORT(0);
+	execpacket.MaxSetupCount = 0x00; // old value: SWAP_SHORT(0);     //should be 0
+	execpacket.reserved1 = 0x00; //old value: SWAP_SHORT(0);
 	execpacket.flags1 = 0x0000;
 
 	//trying little endian format for timeout
@@ -618,7 +618,7 @@ int main(int argc, char* argv[])
 	execpacket.ParamOffset = 0x0042;          //should be 66
 	execpacket.DataCount = SWAP_SHORT(0x0000);          //should be 0 -> 0x0000
 	execpacket.DataOffset = 0x004e;           //should be 78
-	execpacket.SetupCount = 1;						//should be 1 / 0x01
+	execpacket.SetupCount = 0x01;		//OLD VALUE: 1				//should be 1 / 0x01
 	execpacket.reserved3 = 0x00;						//should be 0x00
 	execpacket.subcommand = 0x000e;         //original 0x0e00 ( little endian format )
 	execpacket.ByteCount = 0xD;          //value should be 13
