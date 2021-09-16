@@ -4,9 +4,7 @@
 
 DoublePulsar PING command using a structure.
 
-This currently compiles and works for me as of: August 12, 2020
-
-This is still experimental!
+Structure is not finished yet, need to add the NetBIOS header & add code to populate the length field.
 
 */
 
@@ -49,6 +47,7 @@ unsigned char trans2_session_setup[] =
 "\x00\x0E\x00\x0D\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"
 "\x00\x00";
 
+#pragma pack(1)
 typedef struct {
 	uint16_t SmbMessageType;
 	uint16_t SmbMessageLength;
@@ -66,7 +65,7 @@ typedef struct {
 	uint16_t multipleID;                 
 } TreeConnect_Response;
 
-#pragma pack(1)
+//#pragma pack(1)
 typedef struct {
 	uint16_t SmbMessageType; //0x00
 	uint16_t SmbMessageLength;
@@ -110,6 +109,7 @@ typedef struct {
 
 	char SESSION_SETUP_PARAMETERS[12]; //Wannacry uses 12 as the size but need NULL terminator
 } SMB_DOUBLEPULSAR_REQUEST;
+#pragma pack(pop)
 
 #define SWAP_WORD(X) (((((uint32_t)(X)) >> 24) & 0x000000ff) | \
 				((((uint32_t)(X)) >>  8) & 0x0000ff00) | \
