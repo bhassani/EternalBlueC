@@ -48,6 +48,19 @@ unsigned char trans2_session_setup[] =
 "\x00\x0E\x00\x0D\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"
 "\x00\x00";
 
+unsigned int LE2INT(unsigned char *data)
+{
+            unsigned int b;
+            b = data[3];
+            b <<= 8;
+            b += data[2];
+            b <<= 8;
+            b += data[1];
+            b <<= 8;
+            b += data[0];
+            return b;
+}
+
 unsigned int ComputeDOUBLEPULSARXorKey(unsigned int sig)
 {
 	unsigned int x = (2 * sig ^ (((sig & 0xff00 | (sig << 16)) << 8) | (((sig >> 16) | sig & 0xff0000) >> 8))) & 0xffffffff;
@@ -161,7 +174,8 @@ int main(int argc, char* argv[])
 	printf("\n");
 
 	//convert the signature buffer to unsigned integer 
-	memcpy((unsigned int*)&sig, (unsigned int*)&signature, sizeof(unsigned int));
+	//memcpy((unsigned int*)&sig, (unsigned int*)&signature, sizeof(unsigned int));
+	sig = LE2INT(signature);
 
 	//calculate the XOR key for DoublePulsar
 	unsigned int XorKey = ComputeDOUBLEPULSARXorKey(sig);
