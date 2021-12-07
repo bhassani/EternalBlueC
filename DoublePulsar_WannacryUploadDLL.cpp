@@ -5460,6 +5460,19 @@ unsigned int ComputeDOUBLEPULSARXorKey(unsigned int sig)
 		(((sig << 16) | sig & 0xFF00) << 8));
 }
 
+unsigned int LE2INT(unsigned char *data)
+{
+            unsigned int b;
+            b = data[3];
+            b <<= 8;
+            b += data[2];
+            b <<= 8;
+            b += data[1];
+            b <<= 8;
+            b += data[0];
+            return b;
+}
+
 int xor_payload(unsigned int xor_key, unsigned char* buf, int size)
 {
 	int i;
@@ -5651,7 +5664,8 @@ int main(int argc, char* argv[])
 	signature[4] = recvbuff[22];
 
 	//convert the signature buffer to unsigned integer 
-	memcpy((unsigned int*)&sig, (unsigned int*)&signature, sizeof(unsigned int));
+	//memcpy((unsigned int*)&sig, (unsigned int*)&signature, sizeof(unsigned int));
+	sig = LE2INT(signature);
 
 	//calculate the XOR key for DoublePulsar
 	unsigned int XorKey = ComputeDOUBLEPULSARXorKey(sig);
