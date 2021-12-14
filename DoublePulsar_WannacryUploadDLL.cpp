@@ -5653,15 +5653,18 @@ int main(int argc, char* argv[])
 	}
 	processid = *(WORD*)(recvbuff + 30);
 
-	unsigned char signature[5]; //changed from 5 to 4 because I commented out the arch portion
+	unsigned char signature[4]; //changed from 5 to 4 because I commented out the architecture portion
 	unsigned int sig;
 	//copy SMB signature from recvbuff to local buffer
 	signature[0] = recvbuff[18];
 	signature[1] = recvbuff[19];
 	signature[2] = recvbuff[20];
 	signature[3] = recvbuff[21];
+	signature[4] = '\0';
+	
 	//this determines the architecture
-	signature[4] = recvbuff[22];
+	//recvbuff[22];
+	//but unused at this time
 
 	//convert the signature buffer to unsigned integer 
 	//memcpy((unsigned int*)&sig, (unsigned int*)&signature, sizeof(unsigned int));
