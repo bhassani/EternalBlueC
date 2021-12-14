@@ -574,8 +574,12 @@ int main(int argc, char* argv[])
 	signature[1] = recvbuff[19];
 	signature[2] = recvbuff[20];
 	signature[3] = recvbuff[21];
+	signature[4] = '\0';
+	
 	//this determines the architecture
-	signature[4] = recvbuff[22];
+	//recvbuff[22];
+	//however at this time we are not using it
+	
 	
 	//convert the signature buffer to unsigned integer 
 	//memcpy((unsigned int*)&sig, (unsigned int*)&signature, sizeof(unsigned int));
