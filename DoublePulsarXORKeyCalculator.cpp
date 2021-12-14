@@ -158,6 +158,11 @@ int main(int argc, char* argv[])
 	signature[2] = recvbuff[20];
 	signature[3] = recvbuff[21];
 	signature[4] = '\0';
+	
+	/*
+	Alternative:
+	memcpy(signature,recv_buff + 18,4);
+	*/
 
 	//this determines architecture
 	//signature[4] = recvbuff[22];
