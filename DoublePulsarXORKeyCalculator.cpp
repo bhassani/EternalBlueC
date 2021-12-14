@@ -150,14 +150,19 @@ int main(int argc, char* argv[])
 	send(sock, (char*)trans2_session_setup, sizeof(trans2_session_setup) - 1, 0);
 	recv(sock, (char*)recvbuff, sizeof(recvbuff), 0);
 
-	unsigned char signature[5];
+	unsigned char signature[4];
 	unsigned int sig;
 	//copy SMB signature from recvbuff to local buffer
 	signature[0] = recvbuff[18];
 	signature[1] = recvbuff[19];
 	signature[2] = recvbuff[20];
 	signature[3] = recvbuff[21];
-	signature[4] = recvbuff[22];
+	signature[4] = '\0';
+
+	//this determines architecture
+	//signature[4] = recvbuff[22];
+	//but unused at this time 
+	
 	int i;
 	printf("Received the following SMB signature from DoublePulsar:  ");
 	for (i = 18; i < 22; i++)
