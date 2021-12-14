@@ -19,7 +19,12 @@ BEFORE the XOR encryption, you must include the EXE length after the DLL which i
 
 the payload buffer is then XOR encrypted with the doublepulsar key and ready to ship.
 
-However...currently it is unable to send packets for some reason which I do not know.
+ISSUES:
+Currently it is unable to send packets for some reason.  
+
+EDIT: the reason is because the NetBIOS data header is not being updated.
+The NetBIOS header must be updated for the packet size.  
+I will fix this in a later release.
 
 Currently compiles but does NOT work as of March 7th 2021
 
