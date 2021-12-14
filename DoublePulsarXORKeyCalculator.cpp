@@ -215,7 +215,7 @@ int main(int argc, char* argv[])
 		*/
 	}
 	else {
-		printf("Doublepulsar does not appear to be installed!");
+		printf("Doublepulsar does not appear to be installed!\n");
        	}
 
 	closesocket(sock);
