@@ -3,8 +3,10 @@
 WARNING: This code works for me as of March 7th 2021 but it BSODS the target
 
 It could be because my kernel shellcode doesn't contain the payload shellcode length after it
-
 11/8/2021: Added code to attach the shellcode length after the kernel shellcode.
+
+To fix:
+Update SMB Length in NetBIOS header & make sure the payload shellcode length is being written to buffer correctly.
 */
 
 #include <windows.h>
