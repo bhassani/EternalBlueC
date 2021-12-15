@@ -107,7 +107,7 @@ typedef struct {
 	uint16_t ByteCount; //4109 or 0x0d 0x10
 	uint8_t padding;
 
-	char SESSION_SETUP_PARAMETERS[12]; //Wannacry uses 12 as the size but need NULL terminator
+	char SESSION_SETUP_PARAMETERS[12];
 } SMB_DOUBLEPULSAR_REQUEST;
 #pragma pack(pop)
 
