@@ -163,16 +163,17 @@ int main(int argc, char* argv[])
 		signature[2] = recvbuff[20];
 		signature[3] = recvbuff[21];
 		signature[4] = '\0';
-			
+		
+		//this determines architecture ( recvbuff[22] )
+		//signature[4] = recvbuff[22];
+		//signature[5] = '\0';
+		//but unused at this time in this release
+		
 		/*
 		Alternative:
 		memcpy(signature,recv_buff + 18,4);
 		*/
 
-		//this determines architecture
-		//signature[4] = recvbuff[22];
-		//but unused at this time 
-			
 		int i;
 		printf("Received the following SMB signature from DoublePulsar:  ");
 		for (i = 18; i < 22; i++)
