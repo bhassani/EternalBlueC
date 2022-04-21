@@ -82,6 +82,9 @@ Sample screenshot:
 
 ![XORCalculator](/images/XORKeyCalculator.PNG)
 
+Same key from the original NSA binary in FUZZBUNCH
+![XORCalculatorFromNSAbinary](/images/DoublepulsarKeyOriginal.png)
+
 ## Not finished
 
 * **DoublePulsar_WannacryUploadDLL.cpp** - 
