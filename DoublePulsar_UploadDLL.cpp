@@ -567,14 +567,15 @@ int main(int argc, char* argv[])
 	recv(sock, (char*)recvbuff, sizeof(recvbuff), 0);
 
 	
-	unsigned char signature[4]; //changed from 5 to 4 because I commented out the arch portion
+	unsigned char signature[6]; //changed from 5 to 4 because I commented out the arch portion
 	unsigned int sig;
 	//copy SMB signature from recvbuff to local buffer
 	signature[0] = recvbuff[18];
 	signature[1] = recvbuff[19];
 	signature[2] = recvbuff[20];
 	signature[3] = recvbuff[21];
-	signature[4] = '\0';
+	signature[4] = recvbuff[22];
+	signature[5] = '\0';
 	
 	//this determines the architecture
 	//recvbuff[22];
