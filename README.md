@@ -80,7 +80,7 @@ Repository also contains the following for educational purposes and are NOT supp
 * **DoublePulsarXORKeyCalculator.cpp** - This program sends 4 SMB packets.  1 negotiation packet and 3 requests.  The last request is a Trans2 SESSION_SETUP request.  A Trans2 SESSION_SETUP response is then recieved and the SMB signature is extracted at (Recvbuff[18] -> Recvbuff[22]) .  The SMB signature is converted from the hex characters into an unsigned integer.  This unsigned integer is ran through the DoublePulsar XOR key calculator function, which generates a XOR key that can be used to encrypt the shellcode or DLL payload that will be uploaded to DoublePulsar.  NOTE: The SESSION_SETUP data parameters must contain the char version of the calculated DoublePulsar XOR key in the payload upload portion of this repository.  Tested on Windows 7 x64 bit.
 Sample screenshot:
 
-![XORCalculator](/images/XORCalculator.PNG)
+![XORCalculator](/images/XORKeyCalculator.PNG)
 
 ## Not finished
 
