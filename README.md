@@ -77,7 +77,12 @@ Repository also contains the following for educational purposes and are NOT supp
 ![EternalBlue_cmd](/images/eternalbluecmd.PNG)
 ![eternalbluepackets](/images/eternalbluepackets.PNG)
 
-* **DoublePulsarXORKeyCalculator.cpp** - This program sends 4 SMB packets.  1 negotiation packet and 3 requests.  The last request is a Trans2 SESSION_SETUP request.  A Trans2 SESSION_SETUP response is then recieved and the SMB signature is extracted at (Recvbuff[18] -> Recvbuff[22]) .  The SMB signature is converted from the hex characters into an unsigned integer.  This unsigned integer is ran through the DoublePulsar XOR key calculator function, which generates a XOR key that can be used to encrypt the shellcode or DLL payload that will be uploaded to DoublePulsar.  NOTE: The SESSION_SETUP data parameters must contain the char version of the calculated DoublePulsar XOR key in the payload upload portion of this repository.  Tested on Windows 7 x64 bit.
+* **DoublePulsarXORKeyCalculator.cpp** - This program sends 4 SMB packets.  1 negotiation packet and 3 requests.  The last request is a Trans2 SESSION_SETUP request.  A Trans2 SESSION_SETUP response is then received and the SMB signature is extracted at (Recvbuff[18] -> Recvbuff[22]) .  Recvbuff[22] indicates the architecture type.  If 1, the target is x64 bits and if 0, the target is x86/32 bits.  The SMB signature is converted from the hex characters into an unsigned integer.  
+
+![SMBSignatureWireshark](/images/SMB_Signature_Wireshark.PNG)
+
+These values from Recvbuff[18] -> Recvbuff[22] are then ran through the DoublePulsar XOR key calculator function, which generates a XOR key (unsigned integer) that can be used to encrypt the shellcode or DLL payload that will be uploaded to DoublePulsar.  Tested on Windows 7 x64 bit.
+
 Sample screenshot:
 
 ![XORCalculator](/images/XORKeyCalculator.PNG)
