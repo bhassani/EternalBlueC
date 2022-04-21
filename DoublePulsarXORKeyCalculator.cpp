@@ -154,7 +154,7 @@ int main(int argc, char* argv[])
     	if(recvbuff[34] == 0x51)
     	{
 		printf("Received data that DoublePulsar is installed!\n");
-		unsigned char signature[4];
+		unsigned char signature[6];
 		unsigned int sig;
 		
 		//copy SMB signature from recvbuff to local buffer
@@ -162,7 +162,8 @@ int main(int argc, char* argv[])
 		signature[1] = recvbuff[19];
 		signature[2] = recvbuff[20];
 		signature[3] = recvbuff[21];
-		signature[4] = '\0';
+		signature[4] = recvbuff[22];
+		signature[5] = '\0';
 		
 		//this determines architecture ( recvbuff[22] )
 		//signature[4] = recvbuff[22];
@@ -176,7 +177,7 @@ int main(int argc, char* argv[])
 
 		int i;
 		printf("Received the following SMB signature from DoublePulsar:  ");
-		for (i = 18; i < 22; i++)
+		for (i = 18; i < 23; i++)
 		{
 			printf("0x%x ", recvbuff[i]);
 		}
