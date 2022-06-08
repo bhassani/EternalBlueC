@@ -14,12 +14,16 @@ so a proper request can be sent and executed on the Doublepulsar implant
 typedef unsigned short ushort;
 typedef unsigned char uchar;
 
-typedef unsigned short ushort;
-typedef unsigned char uchar;
-
 /*
-However, the TCP/IP protocol headers do not have padding bytes, so the compiler must be instructed not to add them additional bytes into structures that map onto the IP protocol headers that a written to or read from Ethernet frames. Structures that do not contain padding bytes are said to be 'packed'. The syntax required to ensure structures are packed depends on the embedded C compiler. The FreeRTOS+TCP implementation cannot use any C compiler specific syntax in the common (not MCU port specific) files, and instead allows users to define their own packing directives in two very simple header files that are then included from the C files.
+However, the TCP/IP protocol headers do not have padding bytes, so the compiler must be instructed not to add them additional bytes into structures
+that map onto the IP protocol headers that a written to or read from Ethernet frames. 
+
+Structures that do not contain padding bytes are said to be 'packed'. 
+The syntax required to ensure structures are packed depends on the embedded C compiler. 
+The FreeRTOS+TCP implementation cannot use any C compiler specific syntax in the common (not MCU port specific) files,
+and instead allows users to define their own packing directives in two very simple header files that are then included from the C files.
 */
+
 #pragma pack(1)
 //struct __attribute__((__packed__)) net_bios
 typedef struct
@@ -188,7 +192,6 @@ void generate_SMB_packet()
 	trans2->subcommand = 0x000e;
 	trans2->byteCount = 4109; //make this dynamic -> calc based off sizeof(params)+sizeof(SMB_DATA)
 	trans2->padding = 0x00;
-
 
 	hexDump(0, send_buffer, 4178);
 
