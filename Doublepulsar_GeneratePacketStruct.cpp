@@ -42,8 +42,10 @@ typedef struct
 	ushort flag2;
 	ushort PIDHigh;
 	unsigned char SecuritySignature[8];
-	//uint32_t signature; //unsigned char securityFeature[8]; OR 	BYTE SecuritySignature[8];
-	//from Microsoft documentation: UCHAR  SecurityFeatures[8];
+	/*
+	from Microsoft documentation: UCHAR  SecurityFeatures[8];
+	unsigned char securityFeature[8]; OR 	BYTE SecuritySignature[8];
+	*/
 	ushort reserves;
 	ushort tid;
 	ushort pid;
