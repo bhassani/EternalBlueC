@@ -77,6 +77,19 @@ typedef struct
 	ushort byteCount;
 	ushort padding;
 } Trans_Response;
+
+//Size of params:  12 
+typedef struct
+{
+	ULONG DataSize;
+	ULONG chunksize;
+	ULONG offset;
+} smb_parameters;
+
+typedef struct
+{
+	unsigned char smbdata[4096];
+} smb_data;
 #pragma pop
 
 /*
