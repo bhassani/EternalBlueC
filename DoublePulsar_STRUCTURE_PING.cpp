@@ -67,12 +67,15 @@ typedef struct {
 
 //#pragma pack(1)
 typedef struct {
+	//NetBIOS header -- may need to make this separate from the SMB header
 	uint16_t SmbMessageType; //0x00
 	uint16_t SmbMessageLength;
+	
+	//SMB header
 	uint8_t ProtocolHeader[4]; //"\xffSMB"
 	uint8_t SmbCommand;
 	uint32_t NtStatus; //0x00000000
-	uint8_t flags = 0x18; //0x18 - pathnames not case sensitive & pathnames canonicalized
+	uint8_t flags; ///0x18 - pathnames not case sensitive & pathnames canonicalized
 	uint16_t flags2;  //0xC007
 	uint16_t ProcessIDHigh; //0x00
 	uint8_t signature[8]; //0x00000000000
@@ -82,7 +85,7 @@ typedef struct {
 	uint16_t UserID;
 	uint16_t multipleID;                 //must have a multiplex ID
 
-	//trans2 stuff
+	//trans2 header
 	uint8_t wordCount;              //setupcount(1) + wordcount (14)
 	uint16_t totalParameterCount;
 	uint16_t totalDataCount;
@@ -106,8 +109,14 @@ typedef struct {
 	uint16_t subcommand; //0x0e00 also known as Subcommand in Wireshark
 	uint16_t ByteCount; //4109 or 0x0d 0x10
 	uint8_t padding;
-
-	char SESSION_SETUP_PARAMETERS[12];
+	
+	
+	unsigned char SESSION_SETUP_PARAMETERS[12];
+	/*
+	ULONG DataSize;
+	ULONG chunksize;
+	ULONG offset;
+	*/
 } SMB_DOUBLEPULSAR_REQUEST;
 #pragma pack(pop)
 
@@ -204,15 +213,18 @@ int main(int argc, char* argv[])
 	//set SMB values
 	SMB_DOUBLEPULSAR_REQUEST uploadpacket;
 	uploadpacket.SmbMessageType = 0x0000;
+	//fix here because the value needs to be dynamic not static
+	//uploadpacket.SmbMessageLength = SWAP_SHORT(0x4e);
+	
+	int packetSize = sizeof(struct SMB_DOUBLEPULSAR_REQUEST)-4;
+	uploadpacket.SmbMessageLength = htons(packetSize);
+	
+	
 	uploadpacket.ProtocolHeader[0] = '\xff';
 	uploadpacket.ProtocolHeader[1] = 'S';
 	uploadpacket.ProtocolHeader[2] = 'M';
 	uploadpacket.ProtocolHeader[3] = 'B';
 	uploadpacket.SmbCommand = 0x32; //Trans2 
-	
-	//fix here because the value needs to be dynamic not static
-	//uploadpacket.SmbMessageLength = SWAP_SHORT(0x4e);
-	uploadpacket.SmbMessageLength = sizeof(struct SMB_DOUBLEPULSAR_REQUEST);
 	
 	uploadpacket.ProcessIDHigh = 0x0000;
 	uploadpacket.NtStatus = 0x00000000;
@@ -227,60 +239,67 @@ int main(int argc, char* argv[])
 	uploadpacket.reserved = 0x0000;
 	uploadpacket.ProcessID = 0xfeff; //treeresponse.ProcessID;        //treeresponse.ProcessID; //Default value:  0xfeff;
 	uploadpacket.TreeId = treeresponse.TreeId;				//grab from SMB response
-	uploadpacket.multipleID = 0x41;
+	//uploadpacket.TreeId = treeid;
+	uploadpacket.multipleID = 65; //0x41;
+	
+	//test this with default values:
+	uploadpacket.TreeId = 2048;
+	uploadpacket.UserID = 2048;
 
 	//trans2 packet stuff
 	uploadpacket.wordCount = 15; // 0x0F == 15 
-	uploadpacket.totalParameterCount = 0x0C; // should be 12
-	uploadpacket.totalDataCount = SWAP_SHORT(0x0000); // should be 0
+	uploadpacket.totalParameterCount = 12; //0x0C; // should be 12
+	uploadpacket.totalDataCount = 0; //SWAP_SHORT(0x0000); // should be 0
 
-	uploadpacket.MaxParameterCount = SWAP_SHORT(0x0100); // should be 1
-	uploadpacket.MaxDataCount = SWAP_SHORT(0x0000); // should be 0
-	uploadpacket.MaxSetupCount = SWAP_SHORT(0);     //should be 0
-	uploadpacket.reserved1 = SWAP_SHORT(0);
+	uploadpacket.MaxParameterCount = 1; //SWAP_SHORT(0x0100); // should be 1
+	uploadpacket.MaxDataCount = 0; //SWAP_SHORT(0x0000); // should be 0
+	uploadpacket.MaxSetupCount = 0; //SWAP_SHORT(0);     //should be 0
+	uploadpacket.reserved1 = 0; //SWAP_SHORT(0);
 	uploadpacket.flags1 = 0x0000;
 
 	//trying little endian format for timeout
+	uploadpacket.timeout = 0x00ee3401;
 	//uploadpacket.timeout = SWAP_WORD(0x001a8925); //0x25 0x89 0x1a 0x00 EXEC command
-	uploadpacket.timeout = SWAP_WORD(0x0134ee00);    //little endian PING command
+	//uploadpacket.timeout = SWAP_WORD(0x0134ee00);    //little endian PING command
+	//uploadpacket.timeout = 0x0134ee00;;
 	//0x866c3100 = PING command from somewhere else
 
-	uploadpacket.reserved2 = SWAP_SHORT(0x0000);                 //should be 0x0000
-	uploadpacket.ParameterCount = 0x0C;         //should be 12
-	uploadpacket.ParamOffset= 0x0042;          //should be 66
-	uploadpacket.DataCount = SWAP_SHORT(0x000);          //should be 0 -> 0x0000
-	uploadpacket.DataOffset = 0x004e;           //should be 78
+	uploadpacket.reserved2 = 0x0000; //SWAP_SHORT(0x0000);                 //should be 0x0000
+	uploadpacket.ParameterCount = 12; //0x0C;         //should be 12
+	uploadpacket.ParamOffset= 66; //0x0042;          //should be 66
+	uploadpacket.DataCount = 0; //SWAP_SHORT(0x000);          //should be 0 -> 0x0000
+	uploadpacket.DataOffset = 78; //0x004e;           //should be 78
 	uploadpacket.SetupCount = 1;						//should be 1 / 0x01
-	uploadpacket.reserved3 = 0x00;						//should be 0x00
+	uploadpacket.reserved3 = 0; //0x00;						//should be 0x00
 	uploadpacket.subcommand = 0x000e;         //original 0x0e00 ( little endian format )
-	uploadpacket.ByteCount = 0xD;          //value should be 13
-	uploadpacket.padding = SWAP_SHORT(0x00);			//should be 0x00
+	uploadpacket.ByteCount = 13; //0xD;          //value should be 13
+	uploadpacket.padding = 0; //SWAP_SHORT(0x00);			//should be 0x00
 	
 	//should probably reassign to 0x00 and not a NULL terminator
-	uploadpacket.signature[0] = '\0';
-	uploadpacket.signature[1] = '\0';
-	uploadpacket.signature[2] = '\0';
-	uploadpacket.signature[3] = '\0';
-	uploadpacket.signature[4] = '\0';
-	uploadpacket.signature[5] = '\0';
-	uploadpacket.signature[6] = '\0';
-	uploadpacket.signature[7] = '\0';
-	uploadpacket.signature[8] = '\0';
+	uploadpacket.signature[0] = 0;
+	uploadpacket.signature[1] = 0;
+	uploadpacket.signature[2] = 0;
+	uploadpacket.signature[3] = 0;
+	uploadpacket.signature[4] = 0;
+	uploadpacket.signature[5] = 0;
+	uploadpacket.signature[6] = 0;
+	uploadpacket.signature[7] = 0;
+	uploadpacket.signature[8] = 0;
 
 	//should probably reassign to 0x00 and not a NULL terminator
-	uploadpacket.SESSION_SETUP_PARAMETERS[0] = '\0';
-	uploadpacket.SESSION_SETUP_PARAMETERS[1] = '\0';
-	uploadpacket.SESSION_SETUP_PARAMETERS[2] = '\0';
-	uploadpacket.SESSION_SETUP_PARAMETERS[3] = '\0';
-	uploadpacket.SESSION_SETUP_PARAMETERS[4] = '\0';
-	uploadpacket.SESSION_SETUP_PARAMETERS[5] = '\0';
-	uploadpacket.SESSION_SETUP_PARAMETERS[6] = '\0';
-	uploadpacket.SESSION_SETUP_PARAMETERS[7] = '\0';
-	uploadpacket.SESSION_SETUP_PARAMETERS[8] = '\0';
-	uploadpacket.SESSION_SETUP_PARAMETERS[9] = '\0';
-	uploadpacket.SESSION_SETUP_PARAMETERS[10] = '\0';
-	uploadpacket.SESSION_SETUP_PARAMETERS[11] = '\0';
-	uploadpacket.SESSION_SETUP_PARAMETERS[12] = '\0';
+	uploadpacket.SESSION_SETUP_PARAMETERS[0] = 0;
+	uploadpacket.SESSION_SETUP_PARAMETERS[1] = 0;
+	uploadpacket.SESSION_SETUP_PARAMETERS[2] = 0;
+	uploadpacket.SESSION_SETUP_PARAMETERS[3] = 0;
+	uploadpacket.SESSION_SETUP_PARAMETERS[4] = 0;
+	uploadpacket.SESSION_SETUP_PARAMETERS[5] = 0;
+	uploadpacket.SESSION_SETUP_PARAMETERS[6] = 0;
+	uploadpacket.SESSION_SETUP_PARAMETERS[7] = 0;
+	uploadpacket.SESSION_SETUP_PARAMETERS[8] = 0;
+	uploadpacket.SESSION_SETUP_PARAMETERS[9] = 0;
+	uploadpacket.SESSION_SETUP_PARAMETERS[10] = 0;
+	uploadpacket.SESSION_SETUP_PARAMETERS[11] = 0;
+	uploadpacket.SESSION_SETUP_PARAMETERS[12] = 0;
 
 	send(sock, (char*)&uploadpacket, sizeof(uploadpacket), 0);
 	recv(sock, (char*)recvbuff, sizeof(recvbuff), 0);
