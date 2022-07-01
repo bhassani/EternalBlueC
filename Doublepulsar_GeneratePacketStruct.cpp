@@ -85,18 +85,20 @@ typedef struct
 } Trans_Response;
 
 //Size of params:  12 
+/*
 typedef struct
 {
 	ULONG DataSize;
 	ULONG chunksize;
 	ULONG offset;
 } smb_parameters;
+*/
 
-/*typedef struct __attribute__((__packed__)) 
+//typedef struct __attribute__((__packed__)) 
+typedef struct
 {
 	unsigned char parameters[12];
 } smb_parameters;
-*/
 
 typedef struct
 {
@@ -220,7 +222,6 @@ void generate_SMB_packet()
 	trans2->byteCount = 4109; //make this dynamic -> calc based off sizeof(params)+sizeof(SMB_DATA)
 	trans2->padding = 0x00;
 	
-	/*
 	smb_parameters *smb_params = (smb_parameters*)(buffer + sizeof(netbios) + sizeof(smb_header) + sizeof(Trans_Response));
 	
 	//make DataSize dynamic where it calculates the size of the buffer of the payload / shellcode
@@ -236,8 +237,6 @@ void generate_SMB_packet()
     	memcpy(smb_params->parameters, (unsigned char*)&DataSize, 4);
     	memcpy(smb_params->parameters + 4, (unsigned char*)&chunksize, 4);
     	memcpy(smb_params->parameters +8 , (unsigned char*)&offset, 4);
-	
-	*/
 	
 	hexDump(0, send_buffer, 4178);
 
