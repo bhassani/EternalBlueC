@@ -173,6 +173,13 @@ int main() {
 	trans2->byteCount = 4109; //make this dynamic -> calc based off sizeof(params)+sizeof(SMB_DATA)
 	trans2->padding = 0x00;
 	
+	printf("Offset of Parameters:  %d\n", sizeof(smb_header) + sizeof(Trans_Response));
+        printf("Offset of Data:  %d\n", sizeof(smb_header) + sizeof(Trans_Response) + sizeof(smb_parameters));
+	int param_offset_len = sizeof(smb_header) + sizeof(Trans_Response);
+	int dataOffset_len = sizeof(smb_header) + sizeof(Trans_Response) + sizeof(smb_parameters);
+	trans2->parameterOffset = param_offset_len;
+	trans2->dataOffset = dataOffset_len;
+	
 	unsigned int XorKey = 0x58581162;
 	
     smb_parameters *smb_params = (smb_parameters*)(buffer + sizeof(netbios) + sizeof(smb_header) + sizeof(Trans_Response));
