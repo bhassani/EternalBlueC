@@ -213,14 +213,21 @@ void generate_SMB_packet()
 	trans2->timeout = 0x001a8925;
 	trans2->reserved2 = 0x0000;
 	trans2->parameterCount = 12;
-	trans2->parameterOffset = 66; // make this dynamic -> calc based off sizeof(netbios)+sizeof(trans2) <PARAMS>
+	trans2->parameterOffset = 66; // make this dynamic -> calc based off sizeof(smb_header) + sizeof(Trans_Response) < PARAMS ARE HERE >
 	trans2->dataCount = 4096;
-	trans2->dataOffset = 78; // make this dynamic -> calc based off sizeof(netbios)+sizeof(trans2)+sizeof(params)
+	trans2->dataOffset = 78; // make this dynamic -> calc based off sizeof(smb_header) + sizeof(Trans_Response) + sizeof(smb_parameters) < SMB DATA IS HERE >
 	trans2->setupCount = 1;
 	trans2->reserved3 = 0x00;
 	trans2->subcommand = 0x000e;
 	trans2->byteCount = 4109; //make this dynamic -> calc based off sizeof(params)+sizeof(SMB_DATA)
 	trans2->padding = 0x00;
+	
+	printf("Offset of Parameters:  %d\n", sizeof(smb_header) + sizeof(Trans_Response));
+        printf("Offset of Data:  %d\n", sizeof(smb_header) + sizeof(Trans_Response) + sizeof(smb_parameters));
+	int param_offset_len = sizeof(smb_header) + sizeof(Trans_Response);
+	int dataOffset_len = sizeof(smb_header) + sizeof(Trans_Response) + sizeof(smb_parameters);
+	trans2->parameterOffset = param_offset_len;
+	trans2->dataOffset = dataOffset_len;
 	
 	smb_parameters *smb_params = (smb_parameters*)(buffer + sizeof(netbios) + sizeof(smb_header) + sizeof(Trans_Response));
 	
