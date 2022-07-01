@@ -5,9 +5,21 @@
 #include <arpa/inet.h>
 
 /*
+However, the TCP/IP protocol headers do not have padding bytes, so the compiler must be instructed not to add them additional bytes into structures
+that map onto the IP protocol headers that a written to or read from Ethernet frames. 
+
+Structures that do not contain padding bytes are said to be 'packed'. 
+The syntax required to ensure structures are packed depends on the embedded C compiler. 
+The FreeRTOS+TCP implementation cannot use any C compiler specific syntax in the common (not MCU port specific) files,
+and instead allows users to define their own packing directives in two very simple header files that are then included from the C files.
+*/
+
+/*
 Sources:
 https://shasaurabh.blogspot.com/2017/05/doublepulsar-backdoor.html
 https://www.rapid7.com/blog/post/2019/10/02/open-source-command-and-control-of-the-doublepulsar-implant/
+
+https://www.geeksforgeeks.org/structure-member-alignment-padding-and-data-packing/
 */
 
 void hexDump(char* desc, void* addr, int len)
