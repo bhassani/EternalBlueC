@@ -27,6 +27,8 @@ and instead allows users to define their own packing directives in two very simp
 /* Sources used:
 https://www.rapid7.com/blog/post/2019/10/02/open-source-command-and-control-of-the-doublepulsar-implant/
 https://shasaurabh.blogspot.com/2017/05/doublepulsar-backdoor.html
+
+https://www.geeksforgeeks.org/structure-member-alignment-padding-and-data-packing/
 */
 
 #pragma pack(1)
