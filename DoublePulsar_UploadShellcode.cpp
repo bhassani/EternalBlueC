@@ -376,11 +376,11 @@ int main(int argc, char* argv[])
 
 	*(WORD*)(big_packet + 0x27) = TotalDataCount;
 	*(WORD*)(big_packet + 0x3b) = DataCount;
-	*(WORD*)(big_packet + 0x45) = byteCount;
+	*(WORD*)(big_packet + 0x43) = byteCount;
 
 	memcpy((unsigned char*)big_packet + 0x27, (char*)&TotalDataCount, 2);
 	memcpy((unsigned char*)big_packet + 0x3b, (char*)&DataCount, 2);
-	memcpy((unsigned char*)big_packet + 0x45, (char*)&byteCount, 2);
+	memcpy((unsigned char*)big_packet + 0x43, (char*)&byteCount, 2);
 	
 	*/
 
