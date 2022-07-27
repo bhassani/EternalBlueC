@@ -140,6 +140,13 @@ int main() {
     nb->type = 0;
     //int buf_size = sizeof(buffer)-4;
     nb->length = 4174;
+    //nb->length = htons(4174);
+	
+    /*
+    	uint16_t htons_len = htons(4174);
+	memcpy(buffer+2, &htons_len, 2);
+	hexDump(0,buffer,10);
+    */
     
     smb->protocol[0] = '\xff';
 	smb->protocol[1] = 'S';
