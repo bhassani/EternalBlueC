@@ -179,6 +179,14 @@ void generate_SMB_packet()
 	nb->type = 0x00;
 	nb->length = htons(4174); //NetBIOS size = totalPacketSize - 4 ( NetBIOS header is not counted )
 	//Size of smb_header + size of Trans2_Response header + parameter size + SMB_Data are counted in the packet size
+	//nb->length = htons(4174);
+
+	/*
+    		uint16_t htons_len = htons(4174);
+		memcpy(buffer+2, &htons_len, 2);
+		hexDump(0,buffer,10);
+    	*/
+	
 	
 	smb->protocol[0] = '\xff';
 	smb->protocol[1] = 'S';
