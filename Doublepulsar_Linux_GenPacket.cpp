@@ -139,8 +139,8 @@ int main() {
     
     nb->type = 0;
     //int buf_size = sizeof(buffer)-4;
-    nb->length = 4174;
-    //nb->length = htons(4174);
+    //nb->length = 4174;
+    nb->length = htons(4174);
 	
     /*
     	uint16_t htons_len = htons(4174);
