@@ -18,23 +18,22 @@ This project is not completed and will be updated when I have spare time
 
 ## Project goals
 
-[*] **Make Doublepulsar_UploadShellcode.cpp operational**
+- **Make Doublepulsar_UploadShellcode.cpp operational**
 
-[*] **Make Doublepulsar_WannacryDLL.cpp - Uploads an EXE in a launcher.dll**
+- **Make Doublepulsar_WannacryDLL.cpp - Uploads an EXE in a launcher.dll**
+- **Doublepulsar_UploadDLL.cpp operational - Uploads a DLL like DoublePulsar**
 
-[*] **Doublepulsar_UploadDLL.cpp operational - Uploads a DLL like DoublePulsar**
-
-[*] **Make DoublePulsar UploadDLL metasploit module operational**
+- **Make DoublePulsar UploadDLL metasploit module operational**
 **( DoublePulsar Upload DLL/doublepulsar_dll_rce.rb )**
 
-[*] **Make Wannacry launcher metasploit module operational**
+- **Make Wannacry launcher metasploit module operational**
 **( DoublePulsar Upload DLL/WannacryDLLMetasploit.rb )**
 
-[*] Implement a scanner & detect/attack GUI in C#, C++, Java, Python3 & Go ( time permitting ).
+- Implement a scanner & detect/attack GUI in C#, C++, Java, Python3 & Go ( time permitting ).
 
-[*] Allow editing of EternalBlue exploit payload to remove DoublePulsar and allow custom payloads & shellcode to be sent instead.
+- Allow editing of EternalBlue exploit payload to remove DoublePulsar and allow custom payloads & shellcode to be sent instead.
 
-[*] Add EternalRomance (Requires Named Pipe) support
+- Add EternalRomance (Requires Named Pipe) support
 
 ## Metasploit module
 Metasploit module that I made functional using the open source DoublePulsar RCE module from Metasploit.
@@ -50,15 +49,15 @@ I changed the logic to allow an executable metasploit payload to be generated, m
 
 Repository also contains the following for educational purposes and are NOT supported by me:
 
-[*] DoublePulsar x86/x64 Upload DLL python script
+- DoublePulsar x86/x64 Upload DLL python script
 
-[*] EternalBlue All in one binary
+- EternalBlue All in one binary
 
-[*] Multi arch kernel queue apc assembly code & Windows x86/x64 Multi-Arch Kernel Ring 0 to Ring 3 via Queued APC kernel code
+- Multi arch kernel queue apc assembly code & Windows x86/x64 Multi-Arch Kernel Ring 0 to Ring 3 via Queued APC kernel code
 
-[*] EternalBlue x64/x86 kernel payload shellcode from worawit
+- EternalBlue x64/x86 kernel payload shellcode from worawit
 
-[*] Eternalblue replay file
+- Eternalblue replay file
 
 ## EternalBlue Suite
 
