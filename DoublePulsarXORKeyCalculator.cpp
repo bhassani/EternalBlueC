@@ -48,6 +48,19 @@ unsigned char trans2_session_setup[] =
 "\x00\x0E\x00\x0D\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"
 "\x00\x00";
 
+unsigned int LE2INT(unsigned char *data)
+{
+            unsigned int b;
+            b = data[3];
+            b <<= 8;
+            b += data[2];
+            b <<= 8;
+            b += data[1];
+            b <<= 8;
+            b += data[0];
+            return b;
+}
+
 unsigned int ComputeDOUBLEPULSARXorKey(unsigned int sig)
 {
 	unsigned int x = (2 * sig ^ (((sig & 0xff00 | (sig << 16)) << 8) | (((sig >> 16) | sig & 0xff0000) >> 8))) & 0xffffffff;
@@ -137,49 +150,75 @@ int main(int argc, char* argv[])
 	send(sock, (char*)trans2_session_setup, sizeof(trans2_session_setup) - 1, 0);
 	recv(sock, (char*)recvbuff, sizeof(recvbuff), 0);
 
-	unsigned char signature[5];
-	unsigned int sig;
-	//copy SMB signature from recvbuff to local buffer
-	signature[0] = recvbuff[18];
-	signature[1] = recvbuff[19];
-	signature[2] = recvbuff[20];
-	signature[3] = recvbuff[21];
-	signature[4] = recvbuff[22];
-	int i;
-	printf("Received the following SMB signature from DoublePulsar:  ");
-	for (i = 18; i < 22; i++)
-	{
-		printf("0x%x ", recvbuff[i]);
+	//if multiplex id = x51 or 81 then DoublePulsar is present
+    	if(recvbuff[34] == 0x51)
+    	{
+		printf("Received data that DoublePulsar is installed!\n");
+		unsigned char signature[6];
+		unsigned int sig;
+		
+		//copy SMB signature from recvbuff to local buffer
+		signature[0] = recvbuff[18];
+		signature[1] = recvbuff[19];
+		signature[2] = recvbuff[20];
+		signature[3] = recvbuff[21];
+		signature[4] = recvbuff[22];
+		signature[5] = '\0';
+		
+		//this determines architecture ( recvbuff[22] )
+		//signature[4] = recvbuff[22];
+		//signature[5] = '\0';
+		//but unused at this time in this release
+		
+		/*
+		Alternative:
+		memcpy(signature,recv_buff + 18,4);
+		*/
+
+		int i;
+		printf("Received the following SMB signature from DoublePulsar:  ");
+		for (i = 18; i < 23; i++)
+		{
+			printf("0x%x ", recvbuff[i]);
+		}
+		printf("\n");
+			
+		printf("The following SMB signature saved to local buffer:  ");
+		for (i = 0; i < 5; i++)
+		{
+			printf("0x%x ", signature[i]);
+		}
+		printf("\n");
+
+		//convert the signature buffer to unsigned integer 
+		//memcpy((unsigned int*)&sig, (unsigned int*)&signature, sizeof(unsigned int));
+		sig = LE2INT(signature);
+		
+		//calculate the XOR key for DoublePulsar
+		unsigned int XorKey = ComputeDOUBLEPULSARXorKey(sig);
+		printf("Calculated XOR KEY:  0x%x\n", XorKey);
+
+		/* 2021 Update: not needed at this time
+		//will use for re-sending the computed XOR key in the Trans2 SESSION_SETUP data parameters
+				
+		unsigned char c[4];
+
+		c[0] = XorKey & 0xFF;
+		c[1] = (XorKey >> 8) & 0xFF;
+		c[2] = (XorKey >> 8 >> 8) & 0xFF;
+		c[3] = (XorKey >> 8 >> 8 >> 8) & 0xFF;
+
+		printf("XOR Key in characters ( needed for DoublePulsar SESSION Data )\n");
+		printf("c[0] = %x \n", c[0]);
+		printf("c[1] = %x \n", c[1]);
+		printf("c[2] = %x \n", c[2]);
+		printf("c[3] = %x \n", c[3]);
+		
+		*/
 	}
-	printf("\n");
-	
-	printf("The following SMB signature saved to local buffer:  ");
-	for (i = 0; i < 5; i++)
-	{
-		printf("0x%x ", signature[i]);
-	}
-	printf("\n");
-
-	//convert the signature buffer to unsigned integer 
-	memcpy((unsigned int*)&sig, (unsigned int*)&signature, sizeof(unsigned int));
-
-	//calculate the XOR key for DoublePulsar
-	unsigned int XorKey = ComputeDOUBLEPULSARXorKey(sig);
-	printf("Calculated XOR KEY:  0x%x\n", XorKey);
-
-	//will use for re-sending the computed XOR key in the Trans2 SESSION_SETUP data parameters
-	unsigned char c[4];
-
-	c[0] = XorKey & 0xFF;
-	c[1] = (XorKey >> 8) & 0xFF;
-	c[2] = (XorKey >> 8 >> 8) & 0xFF;
-	c[3] = (XorKey >> 8 >> 8 >> 8) & 0xFF;
-
-	printf("XOR Key in characters ( needed for DoublePulsar SESSION Data )\n");
-	printf("c[0] = %x \n", c[0]);
-	printf("c[1] = %x \n", c[1]);
-	printf("c[2] = %x \n", c[2]);
-	printf("c[3] = %x \n", c[3]);
+	else {
+		printf("Doublepulsar does not appear to be installed!\n");
+       	}
 
 	closesocket(sock);
 	WSACleanup();

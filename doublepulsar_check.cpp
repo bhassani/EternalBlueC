@@ -116,36 +116,36 @@ int main(int argc, char** argv)
     if (recvbuff[34] == 0x51)
     {
         printf("Received data that DoublePulsar is installed!\n");
-            printf("Burning DoublePulsar...\n");
-            WORD burn1, burn2, burn3, burn4, burn5;
-            //burn1 = multiplex ID of 66 in decimal or x42 in hex
-            //if successful.  x52 is returned which means the payload ran succesfully!
-            burn1 = 66;       //update multiplex ID to x42
-            //modified_trans2_session_setup[34] = "\x42"
-            //burn command being sent in the timeout portion of the packet
-            burn2 = 14;       //burn command - trans2_session_setup[49] = "\x0e"
-            burn3 = 105;      //burn command - trans2_session_setup[50] = "\x69"
-            burn4 = 0;        //burn command - trans2_session_setup[51] = "\x00"
-            burn5 = 0;        //burn command - trans2_session_setup[52] = "\x00"
+        printf("Burning DoublePulsar...\n");
+        WORD burn1, burn2, burn3, burn4, burn5;
+        //burn1 = multiplex ID of 66 in decimal or x42 in hex
+        //if successful.  x52 is returned which means the payload ran succesfully!
+        burn1 = 66;       //update multiplex ID to x42
+        //modified_trans2_session_setup[34] = "\x42"
+        //burn command being sent in the timeout portion of the packet
+        burn2 = 14;       //burn command - trans2_session_setup[49] = "\x0e"
+        burn3 = 105;      //burn command - trans2_session_setup[50] = "\x69"
+        burn4 = 0;        //burn command - trans2_session_setup[51] = "\x00"
+        burn5 = 0;        //burn command - trans2_session_setup[52] = "\x00"
 
-            //modify our trans2 session packet to include the burn command
-            memcpy(trans2_session_setup + 0x22, (char*)&burn1, 1);
-            memcpy(trans2_session_setup + 0x31, (char*)&burn2, 1);
-            memcpy(trans2_session_setup + 0x32, (char*)&burn3, 1);
-            memcpy(trans2_session_setup + 0x33, (char*)&burn4, 1);
-            memcpy(trans2_session_setup + 0x34, (char*)&burn5, 1);
+        //modify our trans2 session packet to include the burn command
+        memcpy(trans2_session_setup + 0x22, (char*)&burn1, 1);
+        memcpy(trans2_session_setup + 0x31, (char*)&burn2, 1);
+        memcpy(trans2_session_setup + 0x32, (char*)&burn3, 1);
+        memcpy(trans2_session_setup + 0x33, (char*)&burn4, 1);
+        memcpy(trans2_session_setup + 0x34, (char*)&burn5, 1);
 
-            send(sock, (char*)trans2_session_setup, sizeof(trans2_session_setup) - 1, 0);
-            recv(sock, (char*)uninstall_response, 2048, 0);
-            if (uninstall_response[34] == 0x52) {
-                printf("DOUBLEPULSAR uninstall SUCCESSFUL!\n");
-            }
-            else {
-                printf("DOUBLEPULSAR uninstall UNSUCCESSFUL!\n");
-            }
+        send(sock, (char*)trans2_session_setup, sizeof(trans2_session_setup) - 1, 0);
+        recv(sock, (char*)uninstall_response, 2048, 0);
+        if (uninstall_response[34] == 0x52) {
+            printf("DOUBLEPULSAR uninstall SUCCESSFUL!\n");
+        }
+        else {
+            printf("DOUBLEPULSAR uninstall UNSUCCESSFUL!\n");
+        }
     }
     else {
-        printf("no backdoor installed!");
+        printf("Doublepulsar does not appear to be installed!\n");
     }
     closesocket(sock);
     WSACleanup();
