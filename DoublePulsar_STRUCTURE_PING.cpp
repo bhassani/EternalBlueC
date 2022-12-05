@@ -1,11 +1,7 @@
 #define _CRT_SECURE_NO_WARNINGS
 
 /*
-
-DoublePulsar PING command using a structure.
-
-Structure is not finished yet, need to add the NetBIOS header & add code to populate the length field.
-
+DoublePulsar PING command using a structure
 */
 
 #include <stdio.h>
