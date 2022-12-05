@@ -65,8 +65,14 @@ typedef struct {
 	uint16_t multipleID;                 
 } TreeConnect_Response;
 
-//#pragma pack(1)
+#ifdef _WIN32
+#pragma pack(1)
 typedef struct {
+	
+//For Linux
+#else
+typedef struct __attribute__((__packed__)) {
+#endif
 	//NetBIOS header -- may need to make this separate from the SMB header
 	uint16_t SmbMessageType; //0x00
 	uint16_t SmbMessageLength;
@@ -118,7 +124,9 @@ typedef struct {
 	ULONG offset;
 	*/
 } SMB_DOUBLEPULSAR_REQUEST;
+#ifdef _WIN32
 #pragma pack(pop)
+#endif
 
 #define SWAP_WORD(X) (((((uint32_t)(X)) >> 24) & 0x000000ff) | \
 				((((uint32_t)(X)) >>  8) & 0x0000ff00) | \
@@ -142,6 +150,53 @@ void convert_name(char *out, char *name)
 		*out-- = '\x00';
 		*out-- = name[len];
 	}
+}
+
+void hexDump(char* desc, void* addr, int len)
+{
+	int i;
+	unsigned char buff[17];
+	unsigned char* pc = (unsigned char*)addr;
+
+	// Output description if given.
+	if (desc != NULL)
+		printf("%s:\n", desc);
+
+	// Process every byte in the data.
+	for (i = 0; i < len; i++) {
+		// Multiple of 16 means new line (with line offset).
+
+		if ((i % 16) == 0) {
+			// Just don't print ASCII for the zeroth line.
+			if (i != 0)
+				printf("  %s\n", buff);
+
+			// Output the offset.
+			printf("  %04x ", i);
+		}
+
+		// Now the hex code for the specific character.
+		printf(" %02x", pc[i]);
+
+		// And store a printable ASCII character for later.
+		if ((pc[i] < 0x20) || (pc[i] > 0x7e)) {
+			buff[i % 16] = '.';
+		}
+		else {
+			buff[i % 16] = pc[i];
+		}
+
+		buff[(i % 16) + 1] = '\0';
+	}
+
+	// Pad out last line if not exactly 16 characters.
+	while ((i % 16) != 0) {
+		printf("   ");
+		i++;
+	}
+
+	// And print the final ASCII bit.
+	printf("  %s\n", buff);
 }
 
 unsigned char recvbuff[2048];
@@ -215,10 +270,6 @@ int main(int argc, char* argv[])
 	uploadpacket.SmbMessageType = 0x0000;
 	//fix here because the value needs to be dynamic not static
 	//uploadpacket.SmbMessageLength = SWAP_SHORT(0x4e);
-	
-	int packetSize = sizeof(struct SMB_DOUBLEPULSAR_REQUEST)-4;
-	uploadpacket.SmbMessageLength = htons(packetSize);
-	
 	
 	uploadpacket.ProtocolHeader[0] = '\xff';
 	uploadpacket.ProtocolHeader[1] = 'S';
@@ -300,7 +351,13 @@ int main(int argc, char* argv[])
 	uploadpacket.SESSION_SETUP_PARAMETERS[10] = 0;
 	uploadpacket.SESSION_SETUP_PARAMETERS[11] = 0;
 	uploadpacket.SESSION_SETUP_PARAMETERS[12] = 0;
-
+	
+	unsigned int packetSize = sizeof(uploadpacket)-4;
+	uploadpacket.SmbMessageLength = htons(packetSize);
+	
+	printf("size of packet:  %d\n", packetSize);
+	hexDump(NULL, &uploadpacket, sizeof(uploadpacket));
+	
 	send(sock, (char*)&uploadpacket, sizeof(uploadpacket), 0);
 	recv(sock, (char*)recvbuff, sizeof(recvbuff), 0);
 
