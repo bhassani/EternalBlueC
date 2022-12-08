@@ -43,8 +43,13 @@ unsigned char trans2_session_setup[] =
 "\x00\x0E\x00\x0D\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"
 "\x00\x00";
 
+#ifdef _WIN32
 #pragma pack(1)
 typedef struct {
+//For Linux
+#else
+typedef struct __attribute__((__packed__)) {
+#endif
 	uint16_t SmbMessageType;
 	uint16_t SmbMessageLength;
 	uint8_t ProtocolHeader[4]; 
@@ -60,6 +65,9 @@ typedef struct {
 	uint16_t UserID;
 	uint16_t multipleID;                 
 } TreeConnect_Response;
+#ifdef _WIN32
+#pragma pack(pop)
+#endif
 
 #ifdef _WIN32
 #pragma pack(1)
