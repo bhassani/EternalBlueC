@@ -155,9 +155,9 @@ int main(int argc, char* argv[])
 		return 0;
 	}
 	server.sin_family = AF_INET;
-	server.sin_addr.s_addr = inet_addr("192.168.0.9");
+	server.sin_addr.s_addr = inet_addr(argv[1]);
 	server.sin_port = htons((USHORT)445);
-	printf("Connecting to %s\n", "192.168.0.9");
+	printf("Connecting to %s\n", argv[1]);
 	ret = connect(sock, (struct sockaddr*)&server, sizeof(server));
 
 	//send SMB negociate packet
@@ -181,7 +181,7 @@ int main(int argc, char* argv[])
 	ptr = packet;
 	memcpy(ptr, SMB_TreeConnectAndX, sizeof(SMB_TreeConnectAndX) - 1);
 	ptr += sizeof(SMB_TreeConnectAndX) - 1;
-	sprintf((char*)tmp, "\\\\%s\\IPC$", "192.168.0.9");
+	sprintf((char*)tmp, "\\\\%s\\IPC$", argv[1]);
 	convert_name((char*)ptr, (char*)tmp);
 	smblen = strlen((char*)tmp) * 2;
 	ptr += smblen;
