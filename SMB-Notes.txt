@@ -68,7 +68,14 @@ user_id      [32] [33]
 multiplex_id [34] [35]
 
 ////////////////////////////////////////////////
-Other values that were required by Doublepulsar
+Other values that were required by Doublepulsar in the SMB packet
+
+These values are only a max of 4096.  If you are sending a 5 MB shellcode file or something
+You must make a loop through them and have no more than 4096 for TotalDataCount & DataCount.
+ByteCount = SizeOfshellcode + 13. 
+
+I have no idea why it is 13 and not 12. Since ByteCount adds 13 to the previous limit of 4096.
+The highest value ByteCount can go is 4109. 
 
 //patch other values
 unsigned short TotalDataCount = EntireShellcodeSize;
