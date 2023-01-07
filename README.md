@@ -5,9 +5,10 @@ EternalBlue suite remade in C/C++ which includes:
 - MS17-010 Exploit ( Contains DoublePulsar )
 - EternalBlue/MS17-010 vulnerability detector
 - DoublePulsar detector
-- DoublePulsar UploadDLL ( Hex )
+- DoublePulsar Upload DLL ( Hex )
 - Doublepulsar Upload Shellcode ( Hex )
-- DoublePulsar UploadDLL with Structure 
+- Doublepulsar Upload Exe inside a DLL ( Hex / Wannacry style )
+- DoublePulsar Upload DLL with Structure 
 - Doublepulsar Upload Shellcode with Structure 
 
 ## Project goals
