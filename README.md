@@ -1,7 +1,14 @@
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 
 ## EternalBlueC
-EternalBlue suite remade in C/C++ which includes: MS17-010 Exploit, EternalBlue/MS17-010 vulnerability detector, DoublePulsar detector and DoublePulsar UploadDLL & Shellcode.  
+EternalBlue suite remade in C/C++ which includes:
+- MS17-010 Exploit
+- EternalBlue/MS17-010 vulnerability detector
+- DoublePulsar detector
+- DoublePulsar UploadDLL ( Hex )
+- Doublepulsar Upload Shellcode ( Hex )
+- DoublePulsar UploadDLL with Structure 
+- Doublepulsar Upload Shellcode with Structure 
 
 2021 Update: Now includes experimental Metasploit module!
 
