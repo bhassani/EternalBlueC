@@ -17,7 +17,9 @@ EternalBlue suite remade in C/C++ which includes:
 
 - **Make Doublepulsar_WannacryDLL.cpp - Uploads an EXE inside a launcher.dll**
 
-- Implement a scanner & detect/attack GUI in C#, C++, Java, Python3 & Go ( time permitting ).
+- Implement a scanner & detect/attack GUI in C#, C++ & Python3
+
+- Implement a scanner & detect/attack GUI in Rust & Go & Java
 
 - Allow editing of EternalBlue exploit payload to remove DoublePulsar and allow custom payloads & shellcode to be sent instead.
 
