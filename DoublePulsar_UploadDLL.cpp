@@ -577,7 +577,7 @@ int main(int argc, char* argv[])
 
 			//update size
 			memcpy(last_packet + 2, &smb_htons_len, 2);
-			hexDump(NULL, (char*)&last_packet, 4);
+			hexDump(NULL, (char*)last_packet, 4);
 
 			TotalDataCount = bytesLeft;
 			DataCount = bytesLeft;
