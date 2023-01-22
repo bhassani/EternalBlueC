@@ -75,6 +75,14 @@ int main(int argc, char** argv)
     }
     recv(sock, (char*)recvbuff, sizeof(recvbuff), 0);
     
+    //output windows version to the screen
+	printf("Remote OS: ");
+	int r;
+	for (r = 0; r < 39; r++) {
+		printf("%c", recvbuff[44 + r]);
+	}
+	printf("\n");
+    
     char userid[2];
     char treeid[2];
     //copy userID from recvbuff @ 32,33
