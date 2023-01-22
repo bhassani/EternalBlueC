@@ -83,6 +83,15 @@ int main(int argc, char** argv)
     
     //copy our returned userID value from the previous packet to the TreeConnect request packet
     userid = *(WORD*)(recvbuff + 0x20);       //get userid
+    
+    //output windows version to the screen
+	printf("Remote OS: ");
+	int r;
+	for (r = 0; r < 39; r++) {
+		printf("%c", recvbuff[44 + r]);
+	}
+	printf("\n");
+    
     memcpy(TreeConnect_AndX_Request + 0x20, (char*)&userid, 2); //update userid
 
     //send TreeConnect request packet
