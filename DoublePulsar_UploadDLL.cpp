@@ -384,6 +384,14 @@ int main(int argc, char* argv[])
 
 	//copy our returned userID value from the previous packet to the TreeConnect request packet
 	userid = *(WORD*)(recvbuff + 0x20);
+	
+	//output windows version to the screen
+	printf("Remote OS: ");
+	int r;
+	for (r = 0; r < 39; r++) {
+		printf("%c", recvbuff[44 + r]);
+	}
+	printf("\n");
 
 	//Generates a new TreeConnect request with the correct IP address
 	//rather than the hard coded one embedded in the TreeConnect string
