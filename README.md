@@ -27,35 +27,6 @@ It does not run any custom payloads at this time.
 
 As of now, it doesn't contain any other payloads besides installing the DoublePulsar implant. 
 
-## Metasploit module
-
-- 2021 Update: Now includes experimental Metasploit module!
-- 2021 Update: Now includes experimental Wannacry DLL wrapper for Metasploit payload! ( Still in development )
-- 2021 Update: Now includes experimental Wannacry DLL wrapper for C++ ( Still in development )
-
-Metasploit module that I made functional using the open source DoublePulsar RCE module from Metasploit.
-
-I changed the logic to allow a DLL to be generated, merge it with the x64 kernel shellcode (prepended) that I stole from Wannacry, to allow DoublePulsar to run the DLL.
-
-![msfconsole](/images/msfconsole.PNG)
-
-Part 2:
-I changed the logic to allow an executable metasploit payload to be generated, merge it with the x64 kernel shellcode (prepended) that I stole from Wannacry, and stole the Wannacry launcher DLL to allow DoublePulsar to run the launcher DLL.
-
-## Extra education code
-
-Repository also contains the following for educational purposes and are NOT supported by me:
-
-- DoublePulsar x86/x64 Upload DLL python script
-
-- EternalBlue All in one binary
-
-- Multi arch kernel queue apc assembly code & Windows x86/x64 Multi-Arch Kernel Ring 0 to Ring 3 via Queued APC kernel code
-
-- EternalBlue x64/x86 kernel payload shellcode from worawit
-
-- Eternalblue replay file
-
 ## EternalBlue Suite
 
 * **ms17_vuln_status.cpp** - This program sends 4 SMB packets.  1 negotiation, 1 session setup, 1 tree connect and 1 TransNamedPipe request.  This program then reads the NT_STATUS response from the TransNamedPipeRequest ( PeekNamedPipe request ) and determines if NT_STATUS in the SMB packet = 0xC0000205 ( STATUS_INSUFF_SERVER_RESOURCES ).  If this is correct, then the target is vulnerable to MS17-010.  Tested on unpatched Windows 7 x64 bit.
@@ -103,4 +74,32 @@ This program is intended for EXECUTABLES.  The executable will be read into memo
 ![EternalBlue_cmd](/images/eternalbluecmd.PNG)
 ![eternalbluepackets](/images/eternalbluepackets.PNG)
 
+## Metasploit module
+
+- 2021 Update: Now includes experimental Metasploit module!
+- 2021 Update: Now includes experimental Wannacry DLL wrapper for Metasploit payload! ( Still in development )
+- 2021 Update: Now includes experimental Wannacry DLL wrapper for C++ ( Still in development )
+
+Metasploit module that I made functional using the open source DoublePulsar RCE module from Metasploit.
+
+I changed the logic to allow a DLL to be generated, merge it with the x64 kernel shellcode (prepended) that I stole from Wannacry, to allow DoublePulsar to run the DLL.
+
+![msfconsole](/images/msfconsole.PNG)
+
+Part 2:
+I changed the logic to allow an executable metasploit payload to be generated, merge it with the x64 kernel shellcode (prepended) that I stole from Wannacry, and stole the Wannacry launcher DLL to allow DoublePulsar to run the launcher DLL.
+
+## Extra education code
+
+Repository also contains the following for educational purposes and are NOT supported by me:
+
+- DoublePulsar x86/x64 Upload DLL python script
+
+- EternalBlue All in one binary
+
+- Multi arch kernel queue apc assembly code & Windows x86/x64 Multi-Arch Kernel Ring 0 to Ring 3 via Queued APC kernel code
+
+- EternalBlue x64/x86 kernel payload shellcode from worawit
+
+- Eternalblue replay file
 
