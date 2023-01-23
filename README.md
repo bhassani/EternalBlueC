@@ -13,10 +13,6 @@ EternalBlue suite remade in C/C++ which includes:
 
 ## Project goals
 
-- **Doublepulsar_UploadDLL.cpp operational - Uploads a DLL like DoublePulsar**
-
-- **Make Doublepulsar_WannacryDLL.cpp - Uploads an EXE inside a launcher.dll**
-
 - Implement a scanner & detect/attack GUI in C#, C++ & Python3
 
 - Implement a scanner & detect/attack GUI in Rust & Go & Java
@@ -24,12 +20,6 @@ EternalBlue suite remade in C/C++ which includes:
 - Allow editing of EternalBlue exploit payload to remove DoublePulsar and allow custom payloads & shellcode to be sent instead.
 
 - Add EternalRomance (requires Named Pipe) support
-
-- **Make DoublePulsar UploadDLL metasploit module operational**
-**( DoublePulsar Upload DLL/doublepulsar_dll_rce.rb )**
-
-- **Make Wannacry launcher metasploit module operational**
-**( DoublePulsar Upload DLL/WannacryDLLMetasploit.rb )**
 
 ## Clarifications
 The EternalBlue / MS17-010 Exploit that will be included in this project installs DoublePulsar only<br />
