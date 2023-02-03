@@ -518,13 +518,20 @@ int main(int argc, char* argv[])
 
 	//0x50D800 = 5298176
 	DWORD DLLSIZE = 0x50D000;
-
+	
+	//allocate memory for DLL creation
 	PBYTE DLL = new BYTE[DLLSIZE];
 	memset(DLL, 0x00, DLLSIZE);
+	
+	//copy launcher DLL to buffer
 	memcpy(DLL, launcher_dll, 0xc8a4);
 	hexDump(NULL, (char*)&DLL[0xc8a4], 4);
+	
+	//add the size of the EXE after the DLL
 	*(DWORD*)&DLL[0xc8a4] = dwFileSizeLow;
 	hexDump(NULL, (char*)&DLL[0xc8a4], 4);
+	
+	//copy the EXE to the buffer, after the DWORD size value
 	memcpy(DLL + 0xc8a4 + 4, pExeBuffer, dwFileSizeLow);
 	printf("MZ HEADER EXPECTED:  ");
 	hexDump(NULL, (char*)&DLL[0xc8a4 + 4], 4);
