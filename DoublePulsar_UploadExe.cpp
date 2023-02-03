@@ -5,7 +5,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <winsock.h>
-#include "Header.h"
+#include "Doublepulsar_launcher_dll.h"
 #pragma comment(lib, "ws2_32.lib")
 
 /*
