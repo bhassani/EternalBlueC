@@ -270,8 +270,9 @@ int main(int argc, char* argv[])
 	memcpy(&treeresponse, recvbuff, sizeof(TreeConnect_Response));
 
 	//set SMB values
-	SMB_DOUBLEPULSAR_PINGREQUEST pingpacket;
-	pingpacket.SmbMessageType = 0x0000;
+	int total_packet_size = 82;
+	SMB_DOUBLEPULSAR_PINGREQUEST* pingpacket = (SMB_DOUBLEPULSAR_PINGREQUEST*)malloc(total_packet_size);
+	pingpacket.SmbMessageType = 0; //0x0000;
 	//fix here because the value needs to be dynamic not static
 	//pingpacket.SmbMessageLength = SWAP_SHORT(0x4e);
 	
@@ -293,13 +294,13 @@ int main(int argc, char* argv[])
 	This is not always the case and this will need to be fixed later.  */
 	pingpacket.reserved = 0x0000;
 	pingpacket.ProcessID = 0xfeff; //treeresponse.ProcessID;        //treeresponse.ProcessID; //Default value:  0xfeff;
-	pingpacket.TreeId = treeresponse.TreeId;				//grab from SMB response
-	//pingpacket.TreeId = treeid;
+	//pingpacket.TreeId = treeresponse.TreeId;				//grab from SMB response
+	pingpacket.TreeId = treeid;
 	pingpacket.multipleID = 65; //0x41;
 	
 	//test this with default values:
-	pingpacket.TreeId = 2048;
-	pingpacket.UserID = 2048;
+	//pingpacket.TreeId = 2048;
+	//pingpacket.UserID = 2048;
 
 	//trans2 packet stuff
 	pingpacket.wordCount = 15; // 0x0F == 15 
@@ -356,11 +357,11 @@ int main(int argc, char* argv[])
 	pingpacket.SESSION_SETUP_PARAMETERS[11] = 0;
 	//pingpacket.SESSION_SETUP_PARAMETERS[12] = 0;
 	
-	unsigned int packetSize = sizeof(pingpacket)-4;
-	pingpacket.SmbMessageLength = htons(packetSize);
-	
+	unsigned int packetSize = total_packet_size - 4;
+	pingpacket->SmbMessageLength = htons(packetSize);
+
 	printf("size of packet:  %d\n", packetSize);
-	hexDump(NULL, &pingpacket, sizeof(pingpacket));
+	hexDump(NULL, pingpacket, total_packet_size);
 	
 	send(sock, (char*)&pingpacket, sizeof(pingpacket), 0);
 	recv(sock, (char*)recvbuff, sizeof(recvbuff), 0);
