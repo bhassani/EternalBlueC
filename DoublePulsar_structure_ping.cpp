@@ -203,6 +203,19 @@ void hexDump(char* desc, void* addr, int len)
 	printf("  %s\n", buff);
 }
 
+unsigned int LE2INT(unsigned char* data)
+{
+	unsigned int b;
+	b = data[3];
+	b <<= 8;
+	b += data[2];
+	b <<= 8;
+	b += data[1];
+	b <<= 8;
+	b += data[0];
+	return b;
+}
+
 unsigned char recvbuff[2048];
 int main(int argc, char* argv[])
 {
@@ -269,102 +282,119 @@ int main(int argc, char* argv[])
 	TreeConnect_Response treeresponse;
 	memcpy(&treeresponse, recvbuff, sizeof(TreeConnect_Response));
 
-	//set SMB values
+		//set SMB values
 	int total_packet_size = 82;
 	SMB_DOUBLEPULSAR_PINGREQUEST* pingpacket = (SMB_DOUBLEPULSAR_PINGREQUEST*)malloc(total_packet_size);
-	pingpacket.SmbMessageType = 0; //0x0000;
+	pingpacket->SmbMessageType = 0; //0x0000;
 	//fix here because the value needs to be dynamic not static
 	//pingpacket.SmbMessageLength = SWAP_SHORT(0x4e);
-	
-	pingpacket.ProtocolHeader[0] = '\xff';
-	pingpacket.ProtocolHeader[1] = 'S';
-	pingpacket.ProtocolHeader[2] = 'M';
-	pingpacket.ProtocolHeader[3] = 'B';
-	pingpacket.SmbCommand = 0x32; //Trans2 
-	
-	pingpacket.ProcessIDHigh = 0x0000;
-	pingpacket.NtStatus = 0x00000000;
-	pingpacket.flags = 0x18;
-	pingpacket.flags2 = 0xc007;
-	pingpacket.UserID = userid;  //works when we copy the recvbuff response to a WORD userid.
+
+	pingpacket->ProtocolHeader[0] = '\xff';
+	pingpacket->ProtocolHeader[1] = 'S';
+	pingpacket->ProtocolHeader[2] = 'M';
+	pingpacket->ProtocolHeader[3] = 'B';
+	pingpacket->SmbCommand = 0x32; //Trans2 
+
+	pingpacket->ProcessIDHigh = 0x0000;
+	pingpacket->NtStatus = 0x00000000;
+	pingpacket->flags = 0x18;
+	pingpacket->flags2 = 0xc007;
+	pingpacket->UserID = userid;  //works when we copy the recvbuff response to a WORD userid.
 	//Treeresponse structure sucks and probably will be removed later.
 	/* BUG HERE: treeresponse.UserID comes back as corrupted for some reason
 	  this needs to be treeresponse.UserID;
-	    Will return later to this later. But currently works if both values are the same
+		Will return later to this later. But currently works if both values are the same
 	This is not always the case and this will need to be fixed later.  */
-	pingpacket.reserved = 0x0000;
-	pingpacket.ProcessID = 0xfeff; //treeresponse.ProcessID;        //treeresponse.ProcessID; //Default value:  0xfeff;
+	pingpacket->reserved = 0x0000;
+	pingpacket->ProcessID = 0xfeff; //treeresponse.ProcessID;        //treeresponse.ProcessID; //Default value:  0xfeff;
 	//pingpacket.TreeId = treeresponse.TreeId;				//grab from SMB response
-	pingpacket.TreeId = treeid;
-	pingpacket.multipleID = 65; //0x41;
-	
+	pingpacket->TreeId = treeid;
+	pingpacket->multipleID = 65; //0x41;
+
 	//test this with default values:
 	//pingpacket.TreeId = 2048;
 	//pingpacket.UserID = 2048;
 
 	//trans2 packet stuff
-	pingpacket.wordCount = 15; // 0x0F == 15 
-	pingpacket.totalParameterCount = 12; //0x0C; // should be 12
-	pingpacket.totalDataCount = 0; //SWAP_SHORT(0x0000); // should be 0
+	pingpacket->wordCount = 15; // 0x0F == 15 
+	pingpacket->totalParameterCount = 12; //0x0C; // should be 12
+	pingpacket->totalDataCount = 0; //SWAP_SHORT(0x0000); // should be 0
 
-	pingpacket.MaxParameterCount = 1; //SWAP_SHORT(0x0100); // should be 1
-	pingpacket.MaxDataCount = 0; //SWAP_SHORT(0x0000); // should be 0
-	pingpacket.MaxSetupCount = 0; //SWAP_SHORT(0);     //should be 0
-	pingpacket.reserved1 = 0; //SWAP_SHORT(0);
-	pingpacket.flags1 = 0x0000;
+	pingpacket->MaxParameterCount = 1; //SWAP_SHORT(0x0100); // should be 1
+	pingpacket->MaxDataCount = 0; //SWAP_SHORT(0x0000); // should be 0
+	pingpacket->MaxSetupCount = 0; //SWAP_SHORT(0);     //should be 0
+	pingpacket->reserved1 = 0; //SWAP_SHORT(0);
+	pingpacket->flags1 = 0x0000;
 
 	//trying little endian format for timeout
-	pingpacket.timeout = 0x00ee3401;
-	//pingpacket.timeout = SWAP_WORD(0x001a8925); //0x25 0x89 0x1a 0x00 EXEC command
-	//pingpacket.timeout = SWAP_WORD(0x0134ee00);    //little endian PING command
-	//pingpacket.timeout = 0x0134ee00;;
+	pingpacket->timeout = 0x00ee3401;
+	//pingpacket->timeout = SWAP_WORD(0x001a8925); //0x25 0x89 0x1a 0x00 EXEC command
+	//pingpacket->timeout = SWAP_WORD(0x0134ee00);    //little endian PING command
+	//pingpacket->timeout = 0x0134ee00;;
 	//0x866c3100 = PING command from somewhere else
 
-	pingpacket.reserved2 = 0x0000; //SWAP_SHORT(0x0000);                 //should be 0x0000
-	pingpacket.ParameterCount = 12; //0x0C;         //should be 12
-	pingpacket.ParamOffset= 66; //0x0042;          //should be 66
-	pingpacket.DataCount = 0; //SWAP_SHORT(0x000);          //should be 0 -> 0x0000
-	pingpacket.DataOffset = 78; //0x004e;           //should be 78
-	pingpacket.SetupCount = 1;						//should be 1 / 0x01
-	pingpacket.reserved3 = 0; //0x00;						//should be 0x00
-	pingpacket.subcommand = 0x000e;         //original 0x0e00 ( little endian format )
-	pingpacket.ByteCount = 13; //0xD;          //value should be 13
-	pingpacket.padding = 0; //SWAP_SHORT(0x00);			//should be 0x00
-	
-	//should probably reassign to 0x00 and not a NULL terminator
-	pingpacket.signature[0] = 0;
-	pingpacket.signature[1] = 0;
-	pingpacket.signature[2] = 0;
-	pingpacket.signature[3] = 0;
-	pingpacket.signature[4] = 0;
-	pingpacket.signature[5] = 0;
-	pingpacket.signature[6] = 0;
-	pingpacket.signature[7] = 0;
-	//pingpacket.signature[8] = 0;
+	pingpacket->reserved2 = 0x0000; //SWAP_SHORT(0x0000);                 //should be 0x0000
+	pingpacket->ParameterCount = 12; //0x0C;         //should be 12
+	pingpacket->ParamOffset = 66; //0x0042;          //should be 66
+	pingpacket->DataCount = 0; //SWAP_SHORT(0x000);          //should be 0 -> 0x0000
+	pingpacket->DataOffset = 78; //0x004e;           //should be 78
+	pingpacket->SetupCount = 1;						//should be 1 / 0x01
+	pingpacket->reserved3 = 0; //0x00;						//should be 0x00
+	pingpacket->subcommand = 0x000e;         //original 0x0e00 ( little endian format )
+	pingpacket->ByteCount = 13; //0xD;          //value should be 13
+	pingpacket->padding = 0; //SWAP_SHORT(0x00);			//should be 0x00
 
 	//should probably reassign to 0x00 and not a NULL terminator
-	pingpacket.SESSION_SETUP_PARAMETERS[0] = 0;
-	pingpacket.SESSION_SETUP_PARAMETERS[1] = 0;
-	pingpacket.SESSION_SETUP_PARAMETERS[2] = 0;
-	pingpacket.SESSION_SETUP_PARAMETERS[3] = 0;
-	pingpacket.SESSION_SETUP_PARAMETERS[4] = 0;
-	pingpacket.SESSION_SETUP_PARAMETERS[5] = 0;
-	pingpacket.SESSION_SETUP_PARAMETERS[6] = 0;
-	pingpacket.SESSION_SETUP_PARAMETERS[7] = 0;
-	pingpacket.SESSION_SETUP_PARAMETERS[8] = 0;
-	pingpacket.SESSION_SETUP_PARAMETERS[9] = 0;
-	pingpacket.SESSION_SETUP_PARAMETERS[10] = 0;
-	pingpacket.SESSION_SETUP_PARAMETERS[11] = 0;
-	//pingpacket.SESSION_SETUP_PARAMETERS[12] = 0;
-	
+	pingpacket->signature[0] = 0;
+	pingpacket->signature[1] = 0;
+	pingpacket->signature[2] = 0;
+	pingpacket->signature[3] = 0;
+	pingpacket->signature[4] = 0;
+	pingpacket->signature[5] = 0;
+	pingpacket->signature[6] = 0;
+	pingpacket->signature[7] = 0;
+	//pingpacket->signature[8] = 0;
+
+	//should probably reassign to 0x00 and not a NULL terminator
+	pingpacket->SESSION_SETUP_PARAMETERS[0] = 0;
+	pingpacket->SESSION_SETUP_PARAMETERS[1] = 0;
+	pingpacket->SESSION_SETUP_PARAMETERS[2] = 0;
+	pingpacket->SESSION_SETUP_PARAMETERS[3] = 0;
+	pingpacket->SESSION_SETUP_PARAMETERS[4] = 0;
+	pingpacket->SESSION_SETUP_PARAMETERS[5] = 0;
+	pingpacket->SESSION_SETUP_PARAMETERS[6] = 0;
+	pingpacket->SESSION_SETUP_PARAMETERS[7] = 0;
+	pingpacket->SESSION_SETUP_PARAMETERS[8] = 0;
+	pingpacket->SESSION_SETUP_PARAMETERS[9] = 0;
+	pingpacket->SESSION_SETUP_PARAMETERS[10] = 0;
+	pingpacket->SESSION_SETUP_PARAMETERS[11] = 0;
+	//pingpacket->SESSION_SETUP_PARAMETERS[12] = 0;
+
 	unsigned int packetSize = total_packet_size - 4;
 	pingpacket->SmbMessageLength = htons(packetSize);
 
 	printf("size of packet:  %d\n", packetSize);
 	hexDump(NULL, pingpacket, total_packet_size);
-	
-	send(sock, (char*)&pingpacket, sizeof(pingpacket), 0);
+
+	send(sock, (char*)pingpacket, total_packet_size, 0);
 	recv(sock, (char*)recvbuff, sizeof(recvbuff), 0);
+
+	unsigned char signature[6];
+	unsigned int sig;
+	//copy SMB signature from recvbuff to local buffer
+	signature[0] = recvbuff[18];
+	signature[1] = recvbuff[19];
+	signature[2] = recvbuff[20];
+	signature[3] = recvbuff[21];
+	signature[4] = recvbuff[22];
+	signature[5] = '\0';
+
+	//process the signature
+	sig = LE2INT(signature);
+
+	//calculate the XOR key for DoublePulsar
+	unsigned int XorKey = ComputeDOUBLEPULSARXorKey(sig);
+	printf("Calculated XOR KEY:  0x%x\n", XorKey);
 
 	closesocket(sock);
 	WSACleanup();
