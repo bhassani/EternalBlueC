@@ -443,7 +443,7 @@ int main(int argc, char* argv[])
 	//test this with default values:
 	pingpacket->TreeId = 2048;
 	pingpacket->UserID = 2048;
-	
+
 	pingpacket->TreeId = treeid;
 	pingpacket->UserID = userid;
 
@@ -510,19 +510,21 @@ int main(int argc, char* argv[])
 	pingpacket->SESSION_SETUP_PARAMETERS[11] = 0;
 	//pingpacket.SESSION_SETUP_PARAMETERS[12] = 0;
 
-	unsigned int packetSize = sizeof(pingpacket) - 4;
-	pingpacket->SmbMessageLength = htons(packetSize);
+	unsigned int packetSize = sizeof(SMB_DOUBLEPULSAR_PINGREQUEST);
+	unsigned int NetBIOSpacketSize = sizeof(SMB_DOUBLEPULSAR_PINGREQUEST) - 4;
+	pingpacket->SmbMessageLength = htons(NetBIOSpacketSize);
 
 	printf("size of packet:  %d\n", packetSize);
-	hexDump(NULL, &pingpacket, sizeof(pingpacket));
+	printf("NetBIOS size of packet:  %d\n", NetBIOSpacketSize);
+	hexDump(NULL, pingpacket, packetSize);
 
-	send(sock, (char*)pingpacket, sizeof(pingpacket), 0);
+	send(sock, (char*)pingpacket, packetSize, 0);
 	recv(sock, (char*)recvbuff, sizeof(recvbuff), 0);
 
 	free(pingpacket);
 
 	//process response here
-	SMB_TRANS2_RESPONSE *transaction_response = (SMB_TRANS2_RESPONSE*)recvbuff;
+	SMB_TRANS2_RESPONSE* transaction_response = (SMB_TRANS2_RESPONSE*)recvbuff;
 
 	//process the signature
 	unsigned int sig = LE2INT(transaction_response->signature);
