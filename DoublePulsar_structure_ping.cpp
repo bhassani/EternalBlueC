@@ -379,22 +379,31 @@ int main(int argc, char* argv[])
 	send(sock, (char*)pingpacket, total_packet_size, 0);
 	recv(sock, (char*)recvbuff, sizeof(recvbuff), 0);
 
-	unsigned char signature[6];
-	unsigned int sig;
-	//copy SMB signature from recvbuff to local buffer
-	signature[0] = recvbuff[18];
-	signature[1] = recvbuff[19];
-	signature[2] = recvbuff[20];
-	signature[3] = recvbuff[21];
-	signature[4] = recvbuff[22];
-	signature[5] = '\0';
+	if (recvbuff[34] = 0x51)
+	{
+		unsigned char signature[6];
+		unsigned int sig;
+		//copy SMB signature from recvbuff to local buffer
+		signature[0] = recvbuff[18];
+		signature[1] = recvbuff[19];
+		signature[2] = recvbuff[20];
+		signature[3] = recvbuff[21];
+		signature[4] = '\0';
+		
+		//used for architecture but not used at this time
+		//signature[4] = recvbuff[22];
+		//signature[5] = '\0';
 
-	//process the signature
-	sig = LE2INT(signature);
+		//process the signature
+		sig = LE2INT(signature);
 
-	//calculate the XOR key for DoublePulsar
-	unsigned int XorKey = ComputeDOUBLEPULSARXorKey(sig);
-	printf("Calculated XOR KEY:  0x%x\n", XorKey);
+		//calculate the XOR key for DoublePulsar
+		unsigned int XorKey = ComputeDOUBLEPULSARXorKey(sig);
+		printf("Calculated XOR KEY:  0x%x\n", XorKey);
+	}
+	else {
+		printf("Doublepulsar does not appear to be installed!\n");
+	}
 
 	closesocket(sock);
 	WSACleanup();
