@@ -279,10 +279,15 @@ int main(int argc, char* argv[])
 	recv(sock, (char*)recvbuff, sizeof(recvbuff), 0);
 
 	treeid = *(WORD*)(recvbuff + 0x1c);       //get treeid
-	TreeConnect_Response treeresponse;
-	memcpy(&treeresponse, recvbuff, sizeof(TreeConnect_Response));
+	
+	//TreeConnect_Response treeresponse;
+	//memcpy(&treeresponse, recvbuff, sizeof(TreeConnect_Response));
+	TreeConnect_Response treeresponse = (TreeConnect_Response*)recvbuff;
+	//Now treeresponse that maps to recvbuff, we can extract and use tree id & user ids
+	//treeresponse->treeid;
+	//treeresponse->userid;
 
-		//set SMB values
+	//set SMB values
 	int total_packet_size = 82;
 	SMB_DOUBLEPULSAR_PINGREQUEST* pingpacket = (SMB_DOUBLEPULSAR_PINGREQUEST*)malloc(total_packet_size);
 	pingpacket->SmbMessageType = 0; //0x0000;
@@ -300,6 +305,7 @@ int main(int argc, char* argv[])
 	pingpacket->flags = 0x18;
 	pingpacket->flags2 = 0xc007;
 	pingpacket->UserID = userid;  //works when we copy the recvbuff response to a WORD userid.
+	//pingpacket->UserID = treeresponse.userid;
 	//Treeresponse structure sucks and probably will be removed later.
 	/* BUG HERE: treeresponse.UserID comes back as corrupted for some reason
 	  this needs to be treeresponse.UserID;
