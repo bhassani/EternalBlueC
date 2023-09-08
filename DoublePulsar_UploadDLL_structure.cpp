@@ -1048,13 +1048,6 @@ int main(int argc, char* argv[])
 
 		//hexDump(0, SMBDATA->smbdata, 4096);
 
-
-		//encrypt the data with the XOR key
-		for (i = 0; i < 4096; i++)
-		{
-			SMBDATA->smbdata[i] ^= byte_xor_key[i % 4];
-		}
-
 		send(sock, (char*)big_packet, 4178, 0);
 		recv(sock, (char*)recvbuff, sizeof(recvbuff), 0);
 
