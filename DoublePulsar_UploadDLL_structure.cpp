@@ -1042,7 +1042,10 @@ int main(int argc, char* argv[])
 		trans2->parameterOffset = param_offset_len;
 		trans2->dataOffset = dataOffset_len;
 
-
+		//copy parameters to structure
+		memcpy(smb_params->parameters, Parametersbuffer, 12 );
+		
+		//copy SMB data to structure
 		memset(SMBDATA->smbdata, 0, 4096);
 		memcpy(SMBDATA->smbdata, pFULLBUFFER + ctx, 4096);
 
