@@ -917,6 +917,9 @@ int main(int argc, char* argv[])
 			trans2->parameterOffset = param_offset_len;
 			trans2->dataOffset = dataOffset_len;
 
+			//copy parameters to structure
+			memcpy(smb_params->parameters, Parametersbuffer, 12 );
+
 			//send the payload
 			send(sock, (char*)last_packet, size_last_packet, 0);
 			recv(sock, (char*)recvbuff, sizeof(recvbuff), 0);
