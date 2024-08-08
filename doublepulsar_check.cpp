@@ -91,6 +91,12 @@ int main(int argc, char** argv)
 		printf("%c", recvbuff[44 + r]);
 	}
 	printf("\n");
+    /*
+	printf("[*] Detecting remote OS: ");
+	for (i=0; i<12; i++) {
+		printf("%c", recvbuff[48+i*2]);
+	}
+    */
     
     memcpy(TreeConnect_AndX_Request + 0x20, (char*)&userid, 2); //update userid
 
