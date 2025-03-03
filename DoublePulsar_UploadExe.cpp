@@ -593,7 +593,7 @@ int main(int argc, char* argv[])
 
 	//unsigned int XorKey = 0x58581162;
 	unsigned char byte_xor_key[5];
-	byte_xor_key[0] = (unsigned char)XorKey;
+	byte_xor_key[0] = (unsigned char)XorKey & 0xFF;
 	byte_xor_key[1] = (unsigned char)(((unsigned int)XorKey >> 8) & 0xFF);
 	byte_xor_key[2] = (unsigned char)(((unsigned int)XorKey >> 16) & 0xFF);
 	byte_xor_key[3] = (unsigned char)(((unsigned int)XorKey >> 24) & 0xFF);
