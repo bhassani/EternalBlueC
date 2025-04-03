@@ -19,9 +19,7 @@ EternalBlue suite remade in C/C++ which includes:
 
 - Implement an interface application to interact with Doublepulsar such as Uploading shellcode or a DLL without crashing the target. 
 
-- Implement a scanner & detect/attack GUI in C#, C++ & Python3
-
-- Implement a scanner & detect/attack GUI in Go & Java
+- Implement a scanner & attack GUI in C#, C++, Java & Python3
 
 - Allow editing of EternalBlue exploit payload to remove DoublePulsar and allow custom payloads & shellcode to be sent instead.
 
