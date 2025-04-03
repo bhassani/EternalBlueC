@@ -5,17 +5,23 @@ EternalBlue suite remade in C/C++ which includes:
 - MS17-010 Exploit ( Contains DoublePulsar )
 - EternalBlue/MS17-010 vulnerability detector
 - DoublePulsar detector
-- DoublePulsar Upload DLL ( Hex )
-- Doublepulsar Upload Shellcode ( Hex )
-- Doublepulsar Upload Exe inside a DLL ( Hex / Wannacry style )
-- DoublePulsar Upload DLL with Structure 
-- Doublepulsar Upload Shellcode with Structure 
+- DoublePulsar Upload DLL ( Hex editing  )
+- Doublepulsar Upload Shellcode ( Hex editing )
+- Doublepulsar Upload Exe inside a DLL ( Wannacry style )
+- DoublePulsar Upload DLL with SMB Structure 
+- Doublepulsar Upload Shellcode with SMB Structure 
+
+## Project accomplishments
+- Upload Shellcode - completed and working
+- Upload DLL       - completed, functionality works but DLL does not run on target.  
 
 ## Project goals
 
+- Implement an interface application to interact with Doublepulsar such as Uploading shellcode or a DLL without crashing the target. 
+
 - Implement a scanner & detect/attack GUI in C#, C++ & Python3
 
-- Implement a scanner & detect/attack GUI in Rust & Go & Java
+- Implement a scanner & detect/attack GUI in Go & Java
 
 - Allow editing of EternalBlue exploit payload to remove DoublePulsar and allow custom payloads & shellcode to be sent instead.
 
@@ -23,9 +29,7 @@ EternalBlue suite remade in C/C++ which includes:
 
 ## Clarifications
 The EternalBlue / MS17-010 Exploit that will be included in this project installs DoublePulsar only<br />
-It does not run any custom payloads at this time. 
-
-As of now, it doesn't contain any other payloads besides installing the DoublePulsar implant. 
+As of now, it doesn't contain any other payloads besides installing the DoublePulsar implant, hopefully that will change when I have extra time.
 
 ## EternalBlue Suite
 
