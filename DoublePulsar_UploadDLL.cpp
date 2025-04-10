@@ -623,6 +623,17 @@ int main(int argc, char* argv[])
 			{
 				printf("Doublepulsar returned 82!\n");
 			}
+			
+			else if (recvbuff[34] = 0x62)
+			{
+				printf("Doublepulsar returned: Invalid parameters!\n");
+			}
+			
+			else if (recvbuff[34] = 0x72)
+			{
+				printf("Doublepulsar returned: Allocation failure!\n");
+			}
+				
 			else {
 				printf("Doublepulsar didn't work!\n");
 			}
