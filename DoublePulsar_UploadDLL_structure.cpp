@@ -928,7 +928,15 @@ int main(int argc, char* argv[])
 
 			if (transaction_response->multipleID = 0x52)
 			{
-				printf("Doublepulsar succeeded!\n");
+				printf("Doublepulsar returned: Success!\n");
+			}
+			else if (transaction_response->multipleID = 0x62)
+			{
+				printf("Doublepulsar returned: Invalid parameters!\n");
+			}
+			else if (transaction_response->multipleID = 0x72)
+			{
+				printf("Doublepulsar returned: Allocation failure!\n");
 			}
 			else {
 				printf("Doublepulsar execute command failed!\n");
@@ -942,7 +950,7 @@ int main(int argc, char* argv[])
 
 			if (recvbuff[34] = 0x52)
 			{
-				printf("Doublepulsar returned 82!\n");
+				printf("Doublepulsar returned: Success!\n");
 			}
 
 			else if (recvbuff[34] = 0x62)
@@ -1072,7 +1080,15 @@ int main(int argc, char* argv[])
 
 		if (transaction_response->multipleID = 0x52)
 		{
-			printf("Doublepulsar succeeded!\n");
+			printf("Doublepulsar returned: Success!\n");
+		}
+		if (transaction_response->multipleID = 0x62)
+		{
+			printf("Doublepulsar returned: Invalid parameters!\n");
+		}
+		if (transaction_response->multipleID = 0x72)
+		{
+			printf("Doublepulsar returned: Allocation failure!\n");
 		}
 		else {
 			printf("Doublepulsar execute command failed!\n");
@@ -1086,7 +1102,7 @@ int main(int argc, char* argv[])
 
 		if (recvbuff[34] = 0x52)
 		{
-			printf("Doublepulsar returned 82!\n");
+			printf("Doublepulsar returned: Success!\n");
 		}
 			
 		else if (recvbuff[34] = 0x62)
