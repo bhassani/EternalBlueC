@@ -894,7 +894,7 @@ int main(int argc, char* argv[])
 		
 		if (transaction_response->multipleID = 0x52)
 		{
-			printf("Doublepulsar succeeded!\n");
+			printf("Doublepulsar returned: Success!\n");
 		}
 		if (transaction_response->multipleID = 0x62)
 		{
