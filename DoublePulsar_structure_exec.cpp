@@ -710,7 +710,7 @@ int main(int argc, char* argv[])
 		hexDump(0, smb_params->parameters, 12);
 
 		unsigned char hMem[4096];
-		const char* proc_name = "LSASS.EXE"; 
+		const char* proc_name = "SPOOLSV.EXE"; 
 		uint32_t hash = generate_process_hash(proc_name);
 		printf("Process Hash for %s: 0x%08X\n", proc_name, hash);
 
