@@ -523,7 +523,7 @@ int main(int argc, char* argv[])
 	//DoublePulsar response: STATUS_NOT_IMPLEMENTED
 	if (recvbuff[9] == 0x02 && recvbuff[10] == 0x00 && recvbuff[11] == 0x00 && recvbuff[12] == 0xc0)
 	{
-		printf("All data sent and got good response from DoublePulsar!\n");
+		printf("DoublePulsar returned: 0xC0000002 - STATUS_NOT_IMPLEMENTED!\n");
 	}
 
 	if (recvbuff[34] = 0x52)
