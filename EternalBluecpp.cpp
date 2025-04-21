@@ -72,6 +72,15 @@ int main(int argc, char** argv)
 
 	send(s1, (char*)session_setup, sizeof(session_setup) - 1, 0);
 	recv(s1, (char*)recvbuff, sizeof(recvbuff), 0);
+
+	//output windows version to the screen
+	printf("Remote OS: ");
+	int r;
+	for (r = 0; r < 39; r++) {
+		printf("%c", recvbuff[44 + r]);
+	}
+	printf("\n");
+	
 	userid[0] = recvbuff[32];
 	userid[1] = recvbuff[33];
 
