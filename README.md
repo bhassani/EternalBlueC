@@ -12,8 +12,9 @@ EternalBlue suite remade in C/C++ which includes:
 - Doublepulsar Upload Shellcode with SMB Structure 
 
 ## Project accomplishments
-- Upload Shellcode - completed and working
-- Upload DLL       - completed, functionality works but DLL does not run on target.  
+- Upload Shellcode - completed and working, inject your shellcode into any process you desire
+- Upload DLL       - completed, functionality works but DLL runs only in the context of LSASS
+- Upload DLL with an embedded exe ( Wannacry method ) - completed, functionality works but DLL runs only in the context of LSASS and drops the executable as "mssecsvc.exe"
 
 ## Project goals
 
