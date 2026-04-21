@@ -555,7 +555,7 @@ int main(int argc, char* argv[])
 	int size_normal_packet = 4096 + 12 + 70;
 
 	unsigned char* last_packet = (unsigned char*)malloc(remainder + 12 + 70);
-	int size_last_packet = iterations + 12 + 70;
+	int size_last_packet = remainder + 12 + 70;
 
 	for (ctx = 0; ctx < payload_totalsize;)
 	{
