@@ -17,15 +17,16 @@ EternalBlue suite remade in C/C++ which includes:
 - Upload DLL with an embedded exe ( Wannacry method ) - completed, functionality works but DLL runs only in the context of LSASS and drops the executable as "mssecsvc.exe"
 
 ## Project goals
-
+- Allow the DoublePulsar negotiation, session setup, tree connect, TransNamedPipe and Transaction2 packets to be dynamically generated with SMB structures and not hexadecimal
 - Allow editing of EternalBlue exploit payload to remove DoublePulsar implant and allow custom shellcodes to be sent instead.
+- Allow EternalBlue packets to be dynamically generated
+- Request user input for all IP addresses, payloads such as shellcode or filepaths & authorization to continue
+- Be more verbose
+- Add Windows version from SMB response to the screen
+- Add command line parameters support (DoublepulsarExecute.exe -h 192.168.0.8 -f PopCalculatorShellcode.bin )
+- Add more error checking such as socket timeout
 
-## Clarifications
-The EternalBlue / MS17-010 Exploit that will be included in this project installs DoublePulsar only<br />
-As of now, it doesn't contain any other payloads besides installing the DoublePulsar implant, hopefully that will change in a future release.
-
-## EternalBlue Suite
-
+## EternalBlue and DoublePulsar Suite
 * **ms17_vuln_status.cpp** - This program sends 4 SMB packets.  1 negotiation, 1 session setup, 1 tree connect and 1 TransNamedPipe request.  This program then reads the NT_STATUS response from the TransNamedPipeRequest ( PeekNamedPipe request ) and determines if NT_STATUS in the SMB packet = 0xC0000205 ( STATUS_INSUFF_SERVER_RESOURCES ).  If this is correct, then the target is vulnerable to MS17-010.  Tested on unpatched Windows 7 x64 bit.
 
 ![ms17vulnstatus](/images/ms17vulnstatus.PNG)
