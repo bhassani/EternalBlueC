@@ -58,8 +58,7 @@ This program is intended for DLLs.  This program sends 4 SMB packets along with 
 
 ![UploadShellcode](/images/DOPU-UploadShellcode.jpg)
 
-**Shellcode generated from**
-Shellcode generated from:
+* **Shellcode generated from** - Shellcode generated from:
 https://www.rapid7.com/blog/post/2019/10/02/open-source-command-and-control-of-the-doublepulsar-implant/ <br />
 zerosum0x0 wrote custom shellcode for ETERNALBLUE that could be repurposed for DOUBLEPULSAR, albeit with a small modification. Since the syscall overwrite in the copied shellcode was unnecessary for this use case, we undefined it: <br />
 ;%define SYSCALL_OVERWRITE             ; to run at process IRQL in syscall <br />
