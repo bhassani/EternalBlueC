@@ -58,14 +58,13 @@ This program is intended for DLLs.  This program sends 4 SMB packets along with 
 
 ![UploadShellcode](/images/DOPU-UploadShellcode.jpg)
 
-* **Shellcode generated from** - Shellcode generated from:
-https://www.rapid7.com/blog/post/2019/10/02/open-source-command-and-control-of-the-doublepulsar-implant/ <br />
-zerosum0x0 wrote custom shellcode for ETERNALBLUE that could be repurposed for DOUBLEPULSAR, albeit with a small modification. Since the syscall overwrite in the copied shellcode was unnecessary for this use case, we undefined it: <br />
+* **Shellcode generated from** - zerosum0x0 wrote custom shellcode for ETERNALBLUE that could be repurposed for DOUBLEPULSAR, albeit with a small modification. Since the syscall overwrite in the copied shellcode was unnecessary for this use case, we undefined it: <br />
 ;%define SYSCALL_OVERWRITE             ; to run at process IRQL in syscall <br />
 recompile with: nasm -w-other -o >(xxd -p -c 16 | sed 's/../\\x&/g') external/source/shellcode/windows/multi_arch_kernel_queue_apc.asm <br />
 https://github.com/rapid7/metasploit-framework/blob/master/external/source/shellcode/windows/multi_arch_kernel_queue_apc.asm <br />
 https://raw.githubusercontent.com/ninp0/eternalblue/master/eternalblue_kshellcode_x64.asm <br />
 https://raw.githubusercontent.com/ninp0/eternalblue/master/eternalblue_kshellcode_x86.asm <br />
+https://www.rapid7.com/blog/post/2019/10/02/open-source-command-and-control-of-the-doublepulsar-implant/ <br />
 
 
 * **DoublePulsar_UploadExe.cpp** - 
