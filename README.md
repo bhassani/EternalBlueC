@@ -13,8 +13,8 @@ EternalBlue suite remade in C/C++ which includes:
 
 ## Project accomplishments
 - Upload Shellcode - completed and working, inject your shellcode into any process you desire
-- Upload DLL       - completed, functionality works but DLL runs only in the context of LSASS ( customization in next release )
-- Upload DLL with an embedded exe ( Wannacry method ) - completed, functionality works but DLL runs only in the context of LSASS and drops the executable as "mssecsvc.exe"
+- Upload DLL       - completed and working, inject your DLL into any process you desire
+- Upload DLL with an embedded exe ( Wannacry method ) - completed, inject your DLL into any process you desire and drops the executable as "mssecsvc.exe"
 
 ## Project goals
 - Allow the DoublePulsar negotiation, session setup, tree connect, TransNamedPipe and Transaction2 packets to be dynamically generated with SMB structures and not hexadecimal
