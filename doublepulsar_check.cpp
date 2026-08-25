@@ -71,7 +71,7 @@ int main(int argc, char** argv)
     send(sock, (char*)SmbNegociate, sizeof(SmbNegociate) - 1, 0);
     recv(sock, (char*)recvbuff, sizeof(recvbuff), 0);
 
-    //send Session Setup AndX request
+    //send SMB Session Setup AndX request
     printf("sending Session_Setup_AndX_Request!\n");
     ret = send(sock, (char*)Session_Setup_AndX_Request, sizeof(Session_Setup_AndX_Request) - 1, 0);
     if (ret <= 0)
@@ -82,7 +82,7 @@ int main(int argc, char** argv)
     recv(sock, (char*)recvbuff, sizeof(recvbuff), 0);
     
     //copy our returned userID value from the previous packet to the TreeConnect request packet
-    userid = *(WORD*)(recvbuff + 0x20);       //get userid
+    userid = *(WORD*)(recvbuff + 0x20);
     
     //output windows version to the screen
 	printf("Remote OS: ");
@@ -97,10 +97,11 @@ int main(int argc, char** argv)
 		printf("%c", recvbuff[48+i*2]);
 	}
     */
-    
-    memcpy(TreeConnect_AndX_Request + 0x20, (char*)&userid, 2); //update userid
 
-    //send TreeConnect request packet
+	//update the userid in the SMB treeconnnect packet 
+    memcpy(TreeConnect_AndX_Request + 0x20, (char*)&userid, 2); 
+
+    //send SMB TreeConnect request packet
     printf("sending TreeConnect Request!\n");
     ret = send(sock, (char*)TreeConnect_AndX_Request, sizeof(TreeConnect_AndX_Request) - 1, 0);
     if (ret <= 0)
@@ -133,17 +134,17 @@ int main(int argc, char** argv)
         printf("Received data that DoublePulsar is installed!\n");
         printf("Burning DoublePulsar...\n");
         WORD burn1, burn2, burn3, burn4, burn5;
-        //burn1 = multiplex ID of 66 in decimal or x42 in hex
-        //if successful.  x52 is returned which means the payload ran succesfully!
-        burn1 = 66;       //update multiplex ID to x42
-        //modified_trans2_session_setup[34] = "\x42"
+    
+		//Setting burn1 to 66 at offset: 0x22 in the SMB packet will update the multiplex ID to 0x42 or 66 in decimal
+        burn1 = 66;  //modified_trans2_session_setup[34] = "\x42"
+
         //burn command being sent in the timeout portion of the packet
         burn2 = 14;       //burn command - trans2_session_setup[49] = "\x0e"
         burn3 = 105;      //burn command - trans2_session_setup[50] = "\x69"
         burn4 = 0;        //burn command - trans2_session_setup[51] = "\x00"
         burn5 = 0;        //burn command - trans2_session_setup[52] = "\x00"
 
-        //modify our trans2 session packet to include the burn command
+        //modify our trans2 session packet to include the burn commands
         memcpy(trans2_session_setup + 0x22, (char*)&burn1, 1);
         memcpy(trans2_session_setup + 0x31, (char*)&burn2, 1);
         memcpy(trans2_session_setup + 0x32, (char*)&burn3, 1);
@@ -152,6 +153,8 @@ int main(int argc, char** argv)
 
         send(sock, (char*)trans2_session_setup, sizeof(trans2_session_setup) - 1, 0);
         recv(sock, (char*)uninstall_response, 2048, 0);
+
+		//if the returned multiplex ID is 0x52, which is +0x10 from our command, this means the command ran successfully
         if (uninstall_response[34] == 0x52) {
             printf("DOUBLEPULSAR uninstall SUCCESSFUL!\n");
         }
