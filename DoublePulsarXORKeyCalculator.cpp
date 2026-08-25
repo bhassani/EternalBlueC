@@ -113,7 +113,7 @@ int main(int argc, char* argv[])
 	send(sock, (char*)SmbNegociate, sizeof(SmbNegociate) - 1, 0);
 	recv(sock, (char*)recvbuff, sizeof(recvbuff), 0);
 
-	//send Session Setup AndX request
+	//send SMB Session Setup AndX request
 	printf("sending Session_Setup_AndX_Request!\n");
 	ret = send(sock, (char*)Session_Setup_AndX_Request, sizeof(Session_Setup_AndX_Request) - 1, 0);
 	recv(sock, (char*)recvbuff, sizeof(recvbuff), 0);
@@ -129,8 +129,10 @@ int main(int argc, char* argv[])
 	}
 	printf("\n");
 
-	//Generates a dynamic TreeConnect request with the correct IP address
-	//rather than the hard coded one embedded in the TreeConnect string
+	/*
+	Generates a dynamic TreeConnect request with the correct IP address
+	rather than a hard coded IP address like the one embedded in the Wannacry TreeConnect packet
+	*/ 
 	unsigned char packet[4096];
 	unsigned char* ptr;
 	unsigned char tmp[1024];
@@ -138,7 +140,7 @@ int main(int argc, char* argv[])
 	ptr = packet;
 	memcpy(ptr, SMB_TreeConnectAndX, sizeof(SMB_TreeConnectAndX) - 1);
 	ptr += sizeof(SMB_TreeConnectAndX) - 1;
-	sprintf((char*)tmp, "\\\\%s\\IPC$", "192.168.0.9");
+	sprintf((char*)tmp, "\\\\%s\\IPC$", argv[1]);
 	convert_name((char*)ptr, (char*)tmp);
 	smblen = strlen((char*)tmp) * 2;
 	ptr += smblen;
@@ -160,15 +162,15 @@ int main(int argc, char* argv[])
 	//copy the treeID from the TreeConnect response
 	treeid = *(WORD*)(recvbuff + 0x1c);       //get treeid
 
-	memcpy(trans2_session_setup + 0x20, (char*)&userid, 2);  //update userid
-	memcpy(trans2_session_setup + 0x1c, (char*)&treeid, 2);  //update treeid
+	//update userid and treeID in the SMB trans2 session setup packet
+	memcpy(trans2_session_setup + 0x20, (char*)&userid, 2);  
+	memcpy(trans2_session_setup + 0x1c, (char*)&treeid, 2);  
 
-	//if DoublePulsar is enabled, the multiplex ID is incremented by 10
-	//will return x52 or 82
+	//if DoublePulsar is enabled, the multiplex ID is incremented by 10 and will return x52 or 82
 	send(sock, (char*)trans2_session_setup, sizeof(trans2_session_setup) - 1, 0);
 	recv(sock, (char*)recvbuff, sizeof(recvbuff), 0);
 
-	//if multiplex id = x51 or 81 then DoublePulsar is present
+	//if the multiplex id in the response equals x51 or 81 then DoublePulsar is present
 	if (recvbuff[34] == 0x51)
 	{
 		printf("DOUBLEPULSAR SMB IMPLANT DETECTED!!!\n");
