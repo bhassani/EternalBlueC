@@ -601,15 +601,12 @@ int main(int argc, char* argv[])
 	unsigned int OffsetofChunkinPayload = 0x0000;
 	int ctx;
 
-	//unsigned short smblen;
 	unsigned short smb_htons_len;
 
 	unsigned short TotalDataCount = 4096;
 	unsigned short DataCount = 4096;
 	unsigned short byteCount = 4096 + 12;
 
-	//unsigned char SMBDATA[4096];
-	//memset(SMBDATA, 0x00, 4096);
 	unsigned char* big_packet = (unsigned char*)malloc(4096 + 12 + 70);
 	int size_normal_packet = 4096 + 12 + 70;
 
