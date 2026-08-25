@@ -89,7 +89,7 @@ int main(int argc, char** argv)
     userid[0] = recvbuff[32];
     userid[1] = recvbuff[33];
     
-    //update userID in the tree connect request
+    //update userID in the smb treeconnect request
     treeConnectRequest[32] = userid[0];
     treeConnectRequest[33] = userid[1];
 
@@ -106,6 +106,7 @@ int main(int argc, char** argv)
     //copy treeID from recvbuff @ 28, 29
     treeid[0] = recvbuff[28];
     treeid[1] = recvbuff[29];
+	
     //update treeid & userid in the transNamedPipe Request
     transNamedPipeRequest[28] = treeid[0];
     transNamedPipeRequest[29] = treeid[1];
